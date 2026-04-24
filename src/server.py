@@ -1,6 +1,7 @@
 """COMSOL MCP Server - Main entry point."""
 
 import logging
+import sys
 from mcp.server.fastmcp import FastMCP
 
 from .tools.session import register_session_tools
@@ -15,10 +16,10 @@ from .resources.model_resources import register_model_resources
 from .knowledge.embedded import register_knowledge_tools
 from .knowledge.kb_tools import register_kb_tools as register_kb61_tools
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("COMSOL MCP")
+mcp = FastMCP("COMSOL MCP", host="127.0.0.1", port=8765)
 
 
 def register_all_tools() -> None:
@@ -49,7 +50,7 @@ def main() -> None:
     register_all_tools()
     register_all_resources()
     
-    mcp.run()
+    mcp.run(transport="streamable-http")
 
 
 if __name__ == "__main__":
