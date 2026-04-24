@@ -50,6 +50,135 @@ PHYSICS_INTERFACES = {
 }
 
 
+# Maps user-facing physics_type -> (java_type_name, default_tag).
+# Accepts the canonical Java type name (e.g. "HeatTransfer"), the
+# short tag (e.g. "ht"), and the snake_case key used by
+# PHYSICS_INTERFACES / physics_get_available (e.g. "heat_transfer").
+# Step 6b: introduced so physics_get_available output can be fed
+# directly into physics_add without extra translation.
+PHYSICS_TYPE_ALIASES: dict[str, tuple[str, str]] = {
+    # Electrostatics
+    "es": ("Electrostatics", "es"),
+    "electrostatic": ("Electrostatics", "es"),
+    "electrostatics": ("Electrostatics", "es"),
+    "Electrostatics": ("Electrostatics", "es"),
+    # Electric Currents
+    "ec": ("ElectricCurrents", "ec"),
+    "electric_currents": ("ElectricCurrents", "ec"),
+    "ElectricCurrents": ("ElectricCurrents", "ec"),
+    # Magnetic Fields
+    "mf": ("MagneticFields", "mf"),
+    "magnetic_fields": ("MagneticFields", "mf"),
+    "MagneticFields": ("MagneticFields", "mf"),
+    # Solid Mechanics
+    "solid": ("SolidMechanics", "solid"),
+    "solid_mechanics": ("SolidMechanics", "solid"),
+    "SolidMechanics": ("SolidMechanics", "solid"),
+    # Heat Transfer
+    "ht": ("HeatTransfer", "ht"),
+    "heat_transfer": ("HeatTransfer", "ht"),
+    "HeatTransfer": ("HeatTransfer", "ht"),
+    # Laminar Flow
+    "spf": ("LaminarFlow", "spf"),
+    "laminar_flow": ("LaminarFlow", "spf"),
+    "LaminarFlow": ("LaminarFlow", "spf"),
+}
+
+
+def _resolve_physics_type(physics_type: str) -> tuple[Optional[str], Optional[str]]:
+    """Return (java_type_name, default_tag) for a user-facing physics
+    type string, or (None, None) if unknown."""
+    return PHYSICS_TYPE_ALIASES.get(physics_type, (None, None))
+
+
+def _get_comp_and_geom_tag(model, component_name: Optional[str] = None):
+    """Resolve the target Java component + first geometry tag.
+
+    Returns (comp_java, geom_tag, error_str). On error, comp/tag
+    are None and error_str describes the failure.
+    """
+    try:
+        jm = model.java
+        if component_name:
+            comp = jm.component(component_name)
+            if comp is None:
+                return None, None, (
+                    f"Component '{component_name}' not found. "
+                    "Create it with model_create_component first."
+                )
+        else:
+            comps = list(jm.component())
+            if not comps:
+                return None, None, (
+                    "No components in model. Create one with "
+                    "model_create_component first."
+                )
+            comp = comps[0]
+        geom_tags = [str(g.tag()) for g in comp.geom()]
+        if not geom_tags:
+            return comp, None, (
+                "No geometry in component. Create one with "
+                "geometry_create first."
+            )
+        return comp, geom_tags[0], None
+    except Exception as e:
+        return None, None, f"{type(e).__name__}: {e}"
+
+
+def _add_physics_interface(
+    model,
+    physics_type: str,
+    component_name: Optional[str],
+    explicit_tag: Optional[str] = None,
+    geometry_tag: Optional[str] = None,
+) -> dict:
+    """Internal: create a physics interface via the Java API.
+
+    Implements the canonical
+        ``comp.physics().create(tag, type, geom_tag)``
+    pattern. Returns the standard {"success": ..., ...} dict shape
+    used by the public MCP tools.
+    """
+    type_name, default_tag = _resolve_physics_type(physics_type)
+    if type_name is None:
+        return {
+            "success": False,
+            "error": (
+                f"Unknown physics type '{physics_type}'. Known: "
+                f"{sorted(set(PHYSICS_TYPE_ALIASES))}"
+            ),
+        }
+
+    comp, geom_tag, err = _get_comp_and_geom_tag(model, component_name)
+    if err:
+        return {"success": False, "error": err}
+    if geometry_tag:
+        geom_tag = geometry_tag
+    use_tag = explicit_tag or default_tag
+
+    try:
+        phys = comp.physics().create(use_tag, type_name, geom_tag)
+        try:
+            label = str(phys.label())
+        except Exception:
+            label = use_tag
+        return {
+            "success": True,
+            "physics": {
+                "name": label,
+                "type": type_name,
+                "tag": use_tag,
+                "component": str(comp.tag()),
+                "geometry": geom_tag,
+            },
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to add physics: {type(e).__name__}: {e}",
+        }
+
+
 def register_physics_tools(mcp: FastMCP) -> None:
     """Register physics tools with the MCP server."""
     
@@ -103,23 +232,28 @@ def register_physics_tools(mcp: FastMCP) -> None:
     def physics_add(
         physics_type: str,
         component_name: Optional[str] = None,
+        geometry_tag: Optional[str] = None,
+        tag: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
         Add a physics interface to the model.
-        
-        Common physics types:
-        - "Electrostatics" or "es": Electrostatic field analysis
-        - "ElectricCurrents" or "ec": Electric current conduction
-        - "SolidMechanics" or "solid": Structural stress analysis
-        - "HeatTransfer" or "ht": Heat transfer in solids
-        - "LaminarFlow" or "spf": Fluid dynamics
-        
+
+        Accepts the canonical Java type ("HeatTransfer"), the short
+        tag ("ht"), or the snake_case key from physics_get_available
+        ("heat_transfer"). All three resolve to the same interface.
+
         Args:
-            physics_type: Type identifier (e.g., "Electrostatics", "es")
-            component_name: Component to add physics to (default: first component)
+            physics_type: Type identifier (e.g. "HeatTransfer", "ht",
+                "heat_transfer")
+            component_name: Component to add physics to
+                (default: first component)
+            geometry_tag: Geometry sequence tag to bind the physics to
+                (default: first geometry in the component)
+            tag: Override the default tag for the new physics node
+                (default: type-specific, e.g. "ht" for HeatTransfer)
             model_name: Model name (default: current model)
-        
+
         Returns:
             Created physics interface info
         """
@@ -129,39 +263,26 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
-        try:
-            components = model.components()
-            if not components:
-                component_name = None
-            elif component_name is None:
-                component_name = components[0]
-            
-            physics_node = model.create("physics", physics_type)
-            
-            return {
-                "success": True,
-                "physics": {
-                    "name": physics_node.name() if hasattr(physics_node, 'name') else physics_type,
-                    "type": physics_type,
-                    "component": component_name,
-                }
-            }
-        except Exception as e:
-            return {"success": False, "error": f"Failed to add physics: {str(e)}"}
+        return _add_physics_interface(
+            model, physics_type, component_name,
+            explicit_tag=tag, geometry_tag=geometry_tag,
+        )
     
     @mcp.tool()
     def physics_add_electrostatics(
         domain_selection: Optional[str] = None,
+        component_name: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
         Add Electrostatics physics interface for electric field analysis.
-        
+
         Args:
-            domain_selection: Selection name for domains (default: all domains)
+            domain_selection: Reserved (selection scoping not yet wired)
+            component_name: Component to add physics to
+                (default: first component)
             model_name: Model name (default: current model)
-        
+
         Returns:
             Created physics info
         """
@@ -171,40 +292,25 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
-        try:
-            physics_node = model.create("physics", "Electrostatics")
-            
-            if domain_selection:
-                try:
-                    physics_node.property("selection", domain_selection)
-                except Exception:
-                    pass
-            
-            return {
-                "success": True,
-                "physics": {
-                    "name": physics_node.name() if hasattr(physics_node, 'name') else "Electrostatics",
-                    "type": "Electrostatics",
-                    "tag": "es",
-                    "domain_selection": domain_selection,
-                }
-            }
-        except Exception as e:
-            return {"success": False, "error": f"Failed to add Electrostatics: {str(e)}"}
+        return _add_physics_interface(
+            model, "Electrostatics", component_name,
+        )
     
     @mcp.tool()
     def physics_add_solid_mechanics(
         domain_selection: Optional[str] = None,
+        component_name: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
         Add Solid Mechanics physics for structural analysis.
-        
+
         Args:
-            domain_selection: Selection name for domains (default: all domains)
+            domain_selection: Reserved (selection scoping not yet wired)
+            component_name: Component to add physics to
+                (default: first component)
             model_name: Model name (default: current model)
-        
+
         Returns:
             Created physics info
         """
@@ -214,40 +320,25 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
-        try:
-            physics_node = model.create("physics", "SolidMechanics")
-            
-            if domain_selection:
-                try:
-                    physics_node.property("selection", domain_selection)
-                except Exception:
-                    pass
-            
-            return {
-                "success": True,
-                "physics": {
-                    "name": physics_node.name() if hasattr(physics_node, 'name') else "Solid Mechanics",
-                    "type": "SolidMechanics",
-                    "tag": "solid",
-                    "domain_selection": domain_selection,
-                }
-            }
-        except Exception as e:
-            return {"success": False, "error": f"Failed to add Solid Mechanics: {str(e)}"}
+        return _add_physics_interface(
+            model, "SolidMechanics", component_name,
+        )
     
     @mcp.tool()
     def physics_add_heat_transfer(
         domain_selection: Optional[str] = None,
+        component_name: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
         Add Heat Transfer physics for thermal analysis.
-        
+
         Args:
-            domain_selection: Selection name for domains (default: all domains)
+            domain_selection: Reserved (selection scoping not yet wired)
+            component_name: Component to add physics to
+                (default: first component)
             model_name: Model name (default: current model)
-        
+
         Returns:
             Created physics info
         """
@@ -257,40 +348,25 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
-        try:
-            physics_node = model.create("physics", "HeatTransfer")
-            
-            if domain_selection:
-                try:
-                    physics_node.property("selection", domain_selection)
-                except Exception:
-                    pass
-            
-            return {
-                "success": True,
-                "physics": {
-                    "name": physics_node.name() if hasattr(physics_node, 'name') else "Heat Transfer",
-                    "type": "HeatTransfer",
-                    "tag": "ht",
-                    "domain_selection": domain_selection,
-                }
-            }
-        except Exception as e:
-            return {"success": False, "error": f"Failed to add Heat Transfer: {str(e)}"}
+        return _add_physics_interface(
+            model, "HeatTransfer", component_name,
+        )
     
     @mcp.tool()
     def physics_add_laminar_flow(
         domain_selection: Optional[str] = None,
+        component_name: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
         Add Laminar Flow physics for fluid dynamics.
-        
+
         Args:
-            domain_selection: Selection name for domains (default: all domains)
+            domain_selection: Reserved (selection scoping not yet wired)
+            component_name: Component to add physics to
+                (default: first component)
             model_name: Model name (default: current model)
-        
+
         Returns:
             Created physics info
         """
@@ -300,27 +376,9 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
-        try:
-            physics_node = model.create("physics", "LaminarFlow")
-            
-            if domain_selection:
-                try:
-                    physics_node.property("selection", domain_selection)
-                except Exception:
-                    pass
-            
-            return {
-                "success": True,
-                "physics": {
-                    "name": physics_node.name() if hasattr(physics_node, 'name') else "Laminar Flow",
-                    "type": "LaminarFlow",
-                    "tag": "spf",
-                    "domain_selection": domain_selection,
-                }
-            }
-        except Exception as e:
-            return {"success": False, "error": f"Failed to add Laminar Flow: {str(e)}"}
+        return _add_physics_interface(
+            model, "LaminarFlow", component_name,
+        )
     
     @mcp.tool()
     def physics_configure_boundary(
@@ -445,22 +503,30 @@ def register_physics_tools(mcp: FastMCP) -> None:
     def multiphysics_add(
         coupling_type: str,
         physics_list: Sequence[str],
+        component_name: Optional[str] = None,
+        tag: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
         Add a multiphysics coupling between physics interfaces.
-        
+
         Common coupling types:
         - "ThermalStress": Couples Heat Transfer and Solid Mechanics
         - "FluidStructureInteraction": Couples Fluid Flow and Solid Mechanics
         - "ElectromechanicalForces": Couples Electrostatics and Solid Mechanics
         - "JouleHeating": Couples Electric Currents and Heat Transfer
-        
+
         Args:
             coupling_type: Type of multiphysics coupling
-            physics_list: Names of physics interfaces to couple
+                (Java type name, e.g. "ThermalStress")
+            physics_list: Tags of physics interfaces to couple
+                (informational; actual binding by COMSOL on first build)
+            component_name: Component to add coupling to
+                (default: first component)
+            tag: Override the coupling node tag
+                (default: lowercase coupling_type)
             model_name: Model name (default: current model)
-        
+
         Returns:
             Created coupling info
         """
@@ -470,20 +536,36 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
+        comp, geom_tag, err = _get_comp_and_geom_tag(model, component_name)
+        if err:
+            return {"success": False, "error": err}
+
+        use_tag = tag or coupling_type.lower()
         try:
-            coupling_node = model.create("multiphysics", coupling_type)
-            
+            coupling = comp.multiphysics().create(use_tag, coupling_type, geom_tag)
+            try:
+                label = str(coupling.label())
+            except Exception:
+                label = use_tag
             return {
                 "success": True,
                 "coupling": {
-                    "name": coupling_node.name() if hasattr(coupling_node, 'name') else coupling_type,
+                    "name": label,
                     "type": coupling_type,
+                    "tag": use_tag,
+                    "component": str(comp.tag()),
+                    "geometry": geom_tag,
                     "physics": list(physics_list),
-                }
+                },
             }
         except Exception as e:
-            return {"success": False, "error": f"Failed to add multiphysics: {str(e)}"}
+            return {
+                "success": False,
+                "error": (
+                    f"Failed to add multiphysics: {type(e).__name__}: {e}"
+                ),
+            }
     
     @mcp.tool()
     def physics_list_features(
@@ -576,14 +658,14 @@ def register_physics_tools(mcp: FastMCP) -> None:
     ) -> dict:
         """
         Get all boundaries from a geometry with their properties.
-        
+
         Use this to identify which boundary numbers correspond to which faces
         before setting boundary conditions.
-        
+
         Args:
             geometry_name: Geometry sequence name (default: first geometry)
             model_name: Model name (default: current model)
-        
+
         Returns:
             List of boundaries with their numbers and areas
         """
@@ -593,32 +675,32 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
             geometries = model.geometries()
             if not geometries:
                 return {"success": False, "error": "No geometries found"}
-            
+
             target_geom = geometry_name or geometries[0]
             jm = model.java
-            
+
             # Get component
             comp = None
             for c in jm.component():
                 if target_geom in [g.tag() for g in c.geom()]:
                     comp = c
                     break
-            
+
             if comp is None:
                 return {"success": False, "error": "Geometry not found in components"}
-            
+
             geom = comp.geom(target_geom)
             geom.run()
-            
+
             # Get geometry info
             info = geom.info()
             boundaries = []
-            
+
             for i in range(1, info.nboundary + 1):
                 try:
                     # Get boundary entities
@@ -628,7 +710,7 @@ def register_physics_tools(mcp: FastMCP) -> None:
                     boundaries.append(bd_info)
                 except Exception:
                     boundaries.append({"boundary_number": i, "error": "Could not get info"})
-            
+
             return {
                 "success": True,
                 "geometry": target_geom,
