@@ -13,6 +13,7 @@ from .tools.study import register_study_tools
 from .tools.results import register_results_tools
 from .resources.model_resources import register_model_resources
 from .knowledge.embedded import register_knowledge_tools
+from .knowledge.kb_tools import register_kb_tools as register_kb61_tools
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,6 +32,7 @@ def register_all_tools() -> None:
     register_study_tools(mcp)
     register_results_tools(mcp)
     register_knowledge_tools(mcp)
+    register_kb61_tools(mcp)
     logger.info("Registered all tools")
 
 
