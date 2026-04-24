@@ -651,24 +651,16 @@ def register_physics_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return {"success": False, "error": f"Failed to remove physics: {str(e)}"}
     
-    @mcp.tool()
+    # NOTE: the public MCP tool ``geometry_get_boundaries`` is now registered
+    # from tools/geometry.py against the Java getNBoundaries/getNDomains API.
+    # The closure below is kept only because
+    # ``physics_interactive_setup_flow`` and ``physics_interactive_setup_heat``
+    # call it by name. It mirrors the geometry.py implementation.
     def geometry_get_boundaries(
         geometry_name: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
-        """
-        Get all boundaries from a geometry with their properties.
-
-        Use this to identify which boundary numbers correspond to which faces
-        before setting boundary conditions.
-
-        Args:
-            geometry_name: Geometry sequence name (default: first geometry)
-            model_name: Model name (default: current model)
-
-        Returns:
-            List of boundaries with their numbers and areas
-        """
+        """Internal helper: boundary/domain counts via getNBoundaries/getNDomains."""
         model = session_manager.get_model(model_name)
         if model is None:
             return {
@@ -677,50 +669,77 @@ def register_physics_tools(mcp: FastMCP) -> None:
             }
 
         try:
-            geometries = model.geometries()
-            if not geometries:
-                return {"success": False, "error": "No geometries found"}
-
-            target_geom = geometry_name or geometries[0]
             jm = model.java
+            target = geometry_name
 
-            # Get component
             comp = None
-            for c in jm.component():
-                if target_geom in [g.tag() for g in c.geom()]:
-                    comp = c
-                    break
-
-            if comp is None:
-                return {"success": False, "error": "Geometry not found in components"}
-
-            geom = comp.geom(target_geom)
-            geom.run()
-
-            # Get geometry info
-            info = geom.info()
-            boundaries = []
-
-            for i in range(1, info.nboundary + 1):
+            geom = None
+            for c in list(jm.component()):
                 try:
-                    # Get boundary entities
-                    bd_info = {
-                        "boundary_number": i,
-                    }
-                    boundaries.append(bd_info)
+                    geoms_in_c = list(c.geom())
                 except Exception:
-                    boundaries.append({"boundary_number": i, "error": "Could not get info"})
+                    continue
+                if target:
+                    for g in geoms_in_c:
+                        try:
+                            if str(g.tag()) == target or (
+                                hasattr(g, "label") and str(g.label()) == target
+                            ):
+                                comp = c
+                                geom = g
+                                break
+                        except Exception:
+                            continue
+                    if geom is not None:
+                        break
+                else:
+                    if geoms_in_c:
+                        comp = c
+                        geom = geoms_in_c[0]
+                        break
+
+            if geom is None:
+                return {
+                    "success": False,
+                    "error": (
+                        f"Geometry '{target}' not found in any component."
+                        if target else "No geometry sequences found."
+                    ),
+                }
+
+            try:
+                geom.run()
+            except Exception as run_e:
+                return {
+                    "success": False,
+                    "error": f"Geometry build failed: {type(run_e).__name__}: {run_e}",
+                }
+
+            try:
+                n_boundaries = int(geom.getNBoundaries())
+            except Exception as be:
+                return {
+                    "success": False,
+                    "error": f"getNBoundaries failed: {type(be).__name__}: {be}",
+                }
+            try:
+                n_domains = int(geom.getNDomains())
+            except Exception:
+                n_domains = None
+
+            boundaries = [{"boundary_number": i} for i in range(1, n_boundaries + 1)]
 
             return {
                 "success": True,
-                "geometry": target_geom,
-                "total_boundaries": info.nboundary,
-                "total_domains": info.ndomain,
+                "geometry": str(geom.tag()),
+                "component": str(comp.tag()) if comp is not None else None,
+                "total_boundaries": n_boundaries,
+                "total_domains": n_domains,
                 "boundaries": boundaries,
                 "hint": "Use boundary_number to set boundary conditions with physics_configure_boundary",
             }
         except Exception as e:
-            return {"success": False, "error": f"Failed to get boundaries: {str(e)}"}
+            return {"success": False, "error": f"Failed to get boundaries: {type(e).__name__}: {e}"}
     
     @mcp.tool()
     def physics_interactive_setup_flow(
