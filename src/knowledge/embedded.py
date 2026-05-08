@@ -6,6 +6,63 @@ from mcp.server.fastmcp import FastMCP
 
 KNOWLEDGE_DIR = Path(__file__).parent / "prompts"
 
+
+# ---------------------------------------------------------------------------
+# kb_followup — cross-MCP routing hints from advisory tools to comsol61-kb.
+# Spec: plans/comsol_kb_integration_spec.md §3.
+#
+# Each advisory tool's success response carries a `kb_followup: list[dict]`
+# field. Each entry is {purpose, tool, args_template, expected}, where
+# `tool` names a comsol61-kb tool (kb_semantic_search, kb_search_examples,
+# kb_get_module_overview, kb_get_example_detail).
+# ---------------------------------------------------------------------------
+
+# physics_type → KB module (kb_semantic_search's `module` filter).
+_PHYSICS_TO_KB_MODULE = {
+    "electrostatics":  "ACDC_Module",
+    "heat_transfer":   "Heat_Transfer_Module",
+    "solid_mechanics": "Structural_Mechanics_Module",
+    "fluid_flow":      "CFD_Module",
+}
+
+# error_type → free-text query for the resources_text source
+# (matches against ComsolError i18n entries, etc.).
+_ERROR_TYPE_TO_KB_HINT = {
+    "geometry_build_failed": "geometry build error operation failed",
+    "mesh_failed":           "mesh generation failed quality",
+    "solver_no_convergence": "solver did not converge nonlinear",
+    "memory_error":          "out of memory degrees of freedom",
+    "license_error":         "license not available module",
+}
+
+# best-practice category → KB module overviews to pull.
+_CATEGORY_TO_KB_MODULES = {
+    "geometry": ["COMSOL_Multiphysics", "CAD_Import_Module"],
+    "mesh":     ["COMSOL_Multiphysics"],
+    "physics":  ["COMSOL_Multiphysics"],
+    "solver":   ["COMSOL_Multiphysics", "Optimization_Module"],
+    "results":  ["COMSOL_Multiphysics"],
+}
+
+# docs topic → (kb tool, args template).
+_DOC_TOPIC_TO_KB_HINT = {
+    "mph_api": (
+        "kb_semantic_search",
+        {"query": "MPh Python client API",
+         "source": "manuals_text", "module": "MATLAB_LiveLink"},
+    ),
+    "physics_guide": (
+        "kb_semantic_search",
+        {"query": "physics interface boundary condition",
+         "source": "manuals_text"},
+    ),
+    "workflow": (
+        "kb_semantic_search",
+        {"query": "modeling workflow tutorial",
+         "source": "manuals_text"},
+    ),
+}
+
 KNOWLEDGE_FILES = {
     "mph_api": {
         "file": "mph_api.md",
@@ -254,12 +311,26 @@ def get_docs(topic: str) -> dict:
         }
     
     info = KNOWLEDGE_FILES[topic]
+    hint = _DOC_TOPIC_TO_KB_HINT.get(topic)
+    followup = []
+    if hint is not None:
+        hint_tool, hint_args = hint
+        followup.append({
+            "purpose": (
+                f"Deeper reference for '{topic}' from full COMSOL manuals "
+                "(KB v1.4 RAG)."
+            ),
+            "tool": hint_tool,
+            "args_template": dict(hint_args),
+            "expected": "5~10 chunks with manual citations.",
+        })
     return {
         "success": True,
         "topic": topic,
         "title": info["title"],
         "description": info["description"],
         "content": content,
+        "kb_followup": followup,
     }
 
 
@@ -273,11 +344,21 @@ def list_docs() -> dict:
             "description": info["description"],
             "keywords": info["keywords"],
         })
-    
+
     return {
         "success": True,
         "topics": topics,
         "count": len(topics),
+        "kb_followup": [{
+            "purpose": "Search the full KB instead of these 3 prompts.",
+            "tool": "kb_semantic_search",
+            "args_template": {
+                "query": "<your topic in plain English>",
+                "source": "manuals_text",
+                "top_k": 10,
+            },
+            "expected": "Best-matched chunks across 22,393 markdown files.",
+        }],
     }
 
 
@@ -292,7 +373,43 @@ def get_physics_guide(physics_type: str) -> dict:
         }
     
     guide = TOPIC_GUIDES[physics_type]
-    
+
+    followup: list[dict] = []
+    mod = _PHYSICS_TO_KB_MODULE.get(physics_type)
+    if mod:
+        followup.append({
+            "purpose": (
+                f"Full chapter on '{physics_type}' from {mod} UsersGuide."
+            ),
+            "tool": "kb_semantic_search",
+            "args_template": {
+                "query": f"{physics_type} boundary condition setup",
+                "source": "manuals_text",
+                "module": mod,
+                "top_k": 8,
+            },
+            "expected": "UsersGuide / IntroductionTo chunks for this module.",
+        })
+        followup.append({
+            "purpose": f"Working examples for {mod} in COMSOL 6.1 install.",
+            "tool": "kb_search_examples",
+            "args_template": {
+                "query": physics_type,
+                "module_filter": mod,
+                "top_n": 5,
+            },
+            "expected": (
+                "Up to 5 .mph filenames + descriptions; pair with "
+                "kb_get_example_detail."
+            ),
+        })
+        followup.append({
+            "purpose": "Module-level overview (counts, top manuals).",
+            "tool": "kb_get_module_overview",
+            "args_template": {"module": mod},
+            "expected": "Plain-text block with module summary.",
+        })
+
     return {
         "success": True,
         "physics_type": physics_type,
@@ -302,6 +419,7 @@ def get_physics_guide(physics_type: str) -> dict:
             "common_expressions": guide["common_expressions"],
             "tips": guide["tips"],
         },
+        "kb_followup": followup,
     }
 
 
@@ -316,13 +434,42 @@ def get_troubleshoot(error_type: str, context: Optional[str] = None) -> dict:
         }
     
     info = TROUBLESHOOTING[error_type]
-    
+
+    followup: list[dict] = []
+    err_hint = _ERROR_TYPE_TO_KB_HINT.get(error_type)
+    if err_hint:
+        followup.append({
+            "purpose": (
+                "Match against ComsolError messages in resources_text "
+                "(2,212 error keys)."
+            ),
+            "tool": "kb_semantic_search",
+            "args_template": {
+                "query": err_hint,
+                "source": "resources_text",
+                "top_k": 5,
+            },
+            "expected": "i18n token + English error text + nearby keys.",
+        })
+    if context:
+        followup.append({
+            "purpose": "Search full manuals for this exact error context.",
+            "tool": "kb_semantic_search",
+            "args_template": {
+                "query": f"{error_type} {context}",
+                "source": "manuals_text",
+                "top_k": 8,
+            },
+            "expected": "ReferenceManual / UsersGuide passages.",
+        })
+
     return {
         "success": True,
         "error_type": error_type,
         "context": context,
         "causes": info["causes"],
         "solutions": info["solutions"],
+        "kb_followup": followup,
     }
 
 
@@ -336,10 +483,21 @@ def get_best_practices(category: str) -> dict:
             "available_categories": available,
         }
     
+    mods = _CATEGORY_TO_KB_MODULES.get(category, [])
+    followup = [{
+        "purpose": (
+            f"Module overview ({mod}) for full best-practice context."
+        ),
+        "tool": "kb_get_module_overview",
+        "args_template": {"module": mod},
+        "expected": "Manuals + example counts + UsersGuide pointers.",
+    } for mod in mods]
+
     return {
         "success": True,
         "category": category,
         "best_practices": BEST_PRACTICES[category],
+        "kb_followup": followup,
     }
 
 

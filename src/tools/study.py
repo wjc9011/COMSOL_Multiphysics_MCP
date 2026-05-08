@@ -7,6 +7,76 @@ from .session import session_manager
 from ..async_handler.solver import async_solver
 
 
+# Spec mcp_mesh_study_tools_spec.md §4.1 — alias to (step_tag, feature_type).
+# Aliases are matched case-insensitively after stripping spaces/hyphens.
+_STUDY_TYPE_TO_STEP = {
+    "stationary":      ("stat",  "Stationary"),
+    "transient":       ("time",  "Transient"),
+    "time_dependent":  ("time",  "Transient"),
+    "timedependent":   ("time",  "Transient"),
+    "eigenfrequency":  ("eig",   "Eigenfrequency"),
+    "frequency_domain": ("freq",  "Frequency"),
+    "frequencydomain": ("freq",  "Frequency"),
+    "frequency":       ("freq",  "Frequency"),
+    "eigenvalue":      ("eigen", "Eigenvalue"),
+}
+
+
+def _normalize_study_type(s: str) -> Optional[str]:
+    if not isinstance(s, str) or not s.strip():
+        return None
+    norm = s.strip().lower().replace("-", "_").replace(" ", "_")
+    return norm if norm in _STUDY_TYPE_TO_STEP else None
+
+
+def _study_tags(jm) -> list:
+    """Return tag strings for all studies in the model."""
+    tags = []
+    try:
+        for s in list(jm.study()):
+            try:
+                tags.append(str(s.tag()))
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return tags
+
+
+def _auto_study_tag(jm, prefix: str = "std") -> str:
+    """Generate a non-colliding study tag."""
+    existing = set(_study_tags(jm))
+    i = len(existing) + 1
+    while f"{prefix}{i}" in existing:
+        i += 1
+    return f"{prefix}{i}"
+
+
+def _step_tags(study_obj) -> list:
+    """Return tag strings for all steps in a study."""
+    tags = []
+    try:
+        for f in list(study_obj.feature()):
+            try:
+                tags.append(str(f.tag()))
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return tags
+
+
+def _auto_step_tag(study_obj, base_tag: str) -> str:
+    """Pick a non-colliding step tag based on a desired base."""
+    existing = set(_step_tags(study_obj))
+    if base_tag not in existing:
+        return base_tag
+    i = 2
+    while f"{base_tag}{i}" in existing:
+        i += 1
+    return f"{base_tag}{i}"
+
+
 def register_study_tools(mcp: FastMCP) -> None:
     """Register study and solving tools with the MCP server."""
     
@@ -238,6 +308,188 @@ def register_study_tools(mcp: FastMCP) -> None:
         except Exception as e:
             return {"success": False, "error": f"Failed to list solutions: {str(e)}"}
     
+    @mcp.tool()
+    def study_create(
+        study_type: str = "stationary",
+        name: Optional[str] = None,
+        label: Optional[str] = None,
+        model_name: Optional[str] = None,
+    ) -> dict:
+        """
+        Create a study and add a single solver step matching the given type.
+
+        Supported study_type (case-insensitive, alias-tolerant):
+          "stationary"       → Stationary
+          "transient"        → Time Dependent
+          "time_dependent"   → Time Dependent
+          "eigenfrequency"   → Eigenfrequency
+          "frequency_domain" → Frequency Domain
+          "eigenvalue"       → Eigenvalue
+
+        Args:
+            study_type: Study type alias (see above).
+            name: COMSOL tag for the study (auto-generated if None,
+                e.g. 'std1').
+            label: Display label (default: derived from study_type).
+            model_name: Model name (default: current).
+
+        Returns:
+            {success, study: {tag, label, type, step: {tag, type}}} on
+            success.
+        """
+        canonical = _normalize_study_type(study_type)
+        if canonical is None:
+            return {
+                "success": False,
+                "error": (
+                    f"Unsupported study_type: '{study_type}'. "
+                    f"Supported: {sorted(set(_STUDY_TYPE_TO_STEP.keys()))}"
+                ),
+            }
+
+        model = session_manager.get_model(model_name)
+        if model is None:
+            return {
+                "success": False,
+                "error": f"Model not found: {model_name or 'no current model'}"
+            }
+
+        step_tag, step_type = _STUDY_TYPE_TO_STEP[canonical]
+
+        try:
+            jm = model.java
+            tag = name or _auto_study_tag(jm, "std")
+            existing = set(_study_tags(jm))
+            if tag in existing:
+                return {
+                    "success": False,
+                    "error": f"Study tag '{tag}' already exists",
+                }
+
+            study = jm.study().create(tag)
+            display_label = label or f"{step_type} Study"
+            try:
+                study.label(display_label)
+            except Exception:
+                pass
+
+            actual_step_tag = _auto_step_tag(study, step_tag)
+            study.create(actual_step_tag, step_type)
+
+            return {
+                "success": True,
+                "study": {
+                    "tag": tag,
+                    "label": display_label,
+                    "type": canonical,
+                    "step": {"tag": actual_step_tag, "type": step_type},
+                },
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to create study: {type(e).__name__}: {e}",
+            }
+
+    @mcp.tool()
+    def study_add_step(
+        study_name: str,
+        step_type: str,
+        step_tag: Optional[str] = None,
+        model_name: Optional[str] = None,
+    ) -> dict:
+        """
+        Append an additional solver step to an existing study.
+
+        Args:
+            study_name: Tag of the existing study (e.g. 'std1').
+            step_type: Step type alias (same vocabulary as study_create:
+                "stationary", "transient", "eigenfrequency", etc.).
+            step_tag: Tag for the new step (auto if None).
+            model_name: Model name (default: current).
+
+        Returns:
+            {success, study, step: {tag, type}} on success.
+        """
+        canonical = _normalize_study_type(step_type)
+        if canonical is None:
+            return {
+                "success": False,
+                "error": (
+                    f"Unsupported step_type: '{step_type}'. "
+                    f"Supported: {sorted(set(_STUDY_TYPE_TO_STEP.keys()))}"
+                ),
+            }
+
+        model = session_manager.get_model(model_name)
+        if model is None:
+            return {
+                "success": False,
+                "error": f"Model not found: {model_name or 'no current model'}"
+            }
+
+        base_tag, feature_type = _STUDY_TYPE_TO_STEP[canonical]
+
+        try:
+            jm = model.java
+            study = jm.study(study_name)
+            if study is None:
+                return {
+                    "success": False,
+                    "error": f"Study not found: {study_name}",
+                }
+
+            actual_tag = step_tag or _auto_step_tag(study, base_tag)
+            study.create(actual_tag, feature_type)
+
+            return {
+                "success": True,
+                "study": study_name,
+                "step": {"tag": actual_tag, "type": feature_type},
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to add study step: {type(e).__name__}: {e}",
+            }
+
+    @mcp.tool()
+    def study_remove(
+        study_name: str,
+        model_name: Optional[str] = None,
+    ) -> dict:
+        """
+        Remove a study from the model.
+
+        Args:
+            study_name: Tag of the study to remove.
+            model_name: Model name (default: current).
+
+        Returns:
+            {success, removed} on success.
+        """
+        model = session_manager.get_model(model_name)
+        if model is None:
+            return {
+                "success": False,
+                "error": f"Model not found: {model_name or 'no current model'}"
+            }
+
+        try:
+            jm = model.java
+            if study_name not in set(_study_tags(jm)):
+                return {
+                    "success": False,
+                    "error": f"Study not found: {study_name}",
+                }
+            jm.study().remove(study_name)
+            return {"success": True, "removed": study_name}
+        except Exception as e:
+            return {
+                "success": False,
+                "error": f"Failed to remove study: {type(e).__name__}: {e}",
+            }
+
     @mcp.tool()
     def datasets_list(model_name: Optional[str] = None) -> dict:
         """

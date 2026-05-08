@@ -167,6 +167,58 @@ def _feature_type(feat) -> str:
     return "unknown"
 
 
+# Maps used by geometry_create's strict_dim_check.  The component's
+# Java SDimSpec returns one of these tag strings.  Mirrors the table
+# in tools/model.py:_SPACE_DIM_KIND_TO_JAVA.
+_JAVA_SDIM_TO_KIND_AND_INT = {
+    "SpaceDim1D":                ("1D",              1),
+    "AxisymmetricSpaceDim1DAxi": ("1D-Axisymmetric", 1),
+    "SpaceDim2D":                ("2D",              2),
+    "AxisymmetricSpaceDim2DAxi": ("2D-Axisymmetric", 2),
+    "SpaceDim3D":                ("3D",              3),
+}
+
+
+def _component_space_dim(comp):
+    """Return (kind_str, dim_int) for a Java component, or (None, None).
+
+    Probes COMSOL's SDimSpec via several method names that have varied
+    across releases. Falls back to a numeric ``getSDim()`` if available.
+    """
+    if comp is None:
+        return None, None
+
+    for method in ("getSDimSpec", "sdimSpec", "getSpaceDim", "getDimSpec"):
+        try:
+            fn = getattr(comp, method, None)
+            if fn is None:
+                continue
+            value = fn()
+            if value is None:
+                continue
+            tag = str(value)
+            if tag in _JAVA_SDIM_TO_KIND_AND_INT:
+                return _JAVA_SDIM_TO_KIND_AND_INT[tag]
+            # The string may be wrapped, e.g. "SDimSpec[SpaceDim2D]"
+            for known in _JAVA_SDIM_TO_KIND_AND_INT:
+                if known in tag:
+                    return _JAVA_SDIM_TO_KIND_AND_INT[known]
+        except Exception:
+            continue
+
+    # Fallback: numeric only, kind unknown
+    try:
+        fn = getattr(comp, "getSDim", None)
+        if fn is not None:
+            d = int(fn())
+            if d in (1, 2, 3):
+                return None, d
+    except Exception:
+        pass
+
+    return None, None
+
+
 # ---------------------------------------------------------------------------
 # MCP tool registration
 # ---------------------------------------------------------------------------
@@ -232,12 +284,20 @@ def register_geometry_tools(mcp: FastMCP) -> None:
         geometry_name: Optional[str] = None,
         space_dimension: int = 3,
         component_name: str = "comp1",
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        strict_dim_check: bool = True,
     ) -> dict:
         """
         Create a new geometry sequence in the model's component.
 
         IMPORTANT: A component must exist first. Use model_create_component.
+
+        When strict_dim_check is True (default), the requested
+        space_dimension is verified against the component's space dim kind
+        (1D / 1D-Axisymmetric → 1, 2D / 2D-Axisymmetric → 2, 3D → 3).
+        Mismatches return an error rather than silently producing a model
+        whose physics will be wrong (e.g. 2D Cartesian when the component
+        was created as 2D-Axisymmetric).
 
         Args:
             geometry_name: Requested tag for the sequence (default: 'geom1').
@@ -246,6 +306,9 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             space_dimension: 2 for 2D, 3 for 3D (default: 3).
             component_name: Component name (default: 'comp1').
             model_name: Model name (default: current model).
+            strict_dim_check: If True (default), validate that
+                space_dimension matches the component's space_dim_kind.
+                Set False to bypass (advanced/diagnostic use only).
 
         Returns:
             Created geometry info, including the *actual* tag COMSOL
@@ -271,6 +334,21 @@ def register_geometry_tools(mcp: FastMCP) -> None:
                         "Create it first with model_create_component."
                     )
                 }
+
+            if strict_dim_check:
+                comp_kind, comp_dim = _component_space_dim(comp)
+                if comp_dim is not None and int(space_dimension) != comp_dim:
+                    return {
+                        "success": False,
+                        "error": (
+                            f"Geometry space_dimension={int(space_dimension)} "
+                            f"mismatches component space_dim_kind="
+                            f"{comp_kind or '?'} (expected dim={comp_dim}). "
+                            "Recreate the component with the correct "
+                            "space_dim_kind, or pass strict_dim_check=False "
+                            "to override (advanced)."
+                        ),
+                    }
 
             geom = comp.geom().create(geom_name, space_dimension)
             try:
