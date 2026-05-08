@@ -82,6 +82,46 @@ def _auto_mat_tag(comp, prefix: str = "mat") -> str:
     return f"{prefix}{i}"
 
 
+# Friendly descriptions for the small set of propertyGroups COMSOL ships.
+# Used as the second arg to mat.propertyGroup().create(<tag>, <descr>) when
+# the caller didn't supply one (KB chunk 76973 requires both args).
+_PROPERTY_GROUP_DESCR = {
+    "def":              "Basic",
+    "Enu":              "Young's modulus and Poisson's ratio",
+    "KG":               "Bulk modulus and shear modulus",
+    "Murnaghan":        "Murnaghan",
+    "Lame":             "Lame parameters",
+    "Anisotropic":      "Anisotropic",
+    "Orthotropic":      "Orthotropic",
+    "RefractiveIndex":  "Refractive index",
+    "NonlinearModel":   "Nonlinear material model",
+    "Cauchy":           "Cauchy",
+}
+
+
+def _create_material_property_group(mat, group_tag: str) -> bool:
+    """Create a non-default propertyGroup on a Material via Java API.
+
+    Uses the (tag, descr) two-arg overload documented in
+    COMSOL_ProgrammingReferenceManual (chunk 76973):
+        MaterialModel mm = mat.propertyGroup().create(<mtag>, <descr>);
+    Falls back to the single-arg form for COMSOL versions that may
+    accept it. Returns True on success.
+    """
+    descr = _PROPERTY_GROUP_DESCR.get(group_tag, group_tag)
+    try:
+        mat.propertyGroup().create(group_tag, descr)
+        return True
+    except Exception:
+        pass
+    # Single-arg fallback (some Java overloads / older COMSOL builds).
+    try:
+        mat.propertyGroup().create(group_tag)
+        return True
+    except Exception:
+        return False
+
+
 def _find_material_in_model(model, material_name: str):
     """Return (comp_java, mat_java, comp_tag) for the first match across
     components, by label or tag. (None, None, None) if not found."""
@@ -148,11 +188,17 @@ def _create_material_with_properties(
     if pg is None and property_group != "def":
         # COMSOL ships 'def' on every Common material; other groups must
         # be created (e.g. 'Enu' for elasticity).
-        try:
-            mat.propertyGroup().create(property_group)
-            pg = mat.propertyGroup(property_group)
-        except Exception:
+        # KB COMSOL_ProgrammingReferenceManual chunk 76973:
+        #   MaterialModel mm = ...material(<tag>).propertyGroup()
+        #     .create(<mtag>, <descr>);
+        # The create() method requires BOTH a tag and a description string.
+        if not _create_material_property_group(mat, property_group):
             pg = None
+        else:
+            try:
+                pg = mat.propertyGroup(property_group)
+            except Exception:
+                pg = None
 
     if pg is None:
         return {
@@ -349,7 +395,9 @@ def register_material_tools(mcp: FastMCP) -> None:
         if not result.get("success"):
             return result
 
-        # Write any extra groups (e.g. 'Enu', 'RefractiveIndex').
+        # Write any extra groups (e.g. 'Enu', 'RefractiveIndex'). Uses
+        # the two-arg propertyGroup().create(<tag>, <descr>) Java API per
+        # KB COMSOL_ProgrammingReferenceManual chunk 76973.
         extra_warnings = []
         try:
             comp_for_write, mat_obj, _ = _find_material_in_model(model, display_name)
@@ -365,11 +413,11 @@ def register_material_tools(mcp: FastMCP) -> None:
                         except Exception:
                             pg = None
                         if pg is None:
-                            try:
-                                mat_obj.propertyGroup().create(grp_name)
-                                pg = mat_obj.propertyGroup(grp_name)
-                            except Exception:
-                                pg = None
+                            if _create_material_property_group(mat_obj, grp_name):
+                                try:
+                                    pg = mat_obj.propertyGroup(grp_name)
+                                except Exception:
+                                    pg = None
                         if pg is None:
                             extra_warnings.append(
                                 {"propertyGroup": grp_name,

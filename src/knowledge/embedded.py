@@ -25,14 +25,19 @@ _PHYSICS_TO_KB_MODULE = {
     "fluid_flow":      "CFD_Module",
 }
 
-# error_type → free-text query for the resources_text source
-# (matches against ComsolError i18n entries, etc.).
+# error_type → (query, over_fetch) for the resources_text source.
+# Spec mcp_pr_c_fix_spec.md §4.3.1: resources_text is the smallest of the
+# 7 KB sources (~58k key/value entries across 27 .md files), so a narrow
+# `source=resources_text` filter on top of `top_k=5` returns very few hits
+# without a wider candidate window. KB CLAUDE.md §7 #11 documents this.
+# Each value is `(query_string, over_fetch)`. The kb_followup arg_template
+# emitted by troubleshoot() carries `over_fetch` through verbatim.
 _ERROR_TYPE_TO_KB_HINT = {
-    "geometry_build_failed": "geometry build error operation failed",
-    "mesh_failed":           "mesh generation failed quality",
-    "solver_no_convergence": "solver did not converge nonlinear",
-    "memory_error":          "out of memory degrees of freedom",
-    "license_error":         "license not available module",
+    "geometry_build_failed": ("geometry build error operation failed", 20),
+    "mesh_failed":           ("mesh generation failed quality",         20),
+    "solver_no_convergence": ("solver did not converge nonlinear",      20),
+    "memory_error":          ("out of memory degrees of freedom",       20),
+    "license_error":         ("license not available module",           20),
 }
 
 # best-practice category → KB module overviews to pull.
@@ -438,6 +443,12 @@ def get_troubleshoot(error_type: str, context: Optional[str] = None) -> dict:
     followup: list[dict] = []
     err_hint = _ERROR_TYPE_TO_KB_HINT.get(error_type)
     if err_hint:
+        # Spec mcp_pr_c_fix_spec.md §4.3.1: tuple form (query, over_fetch).
+        if isinstance(err_hint, tuple):
+            err_query, err_over_fetch = err_hint
+        else:
+            # Backwards compat for any callers still expecting a string.
+            err_query, err_over_fetch = err_hint, 20
         followup.append({
             "purpose": (
                 "Match against ComsolError messages in resources_text "
@@ -445,9 +456,10 @@ def get_troubleshoot(error_type: str, context: Optional[str] = None) -> dict:
             ),
             "tool": "kb_semantic_search",
             "args_template": {
-                "query": err_hint,
+                "query": err_query,
                 "source": "resources_text",
                 "top_k": 5,
+                "over_fetch": err_over_fetch,
             },
             "expected": "i18n token + English error text + nearby keys.",
         })

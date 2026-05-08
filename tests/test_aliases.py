@@ -1,82 +1,25 @@
 """Pure-Python tests for the alias normalizers introduced by:
 
-- plans/geometry_axisymmetric_support_spec.md §3.1 / §3.2 / §5.1
-  (model._normalize_space_dim_kind)
 - plans/mcp_mesh_study_tools_spec.md §4.1
   (study._normalize_study_type / _STUDY_TYPE_TO_STEP)
 - plans/mcp_mesh_study_tools_spec.md §3.2
   (mesh._HAUTO_BY_SIZE_KIND)
 
 These tests do not exercise the COMSOL Java bridge.
+
+Note: The `space_dim_kind` normalizer block was removed by
+plans/mcp_pr_c_fix_spec.md §3.1 — the underlying Java API has no such
+property on components (it's a property of geometries). See
+tests/test_axisymmetric_fix.py for the replacement coverage.
 """
 
 import pytest
 
-from src.tools.model import (
-    _normalize_space_dim_kind,
-    _SPACE_DIM_KIND_TO_JAVA,
-    _SPACE_DIM_KIND_TO_INT,
-    _supported_space_dim_kinds,
-)
 from src.tools.study import (
     _normalize_study_type,
     _STUDY_TYPE_TO_STEP,
 )
 from src.tools.mesh import _HAUTO_BY_SIZE_KIND
-
-
-# ---------------------------------------------------------------------------
-# space_dim_kind
-# ---------------------------------------------------------------------------
-
-class TestSpaceDimKindNormalize:
-    @pytest.mark.parametrize(
-        "raw, canonical",
-        [
-            ("3D", "3D"),
-            ("3d", "3D"),
-            ("2D", "2D"),
-            ("2D-Cartesian", "2D"),
-            ("2D Cartesian", "2D"),
-            ("2D_Cartesian", "2D"),
-            ("2D-Axisymmetric", "2D-Axisymmetric"),
-            ("2D Axisymmetric", "2D-Axisymmetric"),
-            ("2D_Axisymmetric", "2D-Axisymmetric"),
-            ("2d-axisymmetric", "2D-Axisymmetric"),
-            ("2D-Axisym", "2D-Axisymmetric"),
-            ("2D-axi", "2D-Axisymmetric"),
-            ("2DAxi", "2DAxi"),
-            ("1D", "1D"),
-            ("1D-Axisymmetric", "1D-Axisymmetric"),
-            ("1DAxi", "1DAxi"),
-        ],
-    )
-    def test_valid_aliases(self, raw, canonical):
-        assert _normalize_space_dim_kind(raw) == canonical
-
-    @pytest.mark.parametrize(
-        "raw",
-        ["", "   ", "2.5D", "axi", "axisymmetric", "4D", None, "garbage"],
-    )
-    def test_invalid_aliases(self, raw):
-        # Non-string inputs return None, not raise.
-        assert _normalize_space_dim_kind(raw) is None
-
-    def test_all_canonical_have_java_mapping(self):
-        for kind in _supported_space_dim_kinds():
-            assert kind in _SPACE_DIM_KIND_TO_JAVA
-            assert kind in _SPACE_DIM_KIND_TO_INT
-
-    def test_axi_kinds_map_to_axisymmetric_java(self):
-        assert _SPACE_DIM_KIND_TO_JAVA["2D-Axisymmetric"] == "AxisymmetricSpaceDim2DAxi"
-        assert _SPACE_DIM_KIND_TO_JAVA["1D-Axisymmetric"] == "AxisymmetricSpaceDim1DAxi"
-
-    def test_dim_int_lookup(self):
-        assert _SPACE_DIM_KIND_TO_INT["1D"] == 1
-        assert _SPACE_DIM_KIND_TO_INT["1D-Axisymmetric"] == 1
-        assert _SPACE_DIM_KIND_TO_INT["2D"] == 2
-        assert _SPACE_DIM_KIND_TO_INT["2D-Axisymmetric"] == 2
-        assert _SPACE_DIM_KIND_TO_INT["3D"] == 3
 
 
 # ---------------------------------------------------------------------------

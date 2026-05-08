@@ -117,21 +117,31 @@ def test_total_tool_count_matches_spec_after_all_specs():
     )
 
 
-def test_geometry_create_has_strict_dim_check_kwarg():
-    """Spec geometry_axisymmetric_support_spec.md §3.3."""
+def test_geometry_create_has_axisymmetric_kwarg_no_strict_dim_check():
+    """Spec mcp_pr_c_fix_spec.md §3.2 — `strict_dim_check` is removed
+    (component-level dim check was unworkable since COMSOL components
+    have no SDimSpec property), replaced by an `axisymmetric: bool`
+    kwarg that maps to the geometry-level Java boolean property."""
     import inspect
     by_ns = _gather()
     sig = inspect.signature(by_ns["geometry"]["geometry_create"])
-    assert "strict_dim_check" in sig.parameters
-    assert sig.parameters["strict_dim_check"].default is True
+    assert "strict_dim_check" not in sig.parameters
+    assert "axisymmetric" in sig.parameters
+    assert sig.parameters["axisymmetric"].default is False
+    assert "space_dimension" in sig.parameters
+    assert sig.parameters["space_dimension"].default == 3
 
 
-def test_model_create_component_has_space_dim_kind_kwarg():
-    """Spec geometry_axisymmetric_support_spec.md §3.1."""
+def test_model_create_component_no_space_dim_kind_kwarg():
+    """Spec mcp_pr_c_fix_spec.md §3.1 — `space_dim_kind` is removed
+    (component has no SDimSpec property in the Java API; spatial
+    dimension is set via geometry_create instead). Only the legacy
+    `set_active` kwarg remains alongside `component_name` / `model_name`.
+    """
     import inspect
     by_ns = _gather()
     sig = inspect.signature(by_ns["model"]["model_create_component"])
-    assert "space_dim_kind" in sig.parameters
-    assert sig.parameters["space_dim_kind"].default == "3D"
+    assert "space_dim_kind" not in sig.parameters
     assert "set_active" in sig.parameters
     assert sig.parameters["set_active"].default is True
+    assert "component_name" in sig.parameters

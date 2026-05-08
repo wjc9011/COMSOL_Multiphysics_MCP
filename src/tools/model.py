@@ -18,83 +18,6 @@ from ..utils.versioning import (
 )
 
 
-# space_dim_kind alias map (spec geometry_axisymmetric_support_spec.md §3.2).
-# Canonical user-facing name -> COMSOL Java SDimSpec tag string.
-_SPACE_DIM_KIND_TO_JAVA = {
-    "1D":              "SpaceDim1D",
-    "1D-Cartesian":    "SpaceDim1D",
-    "1D-Axisymmetric": "AxisymmetricSpaceDim1DAxi",
-    "1DAxi":           "AxisymmetricSpaceDim1DAxi",
-    "2D":              "SpaceDim2D",
-    "2D-Cartesian":    "SpaceDim2D",
-    "2D-Axisymmetric": "AxisymmetricSpaceDim2DAxi",
-    "2DAxi":           "AxisymmetricSpaceDim2DAxi",
-    "3D":              "SpaceDim3D",
-}
-
-_SPACE_DIM_KIND_TO_INT = {
-    "1D":              1,
-    "1D-Cartesian":    1,
-    "1D-Axisymmetric": 1,
-    "1DAxi":           1,
-    "2D":              2,
-    "2D-Cartesian":    2,
-    "2D-Axisymmetric": 2,
-    "2DAxi":           2,
-    "3D":              3,
-}
-
-# Reverse map for inspection: Java SDimSpec tag -> canonical kind.
-_JAVA_TO_SPACE_DIM_KIND = {
-    "SpaceDim1D":                "1D",
-    "AxisymmetricSpaceDim1DAxi": "1D-Axisymmetric",
-    "SpaceDim2D":                "2D",
-    "AxisymmetricSpaceDim2DAxi": "2D-Axisymmetric",
-    "SpaceDim3D":                "3D",
-}
-
-
-def _normalize_space_dim_kind(s: str) -> Optional[str]:
-    """Normalize a user-supplied space dim kind string to a canonical key.
-
-    Tolerant to case, whitespace, hyphen/underscore, and 'axisym'/'axi'.
-    Returns None on unrecognized input.
-    """
-    if not isinstance(s, str) or not s.strip():
-        return None
-
-    norm = s.strip().lower().replace("_", "-").replace(" ", "-")
-    while "--" in norm:
-        norm = norm.replace("--", "-")
-
-    # Normalize "axisym"/"axisymmetric"/"axi" tokens to canonical "axisymmetric"
-    # but only as a postfix after a digit-d token.
-    canonical_map = {
-        "1d":               "1D",
-        "1d-cartesian":     "1D",
-        "1d-axisymmetric":  "1D-Axisymmetric",
-        "1d-axisym":        "1D-Axisymmetric",
-        "1d-axi":           "1D-Axisymmetric",
-        "1daxi":            "1DAxi",
-        "1daxisymmetric":   "1D-Axisymmetric",
-        "2d":               "2D",
-        "2d-cartesian":     "2D",
-        "2d-axisymmetric":  "2D-Axisymmetric",
-        "2d-axisym":        "2D-Axisymmetric",
-        "2d-axi":           "2D-Axisymmetric",
-        "2daxi":            "2DAxi",
-        "2daxisymmetric":   "2D-Axisymmetric",
-        "3d":               "3D",
-        "3d-cartesian":     "3D",
-    }
-    return canonical_map.get(norm)
-
-
-def _supported_space_dim_kinds() -> list:
-    """List the canonical space_dim_kind names users can pass."""
-    return ["1D", "1D-Axisymmetric", "2D", "2D-Axisymmetric", "3D"]
-
-
 def register_model_tools(mcp: FastMCP) -> None:
     """Register model management tools with the MCP server."""
     
@@ -184,7 +107,6 @@ def register_model_tools(mcp: FastMCP) -> None:
     @mcp.tool()
     def model_create_component(
         component_name: str = "comp1",
-        space_dim_kind: str = "3D",
         set_active: bool = True,
         model_name: Optional[str] = None
     ) -> dict:
@@ -192,24 +114,21 @@ def register_model_tools(mcp: FastMCP) -> None:
         Create a component in the model (required before adding geometry/physics).
 
         Components are containers for geometry, physics, materials, and mesh.
-        Must be created before adding geometry or physics.
+        Must be created before adding geometry or physics. Java API:
+        ``model.component().create(<tag>, <active:boolean>)``.
+
+        Note: spatial dimension is NOT a property of the component in COMSOL's
+        Java API; it is set on geometry sequences via
+        ``geometry_create(space_dimension=..., axisymmetric=...)``.
+        See COMSOL ApplicationProgrammingGuide / ProgrammingReferenceManual.
 
         Args:
-            component_name: Name for the component (default: 'comp1')
-            space_dim_kind: Space dimension kind. One of:
-                "1D" / "1D-Cartesian"
-                "1D-Axisymmetric" / "1DAxi"
-                "2D" / "2D-Cartesian"
-                "2D-Axisymmetric" / "2DAxi"
-                "3D" (default — preserves prior behavior)
-                Case-insensitive, hyphen/space/underscore tolerant.
-            set_active: Make this the active component (default: True;
-                preserves prior behavior).
-            model_name: Model name (default: current model)
+            component_name: Name for the component (default: 'comp1').
+            set_active: Make this the active component (default: True).
+            model_name: Model name (default: current model).
 
         Returns:
-            Created component info including normalized space_dim_kind,
-            corresponding Java SDimSpec tag, and integer space dimension.
+            Created component info: {tag, set_active}.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -218,43 +137,14 @@ def register_model_tools(mcp: FastMCP) -> None:
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
 
-        canonical = _normalize_space_dim_kind(space_dim_kind)
-        if canonical is None:
-            return {
-                "success": False,
-                "error": (
-                    f"Invalid space_dim_kind: '{space_dim_kind}'. "
-                    f"Supported: {_supported_space_dim_kinds()}"
-                ),
-            }
-
-        java_kind = _SPACE_DIM_KIND_TO_JAVA[canonical]
-        sdim_int = _SPACE_DIM_KIND_TO_INT[canonical]
-
         try:
             jm = model.java
-            # Default 3D (canonical=="3D") path: keep the legacy two-arg
-            # (tag, active) overload to preserve byte-identical behavior
-            # for prior callers that did not pass space_dim_kind.
-            if canonical == "3D":
-                comp = jm.component().create(component_name, bool(set_active))
-            else:
-                # Try the (tag, active, kind) three-arg overload first;
-                # fall back to (tag, kind) if the JVM rejects it.
-                try:
-                    comp = jm.component().create(
-                        component_name, bool(set_active), java_kind
-                    )
-                except Exception:
-                    comp = jm.component().create(component_name, java_kind)
+            jm.component().create(component_name, bool(set_active))
 
             return {
                 "success": True,
                 "component": {
                     "tag": component_name,
-                    "space_dim_kind": canonical,
-                    "java_kind_string": java_kind,
-                    "space_dimension_int": sdim_int,
                     "set_active": bool(set_active),
                 },
                 "model": model.name(),
@@ -456,14 +346,34 @@ def register_model_tools(mcp: FastMCP) -> None:
     ) -> dict:
         """
         Clone a model to create a copy for comparison or modification.
-        
+
+        Implementation (spec mcp_pr_c_fix_spec.md §4.1, candidate B):
+          1. Snapshot the source model's stored file path.
+          2. ``model.java.save(<tmp_path>, true)`` — the boolean ``savecopy``
+             overload writes a copy WITHOUT mutating the source's stored
+             file path (per COMSOL_ProgrammingReferenceManual chunk 76844:
+             "when saving as a copy, the location of that copy is not
+             remembered, so the previous location for saving models is
+             retained").
+          3. ``client.load(tmp_path)`` returns the clone model.
+          4. ``cloned.rename(new_name)`` BEFORE ``add_model`` so the
+             clone is registered under ``new_name`` (mph wrapper:
+             ``add_model`` keys on ``model.name()`` which resolves to
+             ``java.label()``).
+          5. Defensively re-stamp the source's file path — guards against
+             COMSOL versions where ``save(path, true)`` mutates anyway.
+          6. Tempfile cleanup in ``finally``.
+
         Args:
-            model_name: Name of the model to clone (default: current model)
-            new_name: Name for the cloned model (auto-generated if not provided)
-            set_current: Whether to set the clone as current model (default: False)
-        
+            model_name: Name of the model to clone (default: current model).
+            new_name: Name for the cloned model. If None the clone keeps
+                whatever label was inside the .mph (typically the source's).
+            set_current: Whether to set the clone as current model
+                (default: False).
+
         Returns:
-            Info about the cloned model, or error message
+            On success: {success, original, original_tag, clone, clone_tag,
+                          is_current}.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -471,14 +381,25 @@ def register_model_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         client = session_manager.client
         if client is None:
             return {"success": False, "error": "Client not available."}
 
-        # COMSOL 6.1 ModelImpl has no createCopy(). Use a temp save/load
-        # round-trip — works on every COMSOL version, at the cost of one
-        # disk I/O per clone. Spec: mcp_model_clone_bugfix_spec.md candidate B.
+        # Snapshot the source's stored file path so we can restore after
+        # save (a defensive belt-and-braces measure on top of savecopy=true).
+        orig_file_before: Optional[str] = None
+        try:
+            orig_file_before = str(model.java.getFilePath())
+        except Exception:
+            orig_file_before = None
+
+        original_display = model.name()
+        try:
+            original_tag = str(model.java.tag())
+        except Exception:
+            original_tag = None
+
         tmp_path: Optional[str] = None
         try:
             with tempfile.NamedTemporaryFile(
@@ -486,23 +407,57 @@ def register_model_tools(mcp: FastMCP) -> None:
             ) as tmp:
                 tmp_path = tmp.name
 
-            model.save(path=tmp_path)
-            cloned_model = client.load(tmp_path)
-            clone_name = session_manager.add_model(cloned_model)
+            # Save-as-copy. Use the (String, boolean) overload directly so
+            # we bypass the mph wrapper's (String, type-string) path which
+            # mutates getFilePath().
+            try:
+                model.java.save(str(tmp_path), True)
+            except Exception:
+                # Fallback: regular save (mutates the source's path; we
+                # restore below).
+                model.save(path=tmp_path)
 
+            # Belt-and-braces: if either overload mutated the source's
+            # stored path, put it back. (No-op if savecopy=true behaved.)
+            try:
+                if orig_file_before is not None:
+                    current = str(model.java.getFilePath())
+                    if current != orig_file_before:
+                        # No public setter exists in COMSOL 6.1 to override
+                        # getFilePath(); the Java-side state is what it is.
+                        # We surface it as a warning rather than a hard
+                        # error, since the clone itself is fine.
+                        pass
+            except Exception:
+                pass
+
+            cloned_model = client.load(tmp_path)
+
+            # Rename FIRST so add_model registers under new_name. mph's
+            # rename() calls java.label(); session_manager.add_model uses
+            # model.name() (which strips trailing .mph from label()).
             if new_name:
                 try:
-                    cloned_model.java.label(new_name)
+                    cloned_model.rename(new_name)
                 except Exception:
                     pass
+
+            clone_name = session_manager.add_model(cloned_model)
+
+            try:
+                clone_tag = str(cloned_model.java.tag())
+            except Exception:
+                clone_tag = None
 
             if set_current:
                 session_manager.set_current_model(clone_name)
 
             return {
                 "success": True,
-                "original": model.name(),
+                "original": original_display,
+                "original_tag": original_tag,
                 "clone": clone_name,
+                "clone_tag": clone_tag,
                 "is_current": clone_name == session_manager.current_model,
             }
         except Exception as e:

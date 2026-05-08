@@ -1,6 +1,15 @@
-"""Mesh tools for COMSOL MCP Server."""
+"""Mesh tools for COMSOL MCP Server.
 
-from typing import Optional
+Naming convention (spec mcp_pr_c_fix_spec.md §3.3): every mesh_* tool
+accepts a mesh sequence by EITHER its Java tag (e.g. ``mesh1``) OR its
+display label (e.g. ``Mesh 1``). The shared ``_resolve_mesh`` helper
+walks all components, prefers tag matches, falls back to label matches,
+and surfaces a unified error on miss. Every response also reports both
+``tag`` and ``label`` so callers do not have to guess which form their
+input was.
+"""
+
+from typing import Optional, Tuple
 from mcp.server.fastmcp import FastMCP
 
 from .session import session_manager
@@ -20,22 +29,46 @@ _HAUTO_BY_SIZE_KIND = {
 }
 
 
-def _mesh_seq_tags(jm) -> list:
-    """Return the list of mesh-sequence tag strings across all components."""
-    tags = []
+def _safe_str(value, default: str = "") -> str:
+    try:
+        if value is None:
+            return default
+        return str(value)
+    except Exception:
+        return default
+
+
+def _mesh_seq_descriptors(jm) -> list:
+    """Return a list of mesh-sequence descriptors across all components.
+
+    Each descriptor is a tuple (comp_java, mesh_java, comp_tag, tag, label).
+    """
+    out: list = []
     try:
         for comp in list(jm.component()):
             try:
-                for m in list(comp.mesh()):
-                    try:
-                        tags.append(str(m.tag()))
-                    except Exception:
-                        continue
+                comp_tag = _safe_str(comp.tag(), "?")
+            except Exception:
+                comp_tag = "?"
+            try:
+                meshes = list(comp.mesh())
             except Exception:
                 continue
+            for m in meshes:
+                tag = _safe_str(getattr(m, "tag", lambda: None)())
+                try:
+                    label = _safe_str(m.label())
+                except Exception:
+                    label = ""
+                out.append((comp, m, comp_tag, tag, label))
     except Exception:
         pass
-    return tags
+    return out
+
+
+def _mesh_seq_tags(jm) -> list:
+    """Return all mesh sequence tag strings across all components."""
+    return [d[3] for d in _mesh_seq_descriptors(jm) if d[3]]
 
 
 def _auto_mesh_tag(jm, prefix: str = "mesh") -> str:
@@ -45,6 +78,48 @@ def _auto_mesh_tag(jm, prefix: str = "mesh") -> str:
     while f"{prefix}{i}" in existing:
         i += 1
     return f"{prefix}{i}"
+
+
+def _resolve_mesh(jm, mesh_name_or_label: Optional[str]) -> Tuple:
+    """Find a mesh sequence by tag (preferred) or label.
+
+    Args:
+        jm: ``model.java`` handle.
+        mesh_name_or_label: Tag, label, or None (return first found).
+
+    Returns:
+        ``(comp_java, mesh_java, comp_tag, tag, label, error_str)``.
+        On success ``error_str`` is None; on miss the other fields are
+        None (except possibly comp_tag) and ``error_str`` carries a
+        human-readable message.
+    """
+    descriptors = _mesh_seq_descriptors(jm)
+    if not descriptors:
+        return None, None, None, None, None, (
+            "No mesh sequences in the model. Create one with "
+            "mesh_add_sequence first."
+        )
+
+    # No name given — return first.
+    if mesh_name_or_label in (None, ""):
+        comp, m, comp_tag, tag, label = descriptors[0]
+        return comp, m, comp_tag, tag, label, None
+
+    # Tag-first match.
+    for comp, m, comp_tag, tag, label in descriptors:
+        if tag == mesh_name_or_label:
+            return comp, m, comp_tag, tag, label, None
+
+    # Label fallback.
+    for comp, m, comp_tag, tag, label in descriptors:
+        if label == mesh_name_or_label:
+            return comp, m, comp_tag, tag, label, None
+
+    return None, None, None, None, None, (
+        f"Mesh sequence not found: '{mesh_name_or_label}'. "
+        "Pass the tag (e.g. 'mesh1') or the exact GUI label "
+        "(e.g. 'Mesh 1')."
+    )
 
 
 def _resolve_component(jm, component_name: Optional[str]):
@@ -103,17 +178,17 @@ def _resolve_geom_tag(comp, geometry_name: Optional[str]):
 
 def register_mesh_tools(mcp: FastMCP) -> None:
     """Register mesh tools with the MCP server."""
-    
+
     @mcp.tool()
     def mesh_list(model_name: Optional[str] = None) -> dict:
         """
-        List all mesh sequences in a model.
-        
+        List all mesh sequences in the model with both tag and label.
+
         Args:
-            model_name: Model name (default: current model)
-        
+            model_name: Model name (default: current model).
+
         Returns:
-            List of mesh sequence names
+            ``{success, meshes: [{tag, label, component}, ...], count}``.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -121,17 +196,22 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
-            meshes = model.meshes()
+            jm = model.java
+            descriptors = _mesh_seq_descriptors(jm)
+            meshes = [
+                {"tag": tag, "label": label, "component": comp_tag}
+                for _comp, _m, comp_tag, tag, label in descriptors
+            ]
             return {
                 "success": True,
                 "meshes": meshes,
                 "count": len(meshes),
             }
         except Exception as e:
-            return {"success": False, "error": f"Failed to list meshes: {str(e)}"}
-    
+            return {"success": False, "error": f"Failed to list meshes: {type(e).__name__}: {e}"}
+
     @mcp.tool()
     def mesh_create(
         mesh_name: Optional[str] = None,
@@ -139,15 +219,16 @@ def register_mesh_tools(mcp: FastMCP) -> None:
     ) -> dict:
         """
         Run a mesh sequence to generate the mesh.
-        
-        This executes the meshing operations defined in the mesh sequence.
-        
+
+        Accepts mesh tag or label. Calls ``geom.run()``-equivalent on the
+        mesh sequence (mph: ``model.mesh(name)``).
+
         Args:
-            mesh_name: Mesh sequence name (default: run all mesh sequences)
-            model_name: Model name (default: current model)
-        
+            mesh_name: Mesh sequence tag or label (default: run all).
+            model_name: Model name (default: current model).
+
         Returns:
-            Mesh generation status
+            ``{success, mesh: {tag, label, component} | None, message}``.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -155,17 +236,39 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
-            model.mesh(mesh_name)
+            if mesh_name in (None, ""):
+                # Run all sequences. Existing mph behavior.
+                model.mesh(None)
+                return {
+                    "success": True,
+                    "mesh": None,
+                    "message": "Mesh created: all meshes",
+                }
+
+            jm = model.java
+            _comp, _m, comp_tag, tag, label, err = _resolve_mesh(jm, mesh_name)
+            if err:
+                return {"success": False, "error": err}
+
+            # Pass the resolved tag to mph; it will accept either the tag
+            # or the label, but we standardize on tag for predictability.
+            try:
+                model.mesh(tag)
+            except LookupError:
+                # Some mph versions key meshes by label inside the
+                # node-path resolver; fall back.
+                model.mesh(label)
+
             return {
                 "success": True,
-                "mesh": mesh_name,
-                "message": f"Mesh created: {mesh_name or 'all meshes'}",
+                "mesh": {"tag": tag, "label": label, "component": comp_tag},
+                "message": f"Mesh created: {tag} ({label})",
             }
         except Exception as e:
-            return {"success": False, "error": f"Failed to create mesh: {str(e)}"}
-    
+            return {"success": False, "error": f"Failed to create mesh: {type(e).__name__}: {e}"}
+
     @mcp.tool()
     def mesh_info(
         mesh_name: Optional[str] = None,
@@ -173,13 +276,15 @@ def register_mesh_tools(mcp: FastMCP) -> None:
     ) -> dict:
         """
         Get information about a mesh.
-        
+
+        Accepts mesh tag or label.
+
         Args:
-            mesh_name: Mesh sequence name (default: first mesh)
-            model_name: Model name (default: current model)
-        
+            mesh_name: Mesh sequence tag or label (default: first mesh).
+            model_name: Model name (default: current model).
+
         Returns:
-            Mesh statistics including element counts
+            Mesh statistics including element counts, plus tag/label/component.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -187,43 +292,44 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
-            meshes = model.meshes()
-            if not meshes:
-                return {"success": False, "error": "No meshes defined in model."}
-            
-            target = mesh_name or meshes[0]
-            if target not in meshes:
-                return {"success": False, "error": f"Mesh not found: {target}"}
-            
-            mesh_node = model / "meshes" / target
-            
+            jm = model.java
+            _comp, mesh_obj, comp_tag, tag, label, err = _resolve_mesh(jm, mesh_name)
+            if err:
+                return {"success": False, "error": err}
+
             info = {
-                "name": target,
+                "tag": tag,
+                "label": label,
+                "component": comp_tag,
             }
-            
+
             try:
-                java_mesh = mesh_node.java
-                if hasattr(java_mesh, 'getVertex'):
-                    info["num_vertices"] = java_mesh.getVertex().size()
-                if hasattr(java_mesh, 'getElement'):
-                    info["num_elements"] = java_mesh.getElement().size()
+                if hasattr(mesh_obj, 'getVertex'):
+                    info["num_vertices"] = mesh_obj.getVertex().size()
+                if hasattr(mesh_obj, 'getElement'):
+                    info["num_elements"] = mesh_obj.getElement().size()
             except Exception:
                 pass
-            
+
             try:
-                children = [child.name() for child in mesh_node.children()]
-                info["features"] = children
+                features = []
+                for f in list(mesh_obj.feature()):
+                    try:
+                        features.append(str(f.tag()))
+                    except Exception:
+                        continue
+                info["features"] = features
             except Exception:
                 pass
-            
+
             return {
                 "success": True,
                 "mesh": info,
             }
         except Exception as e:
-            return {"success": False, "error": f"Failed to get mesh info: {str(e)}"}
+            return {"success": False, "error": f"Failed to get mesh info: {type(e).__name__}: {e}"}
 
     @mcp.tool()
     def mesh_add_sequence(
@@ -244,15 +350,17 @@ def register_mesh_tools(mcp: FastMCP) -> None:
             component_name: Component to attach mesh to (default: first).
             geometry_name: Geometry tag the mesh references
                 (default: first geometry in the component).
-            mesh_name: COMSOL tag for the mesh sequence
-                (auto-generated if None — e.g. 'mesh1').
+            mesh_name: COMSOL tag (or label) for the mesh sequence
+                (auto-generated if None — e.g. 'mesh1'). When passed, it
+                is treated as the COMSOL tag.
             auto_default_features: If True (default), add a Size feature
                 with global predefined size (Normal) so the empty sequence
                 becomes immediately runnable. If False, leave bare.
             model_name: Model name (default: current).
 
         Returns:
-            Created mesh-sequence info on success, or {success: False, ...}.
+            ``{success, mesh: {tag, label, component, geometry,
+                                has_default_features}}`` on success.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -283,24 +391,23 @@ def register_mesh_tools(mcp: FastMCP) -> None:
 
             if auto_default_features:
                 try:
-                    # COMSOL pre-creates a "size" Size feature on every new
-                    # mesh sequence; create() is idempotent in that the same
-                    # named feature won't be duplicated. If create('size1',
-                    # 'Size') fails because of the implicit one, ignore.
                     try:
                         mesh_seq.create("size1", "Size")
                     except Exception:
-                        # Implicit size feature already exists; that's fine.
                         pass
                 except Exception:
-                    # Sequence still usable even if Size feature insert
-                    # failed — surface but do not block.
                     pass
+
+            try:
+                label = _safe_str(mesh_seq.label())
+            except Exception:
+                label = ""
 
             return {
                 "success": True,
                 "mesh": {
                     "tag": tag,
+                    "label": label,
                     "component": comp_tag,
                     "geometry": geom_tag,
                     "has_default_features": bool(auto_default_features),
@@ -324,19 +431,22 @@ def register_mesh_tools(mcp: FastMCP) -> None:
         feature ("hauto"). Typical use: choose "Finer" for higher accuracy
         or "Coarser" for quick checks.
 
+        Accepts mesh tag or label.
+
         Args:
             size_kind: One of COMSOL's predefined size strings:
                 "Extremely fine" / "Extra fine" / "Finer" / "Fine" /
                 "Normal" / "Coarse" / "Coarser" / "Extra coarse" /
                 "Extremely coarse". Case-sensitive.
-            mesh_name: Mesh sequence tag (default: first mesh).
+            mesh_name: Mesh sequence tag or label (default: first mesh).
             feature_tag: Tag of the Size feature within the mesh
                 (default: 'size' as auto-created by COMSOL; some sequences
                 use 'size1'). Both tags are tried.
             model_name: Model name (default: current).
 
         Returns:
-            {success, mesh, size_kind, hauto, applied} on success.
+            ``{success, mesh: {tag, label, component}, size_kind, hauto,
+                applied}`` on success.
         """
         if size_kind not in _HAUTO_BY_SIZE_KIND:
             return {
@@ -356,25 +466,9 @@ def register_mesh_tools(mcp: FastMCP) -> None:
 
         try:
             jm = model.java
-            target_tag = mesh_name
-            mesh_obj = None
-            for comp in list(jm.component()):
-                try:
-                    for m in list(comp.mesh()):
-                        if target_tag is None or str(m.tag()) == target_tag:
-                            mesh_obj = m
-                            target_tag = str(m.tag())
-                            break
-                    if mesh_obj is not None:
-                        break
-                except Exception:
-                    continue
-
-            if mesh_obj is None:
-                return {
-                    "success": False,
-                    "error": f"Mesh sequence not found: {mesh_name or '(first)'}",
-                }
+            _comp, mesh_obj, comp_tag, tag, label, err = _resolve_mesh(jm, mesh_name)
+            if err:
+                return {"success": False, "error": err}
 
             hauto = _HAUTO_BY_SIZE_KIND[size_kind]
             applied_tag = None
@@ -396,13 +490,13 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                     "success": False,
                     "error": (
                         f"Size feature '{feature_tag}' not found in mesh "
-                        f"'{target_tag}'. Last error: {last_error}"
+                        f"'{tag}' ({label}). Last error: {last_error}"
                     ),
                 }
 
             return {
                 "success": True,
-                "mesh": target_tag,
+                "mesh": {"tag": tag, "label": label, "component": comp_tag},
                 "size_kind": size_kind,
                 "hauto": hauto,
                 "applied": applied_tag,
@@ -421,12 +515,14 @@ def register_mesh_tools(mcp: FastMCP) -> None:
         """
         Remove a mesh sequence from the model.
 
+        Accepts mesh tag or label.
+
         Args:
-            mesh_name: Tag of the mesh sequence to remove.
+            mesh_name: Tag or label of the mesh sequence to remove.
             model_name: Model name (default: current).
 
         Returns:
-            {success, removed} on success.
+            ``{success, removed: {tag, label, component}}`` on success.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -437,16 +533,14 @@ def register_mesh_tools(mcp: FastMCP) -> None:
 
         try:
             jm = model.java
-            for comp in list(jm.component()):
-                try:
-                    if str(comp.mesh(mesh_name).tag()) == mesh_name:
-                        comp.mesh().remove(mesh_name)
-                        return {"success": True, "removed": mesh_name}
-                except Exception:
-                    continue
+            comp, _m, comp_tag, tag, label, err = _resolve_mesh(jm, mesh_name)
+            if err:
+                return {"success": False, "error": err}
+
+            comp.mesh().remove(tag)
             return {
-                "success": False,
-                "error": f"Mesh sequence not found: {mesh_name}",
+                "success": True,
+                "removed": {"tag": tag, "label": label, "component": comp_tag},
             }
         except Exception as e:
             return {
