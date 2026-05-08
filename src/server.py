@@ -18,7 +18,7 @@ from .knowledge.embedded import register_knowledge_tools
 logging.basicConfig(level=logging.INFO, stream=sys.stderr)
 logger = logging.getLogger(__name__)
 
-mcp = FastMCP("COMSOL MCP", host="127.0.0.1", port=8765)
+mcp = FastMCP("comsol61-ops", host="127.0.0.1", port=8765)
 
 
 def register_all_tools() -> None:
