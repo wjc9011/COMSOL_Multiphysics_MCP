@@ -495,6 +495,7 @@ def register_mesh_tools(mcp: FastMCP) -> None:
 
             default_op_info = None
             size_attached_to = None
+            silent_exception = None
 
             if auto_default_features:
                 # Resolve the operation type. Caller override wins;
@@ -512,10 +513,11 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                 try:
                     op_obj = mesh_seq.create(op_tag, op_type)
                     default_op_info = {"tag": op_tag, "type": op_type}
-                except Exception:
+                except Exception as e:
                     # Fall through — no operation; we still add the size
                     # attribute below so users can hand-add an operation.
                     op_obj = None
+                    silent_exception = f"{type(e).__name__}: {e}"
 
                 # 3D: KB chunk 77427 says default selection is empty.
                 # Set selection().all() so the freetet covers everything.
@@ -560,6 +562,7 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                     "has_default_features": bool(auto_default_features),
                     "default_operation": default_op_info,
                     "size_attribute_attached_to": size_attached_to,
+                    "silent_exception": silent_exception,
                 },
             }
         except Exception as e:
