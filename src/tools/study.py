@@ -1,6 +1,15 @@
-"""Study and solving tools for COMSOL MCP Server."""
+"""Study and solving tools for COMSOL MCP Server.
 
-from typing import Optional
+Naming convention (spec mcp_pr_c_fix_v2_spec.md §3.3, mirrors the mesh
+tools): every ``study_*`` tool accepts a study by EITHER its Java tag
+(e.g. ``std1``) OR its display label (e.g. ``Stationary Study``). The
+shared ``_resolve_study`` helper prefers tag matches and falls back to
+label matches; on miss it surfaces a unified error. Every response
+also reports ``tag`` and ``label`` so callers do not have to guess
+which form their input was.
+"""
+
+from typing import Optional, Tuple
 from mcp.server.fastmcp import FastMCP
 
 from .session import session_manager
@@ -21,6 +30,25 @@ _STUDY_TYPE_TO_STEP = {
     "eigenvalue":      ("eigen", "Eigenvalue"),
 }
 
+# Reverse map: feature type string -> canonical alias key. Used when we
+# read an existing step's type back from COMSOL.
+_STEP_TYPE_TO_CANONICAL = {
+    "Stationary":      "stationary",
+    "Transient":       "transient",
+    "Eigenfrequency":  "eigenfrequency",
+    "Frequency":       "frequency_domain",
+    "Eigenvalue":      "eigenvalue",
+}
+
+
+def _safe_str(value, default: str = "") -> str:
+    try:
+        if value is None:
+            return default
+        return str(value)
+    except Exception:
+        return default
+
 
 def _normalize_study_type(s: str) -> Optional[str]:
     if not isinstance(s, str) or not s.strip():
@@ -29,18 +57,96 @@ def _normalize_study_type(s: str) -> Optional[str]:
     return norm if norm in _STUDY_TYPE_TO_STEP else None
 
 
-def _study_tags(jm) -> list:
-    """Return tag strings for all studies in the model."""
-    tags = []
+def _study_descriptors(jm) -> list:
+    """Return ``[(study_obj, tag, label, type_alias, step_tags), ...]``
+    for every study in the model. ``type_alias`` is one of the keys of
+    ``_STUDY_TYPE_TO_STEP`` (best-effort) or ``None`` if unknown.
+    """
+    out: list = []
     try:
         for s in list(jm.study()):
             try:
-                tags.append(str(s.tag()))
+                tag = _safe_str(s.tag())
             except Exception:
-                continue
+                tag = ""
+            try:
+                label = _safe_str(s.label())
+            except Exception:
+                label = ""
+            step_tags: list = []
+            primary_step_type = None
+            try:
+                for f in list(s.feature()):
+                    try:
+                        step_tags.append(_safe_str(f.tag()))
+                    except Exception:
+                        pass
+                    if primary_step_type is None:
+                        try:
+                            primary_step_type = _safe_str(f.getType())
+                        except Exception:
+                            try:
+                                primary_step_type = _safe_str(
+                                    f.feature().info().type()
+                                )
+                            except Exception:
+                                primary_step_type = None
+            except Exception:
+                pass
+            type_alias = (
+                _STEP_TYPE_TO_CANONICAL.get(primary_step_type)
+                if primary_step_type else None
+            )
+            out.append((s, tag, label, type_alias, step_tags))
     except Exception:
         pass
-    return tags
+    return out
+
+
+def _study_tags(jm) -> list:
+    """Return tag strings for all studies in the model."""
+    return [d[1] for d in _study_descriptors(jm) if d[1]]
+
+
+def _resolve_study(
+    jm,
+    study_name_or_label: Optional[str],
+) -> Tuple:
+    """Find a study by tag (preferred) or label.
+
+    Spec mcp_pr_c_fix_v2_spec.md §3.3.
+
+    Returns ``(study_obj, tag, label, type_alias, step_tags,
+    error_str)``. On success ``error_str`` is None; on miss the other
+    fields are None and ``error_str`` carries a human-readable message.
+    Passing ``None`` / ``""`` returns an "all studies" sentinel
+    (study_obj is None, error_str is None) so the caller can choose to
+    iterate.
+    """
+    if study_name_or_label in (None, ""):
+        return None, None, None, None, None, None
+
+    descriptors = _study_descriptors(jm)
+    if not descriptors:
+        return None, None, None, None, None, (
+            "No studies in the model. Create one with study_create first."
+        )
+
+    # Tag-first.
+    for s, tag, label, type_alias, step_tags in descriptors:
+        if tag == study_name_or_label:
+            return s, tag, label, type_alias, step_tags, None
+
+    # Label fallback.
+    for s, tag, label, type_alias, step_tags in descriptors:
+        if label == study_name_or_label:
+            return s, tag, label, type_alias, step_tags, None
+
+    return None, None, None, None, None, (
+        f"Study not found: '{study_name_or_label}'. "
+        "Pass the tag (e.g. 'std1') or the exact GUI label "
+        "(e.g. 'Stationary Study')."
+    )
 
 
 def _auto_study_tag(jm, prefix: str = "std") -> str:
@@ -79,17 +185,24 @@ def _auto_step_tag(study_obj, base_tag: str) -> str:
 
 def register_study_tools(mcp: FastMCP) -> None:
     """Register study and solving tools with the MCP server."""
-    
+
     @mcp.tool()
     def study_list(model_name: Optional[str] = None) -> dict:
         """
         List all studies in a model.
-        
+
+        Spec mcp_pr_c_fix_v2_spec.md §3.3: response is a list of dicts
+        with ``tag``, ``label``, ``type`` (canonical alias), and
+        ``steps`` (step tags). The previous list-of-strings shape was
+        too lossy — callers had to inspect studies separately to learn
+        the tag.
+
         Args:
-            model_name: Model name (default: current model)
-        
+            model_name: Model name (default: current model).
+
         Returns:
-            List of study names with their types
+            ``{success, studies: [{tag, label, type, steps}, ...],
+                count}``.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -97,29 +210,30 @@ def register_study_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
-            studies = model.studies()
-            
-            study_info = []
-            for study_name in studies:
-                info = {"name": study_name}
-                try:
-                    study_node = model / "studies" / study_name
-                    children = [child.name() for child in study_node.children()]
-                    info["steps"] = children
-                except Exception:
-                    pass
-                study_info.append(info)
-            
+            jm = model.java
+            descriptors = _study_descriptors(jm)
+            studies = [
+                {
+                    "tag": tag,
+                    "label": label,
+                    "type": type_alias,
+                    "steps": step_tags,
+                }
+                for _s, tag, label, type_alias, step_tags in descriptors
+            ]
             return {
                 "success": True,
-                "studies": study_info,
-                "count": len(study_info),
+                "studies": studies,
+                "count": len(studies),
             }
         except Exception as e:
-            return {"success": False, "error": f"Failed to list studies: {str(e)}"}
-    
+            return {
+                "success": False,
+                "error": f"Failed to list studies: {type(e).__name__}: {e}",
+            }
+
     @mcp.tool()
     def study_solve(
         study_name: Optional[str] = None,
@@ -129,15 +243,21 @@ def register_study_tools(mcp: FastMCP) -> None:
     ) -> dict:
         """
         Solve a study (synchronous by default).
-        
+
+        Accepts a study tag (e.g. ``std1``) or label
+        (e.g. ``Stationary Study``); see ``_resolve_study``.
+
         Args:
-            study_name: Study to solve (None for all studies)
-            model_name: Model name (default: current model)
-            wait: If True, wait for completion; if False, return immediately
-            timeout: Maximum wait time in seconds (only used if wait=True)
-        
+            study_name: Study tag or label (None for all studies).
+            model_name: Model name (default: current model).
+            wait: If True, wait for completion; if False, return
+                immediately.
+            timeout: Maximum wait time in seconds (only used if
+                wait=True).
+
         Returns:
-            Solution status, or error message
+            ``{success, study: {tag, label, type} | None, message}``,
+            or error.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -145,27 +265,41 @@ def register_study_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         if async_solver.is_running:
             return {
                 "success": False,
                 "error": "Another solving operation is in progress. Use study_get_progress to check status."
             }
-        
+
         try:
+            jm = model.java
+            _s, tag, label, type_alias, _steps, err = _resolve_study(jm, study_name)
+            if err:
+                return {"success": False, "error": err}
+
+            # mph's model.solve(name) keys studies by node *name* (label).
+            # When the caller passed a tag we resolve it here and feed
+            # the label down. ``None`` flows through unchanged ("all").
+            target_for_mph = label if tag else None
+            study_payload = (
+                {"tag": tag, "label": label, "type": type_alias}
+                if tag else None
+            )
+
             if wait:
-                model.solve(study_name)
+                model.solve(target_for_mph)
                 return {
                     "success": True,
-                    "study": study_name,
+                    "study": study_payload,
                     "message": "Solving completed.",
                 }
             else:
-                started = async_solver.start_solve(model, study_name)
+                started = async_solver.start_solve(model, target_for_mph)
                 if started:
                     return {
                         "success": True,
-                        "study": study_name,
+                        "study": study_payload,
                         "message": "Solving started in background. Use study_get_progress to monitor.",
                         "async": True,
                     }
@@ -175,8 +309,11 @@ def register_study_tools(mcp: FastMCP) -> None:
                         "error": "Failed to start async solver."
                     }
         except Exception as e:
-            return {"success": False, "error": f"Failed to solve: {str(e)}"}
-    
+            return {
+                "success": False,
+                "error": f"Failed to solve: {type(e).__name__}: {e}",
+            }
+
     @mcp.tool()
     def study_solve_async(
         study_name: Optional[str] = None,
@@ -184,15 +321,16 @@ def register_study_tools(mcp: FastMCP) -> None:
     ) -> dict:
         """
         Start solving a study in the background (asynchronous).
-        
-        Use study_get_progress to monitor progress and study_cancel to stop.
-        
+
+        Use ``study_get_progress`` to monitor progress and
+        ``study_cancel`` to stop. Accepts study tag or label.
+
         Args:
-            study_name: Study to solve (None for all studies)
-            model_name: Model name (default: current model)
-        
+            study_name: Study tag or label (None for all studies).
+            model_name: Model name (default: current model).
+
         Returns:
-            Confirmation that solving started, or error message
+            Confirmation that solving started, or error message.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -200,7 +338,7 @@ def register_study_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         if async_solver.is_running:
             progress = async_solver.get_progress()
             return {
@@ -208,13 +346,24 @@ def register_study_tools(mcp: FastMCP) -> None:
                 "error": "Another solving operation is already in progress.",
                 "current_progress": progress,
             }
-        
+
         try:
-            started = async_solver.start_solve(model, study_name)
+            jm = model.java
+            _s, tag, label, type_alias, _steps, err = _resolve_study(jm, study_name)
+            if err:
+                return {"success": False, "error": err}
+
+            target_for_mph = label if tag else None
+            study_payload = (
+                {"tag": tag, "label": label, "type": type_alias}
+                if tag else None
+            )
+
+            started = async_solver.start_solve(model, target_for_mph)
             if started:
                 return {
                     "success": True,
-                    "study": study_name,
+                    "study": study_payload,
                     "model": model.name(),
                     "message": "Solving started in background.",
                 }
@@ -224,31 +373,35 @@ def register_study_tools(mcp: FastMCP) -> None:
                     "error": "Failed to start async solver."
                 }
         except Exception as e:
-            return {"success": False, "error": f"Failed to start solving: {str(e)}"}
-    
+            return {
+                "success": False,
+                "error": f"Failed to start solving: {type(e).__name__}: {e}",
+            }
+
     @mcp.tool()
     def study_get_progress() -> dict:
         """
         Get the progress of the current solving operation.
-        
+
         Returns:
-            Progress information including status, percentage, and elapsed time
+            Progress information including status, percentage, and
+            elapsed time.
         """
         progress = async_solver.get_progress()
         return {
             "success": True,
             "progress": progress,
         }
-    
+
     @mcp.tool()
     def study_cancel() -> dict:
         """
         Cancel the current solving operation.
-        
+
         Note: The solver may take a moment to respond to cancellation.
-        
+
         Returns:
-            Cancellation status
+            Cancellation status.
         """
         if async_solver.cancel():
             return {
@@ -259,37 +412,37 @@ def register_study_tools(mcp: FastMCP) -> None:
             "success": False,
             "message": "No solving operation in progress.",
         }
-    
+
     @mcp.tool()
     def study_wait(timeout: Optional[float] = None) -> dict:
         """
         Wait for the current solving operation to complete.
-        
+
         Args:
-            timeout: Maximum time to wait in seconds (None for indefinite)
-        
+            timeout: Maximum time to wait in seconds (None for indefinite).
+
         Returns:
-            Final progress status
+            Final progress status.
         """
         completed = async_solver.wait(timeout=timeout)
         progress = async_solver.get_progress()
-        
+
         return {
             "success": True,
             "completed": completed,
             "progress": progress,
         }
-    
+
     @mcp.tool()
     def solutions_list(model_name: Optional[str] = None) -> dict:
         """
         List all solutions in a model.
-        
+
         Args:
             model_name: Model name (default: current model)
-        
+
         Returns:
-            List of solution configurations
+            List of solution configurations.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -297,7 +450,7 @@ def register_study_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
             solutions = model.solutions()
             return {
@@ -307,7 +460,7 @@ def register_study_tools(mcp: FastMCP) -> None:
             }
         except Exception as e:
             return {"success": False, "error": f"Failed to list solutions: {str(e)}"}
-    
+
     @mcp.tool()
     def study_create(
         study_type: str = "stationary",
@@ -334,7 +487,7 @@ def register_study_tools(mcp: FastMCP) -> None:
             model_name: Model name (default: current).
 
         Returns:
-            {success, study: {tag, label, type, step: {tag, type}}} on
+            ``{success, study: {tag, label, type, step: {tag, type}}}`` on
             success.
         """
         canonical = _normalize_study_type(study_type)
@@ -401,15 +554,18 @@ def register_study_tools(mcp: FastMCP) -> None:
         """
         Append an additional solver step to an existing study.
 
+        Accepts study tag or label.
+
         Args:
-            study_name: Tag of the existing study (e.g. 'std1').
+            study_name: Tag or label of the existing study.
             step_type: Step type alias (same vocabulary as study_create:
                 "stationary", "transient", "eigenfrequency", etc.).
             step_tag: Tag for the new step (auto if None).
             model_name: Model name (default: current).
 
         Returns:
-            {success, study, step: {tag, type}} on success.
+            ``{success, study: {tag, label}, step: {tag, type}}`` on
+            success.
         """
         canonical = _normalize_study_type(step_type)
         if canonical is None:
@@ -432,19 +588,16 @@ def register_study_tools(mcp: FastMCP) -> None:
 
         try:
             jm = model.java
-            study = jm.study(study_name)
-            if study is None:
-                return {
-                    "success": False,
-                    "error": f"Study not found: {study_name}",
-                }
+            study, tag, label, _type, _steps, err = _resolve_study(jm, study_name)
+            if err:
+                return {"success": False, "error": err}
 
             actual_tag = step_tag or _auto_step_tag(study, base_tag)
             study.create(actual_tag, feature_type)
 
             return {
                 "success": True,
-                "study": study_name,
+                "study": {"tag": tag, "label": label},
                 "step": {"tag": actual_tag, "type": feature_type},
             }
         except Exception as e:
@@ -461,12 +614,14 @@ def register_study_tools(mcp: FastMCP) -> None:
         """
         Remove a study from the model.
 
+        Accepts study tag or label.
+
         Args:
-            study_name: Tag of the study to remove.
+            study_name: Tag or label of the study to remove.
             model_name: Model name (default: current).
 
         Returns:
-            {success, removed} on success.
+            ``{success, removed: {tag, label}}`` on success.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -477,13 +632,14 @@ def register_study_tools(mcp: FastMCP) -> None:
 
         try:
             jm = model.java
-            if study_name not in set(_study_tags(jm)):
-                return {
-                    "success": False,
-                    "error": f"Study not found: {study_name}",
-                }
-            jm.study().remove(study_name)
-            return {"success": True, "removed": study_name}
+            _s, tag, label, _type, _steps, err = _resolve_study(jm, study_name)
+            if err:
+                return {"success": False, "error": err}
+            jm.study().remove(tag)
+            return {
+                "success": True,
+                "removed": {"tag": tag, "label": label},
+            }
         except Exception as e:
             return {
                 "success": False,
@@ -494,14 +650,14 @@ def register_study_tools(mcp: FastMCP) -> None:
     def datasets_list(model_name: Optional[str] = None) -> dict:
         """
         List all datasets in a model.
-        
+
         Datasets represent solution data that can be evaluated or visualized.
-        
+
         Args:
             model_name: Model name (default: current model)
-        
+
         Returns:
-            List of dataset names
+            List of dataset names.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -509,7 +665,7 @@ def register_study_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
             datasets = model.datasets()
             return {

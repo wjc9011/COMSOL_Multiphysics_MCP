@@ -7,6 +7,14 @@ walks all components, prefers tag matches, falls back to label matches,
 and surfaces a unified error on miss. Every response also reports both
 ``tag`` and ``label`` so callers do not have to guess which form their
 input was.
+
+Operation auto-injection (spec mcp_pr_c_fix_v2_spec.md §3.1): an empty
+mesh sequence with only a Size *attribute* meshes nothing — KB
+ProgrammingReferenceManual chunks 77425/77427/77428 show that mesh
+generation requires an *operation* feature (``freetri``, ``freetet``,
+``edge`` ...) to drive cell creation. ``mesh_add_sequence`` therefore
+infers the right operation type from the geometry's space dimension
+and adds it under the new sequence by default.
 """
 
 from typing import Optional, Tuple
@@ -26,6 +34,30 @@ _HAUTO_BY_SIZE_KIND = {
     "Coarser":          7,
     "Extra coarse":     8,
     "Extremely coarse": 9,
+}
+
+
+# Spec mcp_pr_c_fix_v2_spec.md §2.2 — sdim → default operation type.
+# Source: KB ProgrammingReferenceManual chunks 77427/77428 (freetri/freetet
+# syntax tables) plus the COMSOL UI default that picks freetri for any 2D
+# (planar or axisymmetric) and freetet for 3D.
+_DEFAULT_OP_BY_SDIM = {
+    1: "edge",
+    2: "freetri",
+    3: "freetet",
+}
+
+# Stable per-operation tag prefixes that mirror what the COMSOL GUI emits.
+_OP_TAG_PREFIX = {
+    "freetri":  "ftri",
+    "freequad": "fq",
+    "freetet":  "ftet",
+    "edge":     "edg",
+    "bndlayer": "bl",
+    "sweep":    "swe",
+    "map":      "map",
+    "copy":     "cp",
+    "refine":   "ref",
 }
 
 
@@ -176,6 +208,49 @@ def _resolve_geom_tag(comp, geometry_name: Optional[str]):
         return None, f"{type(e).__name__}: {e}"
 
 
+def _geom_sdim(comp, geom_tag: str) -> Optional[int]:
+    """Return the space dimension of a geometry, or None if unknown.
+
+    Tries the standard COMSOL Java accessor ``geom.sdim()`` first; if
+    that is unavailable, falls back to the geometry's GeomSequence
+    metadata.
+    """
+    try:
+        g = comp.geom(geom_tag)
+    except Exception:
+        return None
+    for accessor in ("sdim", "geomDim", "space_dimension"):
+        try:
+            fn = getattr(g, accessor, None)
+            if fn is None:
+                continue
+            v = fn()
+            if v is None:
+                continue
+            return int(v)
+        except Exception:
+            continue
+    return None
+
+
+def _auto_op_tag(mesh_seq, op_type: str) -> str:
+    """Generate a non-colliding feature tag for a mesh operation."""
+    prefix = _OP_TAG_PREFIX.get(op_type, op_type)
+    existing = set()
+    try:
+        for f in list(mesh_seq.feature()):
+            try:
+                existing.add(str(f.tag()))
+            except Exception:
+                continue
+    except Exception:
+        pass
+    i = 1
+    while f"{prefix}{i}" in existing:
+        i += 1
+    return f"{prefix}{i}"
+
+
 def register_mesh_tools(mcp: FastMCP) -> None:
     """Register mesh tools with the MCP server."""
 
@@ -309,7 +384,10 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                 if hasattr(mesh_obj, 'getVertex'):
                     info["num_vertices"] = mesh_obj.getVertex().size()
                 if hasattr(mesh_obj, 'getElement'):
-                    info["num_elements"] = mesh_obj.getElement().size()
+                    n_elems = mesh_obj.getElement().size()
+                    info["num_elements"] = n_elems
+                    # Spec mcp_pr_c_fix_v2_spec.md §5.1 alias.
+                    info["element_count"] = n_elems
             except Exception:
                 pass
 
@@ -337,14 +415,33 @@ def register_mesh_tools(mcp: FastMCP) -> None:
         geometry_name: Optional[str] = None,
         mesh_name: Optional[str] = None,
         auto_default_features: bool = True,
+        default_operation_type: Optional[str] = None,
         model_name: Optional[str] = None,
     ) -> dict:
         """
-        Create an empty mesh sequence attached to a component+geometry.
+        Create a mesh sequence with default operation + Size attribute.
 
-        By default this also adds COMSOL's standard "default" Size feature
-        (Normal preset) so that the subsequent ``mesh_create`` call (which
-        runs the sequence) produces a usable mesh without further config.
+        Spec mcp_pr_c_fix_v2_spec.md §3.1: KB ProgrammingReferenceManual
+        chunks 77425/77427/77428 show that the Size *attribute* alone
+        cannot mesh anything — an *operation* feature
+        (``freetri`` / ``freetet`` / ``edge`` / ...) must be present
+        to drive cell creation. With ``auto_default_features=True`` we
+        therefore add:
+          - The default operation matching the geometry's space
+            dimension: sdim=1 → ``edge``, sdim=2 (planar or axi) →
+            ``freetri``, sdim=3 → ``freetet``. Override with
+            ``default_operation_type``.
+          - A ``size`` attribute *under the operation* (so the predefined
+            size applies to the cells the operation generates). The
+            global mesh-level Size (``size1``) is also added as a
+            backstop because some COMSOL versions key the predefined
+            size off the global attribute.
+          - For 3D operations the default selection is empty per KB —
+            we call ``selection().all()`` so all domains are meshed.
+
+        Java API per KB chunk 77427:
+            model.component(c).mesh(m).create(<op_tag>, <op_type>);
+            model.component(c).mesh(m).feature(<op_tag>).create("size", "Size");
 
         Args:
             component_name: Component to attach mesh to (default: first).
@@ -353,14 +450,21 @@ def register_mesh_tools(mcp: FastMCP) -> None:
             mesh_name: COMSOL tag (or label) for the mesh sequence
                 (auto-generated if None — e.g. 'mesh1'). When passed, it
                 is treated as the COMSOL tag.
-            auto_default_features: If True (default), add a Size feature
-                with global predefined size (Normal) so the empty sequence
-                becomes immediately runnable. If False, leave bare.
+            auto_default_features: If True (default), inject the default
+                operation + Size attribute described above. If False,
+                leave the sequence bare.
+            default_operation_type: Override the operation auto-mapping.
+                One of ``"freetri"`` / ``"freequad"`` / ``"freetet"`` /
+                ``"edge"`` (KB Table 4-1). ``None`` (default) → infer
+                from geometry sdim.
             model_name: Model name (default: current).
 
         Returns:
             ``{success, mesh: {tag, label, component, geometry,
-                                has_default_features}}`` on success.
+                                has_default_features, default_operation,
+                                size_attribute_attached_to}}`` on
+            success. ``default_operation`` is ``{tag, type}`` or ``None``
+            if injection was skipped or failed.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -389,12 +493,55 @@ def register_mesh_tools(mcp: FastMCP) -> None:
 
             mesh_seq = comp.mesh().create(tag, geom_tag)
 
+            default_op_info = None
+            size_attached_to = None
+
             if auto_default_features:
+                # Resolve the operation type. Caller override wins;
+                # otherwise infer from the geometry's space dimension.
+                op_type = default_operation_type
+                if not op_type:
+                    sdim = _geom_sdim(comp, geom_tag)
+                    op_type = _DEFAULT_OP_BY_SDIM.get(
+                        sdim if sdim in _DEFAULT_OP_BY_SDIM else 2,
+                        "freetri",
+                    )
+
+                op_tag = _auto_op_tag(mesh_seq, op_type)
+                op_obj = None
                 try:
+                    op_obj = mesh_seq.create(op_tag, op_type)
+                    default_op_info = {"tag": op_tag, "type": op_type}
+                except Exception:
+                    # Fall through — no operation; we still add the size
+                    # attribute below so users can hand-add an operation.
+                    op_obj = None
+
+                # 3D: KB chunk 77427 says default selection is empty.
+                # Set selection().all() so the freetet covers everything.
+                if op_obj is not None and op_type == "freetet":
                     try:
-                        mesh_seq.create("size1", "Size")
+                        op_obj.selection().all()
                     except Exception:
                         pass
+
+                # Attach the predefined Size attribute under the
+                # operation (KB chunk 77428 confirms this is the
+                # canonical location).
+                if op_obj is not None:
+                    try:
+                        op_obj.create("size", "Size")
+                        size_attached_to = op_tag
+                    except Exception:
+                        size_attached_to = None
+
+                # Backstop: also add a mesh-level Size so callers that
+                # later invoke mesh_set_global_size still find a target,
+                # and so legacy (mph) consumers that read the global
+                # size keep working. Tag 'size1' to avoid colliding
+                # with the auto-created 'size' COMSOL emits.
+                try:
+                    mesh_seq.create("size1", "Size")
                 except Exception:
                     pass
 
@@ -411,6 +558,8 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                     "component": comp_tag,
                     "geometry": geom_tag,
                     "has_default_features": bool(auto_default_features),
+                    "default_operation": default_op_info,
+                    "size_attribute_attached_to": size_attached_to,
                 },
             }
         except Exception as e:
