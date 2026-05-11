@@ -99,6 +99,91 @@ _PROPERTY_GROUP_DESCR = {
 }
 
 
+def _comp_geom_sdim(comp) -> int:
+    """Return the space dimension of the first geometry on ``comp``.
+
+    Mirrors the fallback chain used by ``physics.py::_geom_sdim`` to deal
+    with JPype case-sensitivity (``sDim``) and string returns like
+    ``"3D"`` / ``"2Daxi"``. Defaults to 3 when no geometry is found —
+    callers should treat the result as a best-effort hint for
+    ``mat.selection().entities(sdim)``.
+    """
+    geom = None
+    try:
+        for g in list(comp.geom()):
+            geom = g
+            break
+    except Exception:
+        geom = None
+    if geom is None:
+        return 3
+    for accessor in (
+        "sdim", "sDim", "dimension", "getSDim", "geomDim", "space_dimension",
+    ):
+        try:
+            fn = getattr(geom, accessor, None)
+            if fn is None:
+                continue
+            v = fn()
+            if v is None:
+                continue
+            if isinstance(v, str):
+                v = v.strip()
+                if v and v[0].isdigit():
+                    return int(v[0])
+                continue
+            iv = int(v)
+            if iv in (1, 2, 3):
+                return iv
+        except Exception:
+            continue
+    return 3
+
+
+def _selection_echo(mat, comp) -> dict:
+    """Return ``{domain_selection, domain_selection_entities, selection_note}``
+    describing the material's current domain assignment.
+
+    Failure to inspect the selection grace-degrades to the default-all
+    response so the caller's success path is never broken.
+    """
+    default_display = "all (component-wide default)"
+    default_note = (
+        "Material occupies all domains in this component by default. "
+        "To restrict, call material_assign_to_domain(material_name, "
+        "domain_selection)."
+    )
+    try:
+        sel = mat.selection()
+    except Exception:
+        sel = None
+    if sel is None:
+        return {
+            "domain_selection": default_display,
+            "domain_selection_entities": [],
+            "selection_note": default_note,
+        }
+    sdim = _comp_geom_sdim(comp)
+    entities = []
+    try:
+        raw = sel.entities(sdim)
+        if raw is not None:
+            entities = [int(x) for x in list(raw)]
+    except Exception:
+        entities = []
+    if entities:
+        return {
+            "domain_selection": entities,
+            "domain_selection_entities": entities,
+            "selection_note": None,
+        }
+    return {
+        "domain_selection": default_display,
+        "domain_selection_entities": [],
+        "selection_note": default_note,
+    }
+
+
 def _create_material_property_group(mat, group_tag: str) -> bool:
     """Create a non-default propertyGroup on a Material via Java API.
 
@@ -218,6 +303,8 @@ def _create_material_with_properties(
         except Exception as e:
             skipped.append({"property": str(prop_key), "error": f"{type(e).__name__}: {e}"})
 
+    selection_echo = _selection_echo(mat, comp)
+
     return {
         "success": True,
         "material": {
@@ -226,6 +313,9 @@ def _create_material_with_properties(
             "component": str(comp.tag()),
             "property_group": property_group,
             "properties": written,
+            "domain_selection": selection_echo["domain_selection"],
+            "domain_selection_entities": selection_echo["domain_selection_entities"],
+            "selection_note": selection_echo["selection_note"],
         },
         **({"warnings": {"skipped_properties": skipped}} if skipped else {}),
     }
@@ -515,6 +605,8 @@ def register_material_tools(mcp: FastMCP) -> None:
             "material": material_name,
             "component": comp_tag,
             "domain_selection": domains,
+            "domain_selection_entities": domains,
+            "selection_note": None,
         }
 
     @mcp.tool()

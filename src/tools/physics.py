@@ -682,16 +682,30 @@ def register_physics_tools(mcp: FastMCP) -> None:
         model_name: Optional[str] = None
     ) -> dict:
         """
-        Assign a material to physics domains.
-        
-        Args:
-            physics_name: Name of the physics interface
-            material_name: Name of the material to assign
-            domain_selection: Domain numbers (default: all domains for this physics)
-            model_name: Model name (default: current model)
-        
+        [DEPRECATED — advisory only]
+
+        In COMSOL the material → domain binding lives on the material
+        object itself, NOT on the physics interface. There is no canonical
+        Java API call of the form ``physics.setMaterial(mat)``. The proper
+        workflow is:
+
+            1. Create the material with material_create_user_defined
+               or material_create_from_kb (this sets a component-wide
+               default selection = all domains).
+            2. If needed, restrict the material to specific domains with
+               material_assign_to_domain(material_name, domain_selection).
+            3. Physics interfaces implicitly use the material that covers
+               their domain — no explicit physics-side binding is required.
+
+        This tool is retained for backwards compatibility with prompts /
+        sequences from wjc9011/comsol-mcp v0.1, but performs no Java API
+        mutation. It only validates that the named physics and material
+        exist, and returns a ``redirect_tool`` field pointing to the proper
+        tool. The ``domain_selection`` argument is accepted but ignored.
+
         Returns:
-            Assignment confirmation
+            ``{success, deprecated: True, advisory, physics, material,
+               redirect_tool, validated}``.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -699,23 +713,54 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
             materials = model.materials()
-            if material_name not in materials:
-                return {"success": False, "error": f"Material not found: {material_name}"}
-            
+            material_exists = material_name in materials
             physics_interfaces = model.physics()
-            if physics_name not in physics_interfaces:
-                return {"success": False, "error": f"Physics interface not found: {physics_name}"}
-            
+            physics_exists = physics_name in physics_interfaces
+
+            if not material_exists:
+                return {
+                    "success": False,
+                    "error": f"Material not found: {material_name}",
+                }
+            if not physics_exists:
+                return {
+                    "success": False,
+                    "error": f"Physics interface not found: {physics_name}",
+                }
+
             return {
                 "success": True,
-                "message": f"Material '{material_name}' should be configured to cover the required domains.",
-                "note": "Use COMSOL GUI or low-level API for detailed material assignment.",
+                "deprecated": True,
+                "advisory": (
+                    "physics_set_material is advisory-only and performs "
+                    "no Java API mutation. In COMSOL, material → domain "
+                    "binding is set on the material itself "
+                    "(mat.selection().set(...)), not on the physics "
+                    "interface. Use material_assign_to_domain to bind a "
+                    "material to specific domains, or rely on the "
+                    "component-wide default selection (= all domains) "
+                    "automatically set by material_create_user_defined / "
+                    "material_create_from_kb."
+                ),
+                "physics": physics_name,
+                "material": material_name,
+                "redirect_tool": "material_assign_to_domain",
+                "validated": {
+                    "physics_exists": True,
+                    "material_exists": True,
+                    "domain_selection_arg_ignored": (
+                        domain_selection is not None
+                    ),
+                },
             }
         except Exception as e:
-            return {"success": False, "error": f"Failed to set material: {str(e)}"}
+            return {
+                "success": False,
+                "error": f"Failed to validate set_material: {type(e).__name__}: {e}",
+            }
     
     @mcp.tool()
     def multiphysics_add(
