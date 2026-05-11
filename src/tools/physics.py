@@ -514,19 +514,51 @@ def register_physics_tools(mcp: FastMCP) -> None:
         - "ConvectiveHeatFlux": Convection cooling
         - "Symmetry": Symmetry (adiabatic)
 
+        Property value formats — KB scripting_completion_text/physics.md
+        (data/completion/physics.xml) is authoritative for type. Use the
+        ``silent_exceptions`` field in the response to confirm each
+        property landed cleanly:
+
+        - Scalar properties (``type="String"``): pass a Python ``str``
+          or numeric. Examples: ``"LoadType": "ForceArea"``,
+          ``"Fp": "100[N]"``, ``"T0": "293.15[K]"``.
+        - Vector properties (``type="StringArray"``): pass a Python
+          ``list`` of strings, one per geometry component. Examples
+          (3D): ``"FperArea": ["0", "0", "-1e6[N/m^2]"]``,
+          ``"FperLength": ["0", "0", "-1e3[N/m]"]``,
+          ``"Fp": ["100[N]", "0", "0"]``. The Java side expects a
+          ``String[]`` of length = sdim; JPype routes a Python list
+          through the typed setter automatically.
+        - LoadType selectors (Solid Mechanics): the BoundaryLoad
+          ``LoadType`` strings vary per parent physics — e.g. for the
+          3D ``solid`` interface the values are ``"ForceArea" |
+          "TotalForce" | "FollowerPressure" | "Resultant"``; for plate /
+          shell variants ``"ForceLength"`` and ``"ForceVolume"`` also
+          appear. See KB physics.md tokens ``asewtbfb`` / ``axetxqxx`` /
+          ``bwfqxdxb`` for the canonical value lists.
+
         Args:
             physics_name: Name of the physics interface
             boundary_condition: Java feature class (e.g. "Fixed",
                 "PointLoad", "BoundaryLoad", "HeatFluxBoundary")
             boundary_selection: Selected entity numbers
             properties: Dictionary of property names and values
+                (see *Property value formats* above)
             selection_dim: 0=points, 1=edges, 2=faces, 3=domains.
                 Default ``None`` → auto-infer ``geom.sdim - 1``.
             model_name: Model name (default: current model)
 
         Returns:
             Created feature info, including the resolved
-            ``selection_dim`` for caller audit.
+            ``selection_dim`` for caller audit. The
+            ``boundary_condition.silent_exceptions`` field is a dict
+            mapping each property key to ``None`` (set succeeded) or
+            ``"ExceptionName: message"`` (set failed silently — feature
+            still created, but the property did NOT land on the Java
+            node and the caller should treat the BC as misconfigured).
+            This is the per-property analogue of the sar BC
+            ``silent_exception`` field in
+            ``physics_setup_heat_boundaries`` (commit 053f48a pattern).
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -594,12 +626,29 @@ def register_physics_tools(mcp: FastMCP) -> None:
             # UnknownEntityException for many feature classes.
             bc.selection().set([int(b) for b in boundary_selection])
 
+            # Per-property silent_exceptions diagnostic (mirrors the
+            # sar1 pattern in physics_setup_heat_boundaries, commit
+            # 053f48a). Pilot 08 v2 fix: previously the inner setter
+            # swallowed exceptions unconditionally with `except: pass`,
+            # so a BoundaryLoad call with a misformatted vector
+            # property (e.g. a Python list passed where COMSOL expects
+            # a String[][] 3-component literal, or a Python str passed
+            # where a StringArray is required) appeared to succeed
+            # while the property silently never landed on the Java
+            # node — yielding displacement=0 / stress=0 at solve time
+            # with no error trail. The dict here surfaces each set()
+            # outcome so callers can self-diagnose without a live mph
+            # probe.
+            silent_exceptions: dict = {}
             if properties:
                 for prop_name, prop_value in properties.items():
                     try:
                         bc.set(prop_name, prop_value)
-                    except Exception:
-                        pass
+                        silent_exceptions[prop_name] = None
+                    except Exception as set_e:
+                        silent_exceptions[prop_name] = (
+                            f"{type(set_e).__name__}: {set_e}"
+                        )
 
             try:
                 bc.label(
@@ -619,6 +668,7 @@ def register_physics_tools(mcp: FastMCP) -> None:
                     "selection": list(boundary_selection),
                     "selection_dim": resolved_dim,
                     "properties": properties,
+                    "silent_exceptions": silent_exceptions,
                 }
             }
         except Exception as e:
@@ -1478,15 +1528,42 @@ def register_physics_tools(mcp: FastMCP) -> None:
 
         Solid Mechanics (solid):
         - Fixed: Fixed constraint (dim = boundary)
-        - BoundaryLoad: Set Fx, Fy, Fz or FAx, FAy, FAz (dim = boundary)
-        - PointLoad: Set Fp (force) — ``selection_dim=0`` required
-        - EdgeLoad: Distributed edge load — ``selection_dim=1`` required
+        - BoundaryLoad: ``LoadType`` selector + the matching vector
+          (dim = boundary). For 3D ``solid``: ``LoadType``
+          ∈ {"ForceArea", "TotalForce", "FollowerPressure",
+          "Resultant"}, with ``FperArea`` (length = sdim StringArray)
+          carrying the user-defined force-per-area vector.
+        - PointLoad: Set ``Fp`` (length = sdim StringArray for the
+          force vector) — ``selection_dim=0`` required.
+        - EdgeLoad: ``LoadType`` ∈ {"ForceLength", "TotalForce"},
+          paired with ``FperLength`` (length = sdim StringArray) —
+          ``selection_dim=1`` required on 3D.
+
+        Property value formats — KB scripting_completion_text/physics.md
+        (data/completion/physics.xml) is authoritative. Use the
+        ``silent_exceptions`` field in the response to confirm each
+        property landed cleanly:
+
+        - Scalar (``type="String"``): pass a Python ``str``. Examples:
+          ``"LoadType": "ForceArea"``, ``"T0": "293.15[K]"``.
+        - Vector (``type="StringArray"``): pass a Python ``list`` of
+          strings, one per geometry component. Examples (3D):
+          ``"FperArea": ["0", "0", "-1e6[N/m^2]"]``,
+          ``"FperLength": ["0", "0", "-1e3[N/m]"]``,
+          ``"Fp": ["100[N]", "0", "0"]``. The Java side expects a
+          ``String[]`` of length = sdim; JPype routes a Python list
+          through the typed setter automatically. Passing a scalar
+          string where a StringArray is required silently no-ops on
+          the Java node (this was the Pilot 08 v2 failure mode for
+          BoundaryLoad before this PR added the per-property
+          ``silent_exceptions`` diagnostic).
 
         Args:
             physics_name: Name of the physics interface
             boundary_condition_type: Type of feature (Java class name)
             boundary_numbers: Selected entity numbers
             properties: Dictionary of property names and values
+                (see *Property value formats* above)
             selection_dim: Selection dimension override (0/1/2/3).
                 Default ``None`` → auto-infer ``geom.sdim - 1``.
             model_name: Model name (default: current model)
@@ -1494,7 +1571,14 @@ def register_physics_tools(mcp: FastMCP) -> None:
         Returns:
             Configuration confirmation. The ``boundary_condition`` block
             includes the resolved ``selection_dim`` so callers can audit
-            whether they got points/edges/faces/domains.
+            whether they got points/edges/faces/domains, plus a
+            ``silent_exceptions`` dict mapping each property key to
+            ``None`` (set succeeded) or ``"ExceptionName: message"``
+            (set failed silently — feature still created, but the
+            property did NOT land and the caller should treat the BC
+            as misconfigured). This is the per-property analogue of
+            the sar BC ``silent_exception`` field in
+            ``physics_setup_heat_boundaries`` (commit 053f48a pattern).
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -1552,12 +1636,23 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 bc = physics.create(tag, boundary_condition_type)
             bc.selection().set([int(b) for b in boundary_numbers])
 
-            # Set properties
+            # Set properties — capture per-key outcome so callers can
+            # tell whether the typed Java setter actually accepted the
+            # value, instead of silently no-op'ing (Pilot 08 v2 fix:
+            # BoundaryLoad LoadType + FperLength looked applied because
+            # `properties` echoed in the response, but at solve time
+            # displacement=0 / stress=0 — the underlying COMSOL node
+            # had never received the values because the inner except
+            # swallowed every exception unconditionally).
+            silent_exceptions: dict = {}
             for prop_name, prop_value in properties.items():
                 try:
                     bc.set(prop_name, prop_value)
-                except Exception:
-                    pass  # Property might not exist
+                    silent_exceptions[prop_name] = None
+                except Exception as set_e:
+                    silent_exceptions[prop_name] = (
+                        f"{type(set_e).__name__}: {set_e}"
+                    )
 
             bc.label(f'{boundary_condition_type} (Entities {list(boundary_numbers)})')
 
@@ -1569,7 +1664,8 @@ def register_physics_tools(mcp: FastMCP) -> None:
                     "tag": tag,
                     "boundaries": list(boundary_numbers),
                     "selection_dim": resolved_dim,
-                    "properties": properties
+                    "properties": properties,
+                    "silent_exceptions": silent_exceptions,
                 },
                 "message": (
                     f"Created {boundary_condition_type} on entities "
