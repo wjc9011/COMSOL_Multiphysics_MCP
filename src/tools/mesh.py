@@ -245,15 +245,35 @@ def _resolve_geom_tag(comp, geometry_name: Optional[str]):
 def _geom_sdim(comp, geom_tag: str) -> Optional[int]:
     """Return the space dimension of a geometry, or None if unknown.
 
-    Tries the standard COMSOL Java accessor ``geom.sdim()`` first; if
-    that is unavailable, falls back to the geometry's GeomSequence
-    metadata.
+    Tries the canonical COMSOL Java accessor ``GeomSequence.sDim()``
+    (camelCase D — JPype is case-sensitive, so the lowercase ``sdim``
+    alias is NOT always present) and the mph-wrapper ``dimension()``
+    accessor before falling back to legacy aliases. Cowork Pilot 07 v2
+    measured: 1D Interval geometries silently fell through every
+    accessor here, returned ``None``, and ``mesh_add_sequence`` then
+    defaulted to ``FreeTri`` (sdim=2 dict lookup) — which COMSOL
+    rejects with "Operation cannot be created in this context: FreeTri".
+    Detecting sdim=1 here lets the auto-mapping pick ``Edge``.
+
+    Some bridges return the dimension as a string like ``"3D"`` /
+    ``"2D"`` / ``"1D"`` / ``"2Daxi"``; we extract the leading digit
+    in that case.
     """
     try:
         g = comp.geom(geom_tag)
     except Exception:
         return None
-    for accessor in ("sdim", "geomDim", "space_dimension"):
+    for accessor in (
+        "sdim",            # legacy / lowercase alias (kept first for
+                           # mph-wrapped paths that already expose it)
+        "sDim",            # canonical COMSOL Java (camelCase D —
+                           # JPype is case-sensitive; sdim above may
+                           # not resolve on the raw Java handle)
+        "dimension",       # mph wrapper alias on the Geometry node
+        "getSDim",         # explicit Java getter
+        "geomDim",
+        "space_dimension",
+    ):
         try:
             fn = getattr(g, accessor, None)
             if fn is None:
@@ -261,7 +281,17 @@ def _geom_sdim(comp, geom_tag: str) -> Optional[int]:
             v = fn()
             if v is None:
                 continue
-            return int(v)
+            if isinstance(v, str):
+                v = v.strip()
+                if v and v[0].isdigit():
+                    return int(v[0])
+                continue
+            iv = int(v)
+            if iv in (1, 2, 3):
+                return iv
+            # Out-of-range or zero — likely an unrelated accessor that
+            # happened to share a name. Try the next one rather than
+            # propagating a bogus dimension.
         except Exception:
             continue
     return None

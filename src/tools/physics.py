@@ -1082,6 +1082,14 @@ def register_physics_tools(mcp: FastMCP) -> None:
             # convention; if a future COMSOL version renames them, the per-
             # property silent_exception will surface the exact failure rather
             # than aborting the whole tool.
+            # epsilon_mat="userdef": the sar feature defaults to
+            # "from material", which makes COMSOL look up the internal
+            # property "epsilon rad" (with a space) on the boundary's
+            # material — Pilot 07 v2 measured this raises "Undefined
+            # material property 'epsilon rad'" at solve time when the
+            # material doesn't define it. Setting epsilon_mat=userdef
+            # first switches to user-defined and lets epsilon_rad take
+            # the literal value the caller passed.
             for i, boundary in enumerate(radiation_boundaries):
                 tag = f'sar{i+1}'
                 silent_exception = None
@@ -1092,6 +1100,13 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 except Exception as e:
                     silent_exception = (
                         f"set(Tamb) -> {type(e).__name__}: {e}"
+                    )
+                try:
+                    bc.set('epsilon_mat', 'userdef')
+                except Exception as e:
+                    msg = f"set(epsilon_mat) -> {type(e).__name__}: {e}"
+                    silent_exception = (
+                        f"{silent_exception}; {msg}" if silent_exception else msg
                     )
                 try:
                     bc.set('epsilon_rad', radiation_emissivity)
