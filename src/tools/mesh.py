@@ -11,10 +11,17 @@ input was.
 Operation auto-injection (spec mcp_pr_c_fix_v2_spec.md §3.1): an empty
 mesh sequence with only a Size *attribute* meshes nothing — KB
 ProgrammingReferenceManual chunks 77425/77427/77428 show that mesh
-generation requires an *operation* feature (``freetri``, ``freetet``,
-``edge`` ...) to drive cell creation. ``mesh_add_sequence`` therefore
+generation requires an *operation* feature (``FreeTri``, ``FreeTet``,
+``Edge`` ...) to drive cell creation. ``mesh_add_sequence`` therefore
 infers the right operation type from the geometry's space dimension
 and adds it under the new sequence by default.
+
+Operation type strings are case-sensitive in COMSOL's Java API
+(verified 2026-05-11 via Cowork sanity06: lowercase ``freetri`` raises
+``com.comsol.util.exceptions.FlException`` "The operation is case
+sensitive — FreeTri is an allowed operation"). Internal mapping +
+caller kwargs are normalized to canonical PascalCase via
+``_normalize_op_type``.
 """
 
 from typing import Optional, Tuple
@@ -38,27 +45,54 @@ _HAUTO_BY_SIZE_KIND = {
 
 
 # Spec mcp_pr_c_fix_v2_spec.md §2.2 — sdim → default operation type.
-# Source: KB ProgrammingReferenceManual chunks 77427/77428 (freetri/freetet
-# syntax tables) plus the COMSOL UI default that picks freetri for any 2D
-# (planar or axisymmetric) and freetet for 3D.
+# Source: KB ProgrammingReferenceManual chunks 77427/77428 (FreeTri/FreeTet
+# syntax tables) plus the COMSOL UI default that picks FreeTri for any 2D
+# (planar or axisymmetric) and FreeTet for 3D.
+#
+# Operation type strings are *case-sensitive* in COMSOL's Java API
+# (verified 2026-05-11 via Cowork sanity06: lowercase 'freetri' raises
+# com.comsol.util.exceptions.FlException with message "The operation is
+# case sensitive — FreeTri is an allowed operation"). Use the canonical
+# PascalCase strings from the Programming Reference.
 _DEFAULT_OP_BY_SDIM = {
-    1: "edge",
-    2: "freetri",
-    3: "freetet",
+    1: "Edge",
+    2: "FreeTri",
+    3: "FreeTet",
 }
 
 # Stable per-operation tag prefixes that mirror what the COMSOL GUI emits.
+# Keys are the canonical PascalCase op_type strings (case-sensitive in
+# COMSOL's Java API).
 _OP_TAG_PREFIX = {
-    "freetri":  "ftri",
-    "freequad": "fq",
-    "freetet":  "ftet",
-    "edge":     "edg",
-    "bndlayer": "bl",
-    "sweep":    "swe",
-    "map":      "map",
-    "copy":     "cp",
-    "refine":   "ref",
+    "FreeTri":  "ftri",
+    "FreeQuad": "fq",
+    "FreeTet":  "ftet",
+    "Edge":     "edg",
+    "BndLayer": "bl",
+    "Sweep":    "swe",
+    "Map":      "map",
+    "Copy":     "cp",
+    "Refine":   "ref",
 }
+
+# Lowercase alias → canonical PascalCase. Lets callers pass lowercase
+# (legacy / typo-friendly) op_type values and still hit the Java API
+# with the case it requires.
+_OP_TYPE_ALIASES = {op.lower(): op for op in _OP_TAG_PREFIX}
+
+
+def _normalize_op_type(op_type: Optional[str]) -> Optional[str]:
+    """Map a caller-supplied op_type to its canonical PascalCase form.
+
+    COMSOL's Java API rejects mixed-case variants
+    (``com.comsol.util.exceptions.FlException: "The operation is case
+    sensitive"``). Accept lowercase / mixed-case input and resolve to
+    the canonical string. Unknown types pass through unchanged so
+    callers can still try operations not in the alias table.
+    """
+    if not op_type:
+        return op_type
+    return _OP_TYPE_ALIASES.get(op_type.lower(), op_type)
 
 
 def _safe_str(value, default: str = "") -> str:
@@ -424,12 +458,12 @@ def register_mesh_tools(mcp: FastMCP) -> None:
         Spec mcp_pr_c_fix_v2_spec.md §3.1: KB ProgrammingReferenceManual
         chunks 77425/77427/77428 show that the Size *attribute* alone
         cannot mesh anything — an *operation* feature
-        (``freetri`` / ``freetet`` / ``edge`` / ...) must be present
+        (``FreeTri`` / ``FreeTet`` / ``Edge`` / ...) must be present
         to drive cell creation. With ``auto_default_features=True`` we
         therefore add:
           - The default operation matching the geometry's space
-            dimension: sdim=1 → ``edge``, sdim=2 (planar or axi) →
-            ``freetri``, sdim=3 → ``freetet``. Override with
+            dimension: sdim=1 → ``Edge``, sdim=2 (planar or axi) →
+            ``FreeTri``, sdim=3 → ``FreeTet``. Override with
             ``default_operation_type``.
           - A ``size`` attribute *under the operation* (so the predefined
             size applies to the cells the operation generates). The
@@ -454,9 +488,10 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                 operation + Size attribute described above. If False,
                 leave the sequence bare.
             default_operation_type: Override the operation auto-mapping.
-                One of ``"freetri"`` / ``"freequad"`` / ``"freetet"`` /
-                ``"edge"`` (KB Table 4-1). ``None`` (default) → infer
-                from geometry sdim.
+                Canonical PascalCase: ``"FreeTri"`` / ``"FreeQuad"`` /
+                ``"FreeTet"`` / ``"Edge"`` (KB Table 4-1). Lowercase
+                input is accepted and normalized internally. ``None``
+                (default) → infer from geometry sdim.
             model_name: Model name (default: current).
 
         Returns:
@@ -505,8 +540,11 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                     sdim = _geom_sdim(comp, geom_tag)
                     op_type = _DEFAULT_OP_BY_SDIM.get(
                         sdim if sdim in _DEFAULT_OP_BY_SDIM else 2,
-                        "freetri",
+                        "FreeTri",
                     )
+                # Normalize lowercase/legacy input to the case-sensitive
+                # canonical form COMSOL's Java API requires.
+                op_type = _normalize_op_type(op_type)
 
                 op_tag = _auto_op_tag(mesh_seq, op_type)
                 op_obj = None
@@ -520,8 +558,8 @@ def register_mesh_tools(mcp: FastMCP) -> None:
                     silent_exception = f"{type(e).__name__}: {e}"
 
                 # 3D: KB chunk 77427 says default selection is empty.
-                # Set selection().all() so the freetet covers everything.
-                if op_obj is not None and op_type == "freetet":
+                # Set selection().all() so the FreeTet covers everything.
+                if op_obj is not None and op_type == "FreeTet":
                     try:
                         op_obj.selection().all()
                     except Exception:
