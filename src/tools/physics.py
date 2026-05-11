@@ -125,6 +125,92 @@ def _get_comp_and_geom_tag(model, component_name: Optional[str] = None):
         return None, None, f"{type(e).__name__}: {e}"
 
 
+def _geom_sdim(comp, geom_tag: str) -> Optional[int]:
+    """Return the space dimension of a geometry sequence, or None.
+
+    Mirrors ``mesh.py::_geom_sdim`` (Pilot 07 v2 caveat E1 fix). The
+    canonical Java accessor is ``GeomSequence.sDim()`` (camelCase D);
+    JPype is case-sensitive and the lowercase ``sdim`` alias is not
+    always present on raw Java handles. Falls back through every alias
+    we have observed across mph wrapper / Java bridge versions, and
+    extracts the leading digit from string returns like ``"3D"`` /
+    ``"2Daxi"``.
+
+    Used by ``physics_boundary_selection`` and ``physics_configure_
+    boundary`` to auto-infer ``selection_dim = sdim - 1`` (the boundary
+    dim) when the caller does not pass it explicitly. The Solid
+    Mechanics fix needs the dim because Pilot 08 (comsol_12681_force)
+    measured: a PointLoad (natural dim=0) cannot be created with the
+    boundary-default 2-arg ``physics.create(tag, type)`` path on a 3D
+    geometry — COMSOL maps the selection to dim=2 (faces) and rejects
+    point indices. The 3-arg ``physics.create(tag, type, dim)`` form
+    fixes this and is what the ground-truth Java exports use.
+    """
+    try:
+        g = comp.geom(geom_tag)
+    except Exception:
+        return None
+    for accessor in (
+        "sdim",
+        "sDim",
+        "dimension",
+        "getSDim",
+        "geomDim",
+        "space_dimension",
+    ):
+        try:
+            fn = getattr(g, accessor, None)
+            if fn is None:
+                continue
+            v = fn()
+            if v is None:
+                continue
+            if isinstance(v, str):
+                v = v.strip()
+                if v and v[0].isdigit():
+                    return int(v[0])
+                continue
+            iv = int(v)
+            if iv in (1, 2, 3):
+                return iv
+        except Exception:
+            continue
+    return None
+
+
+def _resolve_selection_dim(
+    comp,
+    geom_tag: Optional[str],
+    selection_dim: Optional[int],
+) -> Optional[int]:
+    """Resolve the selection dimension for a boundary-condition feature.
+
+    If ``selection_dim`` is explicitly provided (including 0 for
+    point-level selections — Pilot 08 PointLoad path), return it as-is
+    after a 0–3 sanity clamp. Otherwise, auto-infer ``sdim - 1`` from
+    the geometry (the boundary dim), matching the natural dim of
+    boundary BCs like Fixed / BoundaryLoad / HeatFlux.
+
+    Returns ``None`` if neither path resolves a valid dim — in that
+    case callers should fall back to the 2-arg ``physics.create``
+    form (let COMSOL pick the feature's natural dim).
+    """
+    if selection_dim is not None:
+        try:
+            d = int(selection_dim)
+        except (TypeError, ValueError):
+            return None
+        if d in (0, 1, 2, 3):
+            return d
+        return None
+    if geom_tag is None:
+        return None
+    sdim = _geom_sdim(comp, geom_tag)
+    if sdim is None or sdim not in (1, 2, 3):
+        return None
+    return sdim - 1
+
+
 def _add_physics_interface(
     model,
     physics_type: str,
@@ -386,38 +472,61 @@ def register_physics_tools(mcp: FastMCP) -> None:
         boundary_condition: str,
         boundary_selection: Sequence[int],
         properties: Optional[dict] = None,
+        selection_dim: Optional[int] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
-        Configure a boundary condition for a physics interface.
-        
-        Common boundary conditions for Electrostatics:
+        Configure a boundary/edge/point/domain feature for a physics
+        interface via the canonical Java API path.
+
+        Pilot 07 + Pilot 08 fix: the previous implementation went
+        through the mph wrapper's ``bc_node.property("selection",
+        list)`` which raises ``UnknownEntityException: "Unknown
+        parameter X#selection"`` for many feature types
+        (SurfaceToAmbientRadiation, PointLoad, ...). The canonical
+        path is ``bc.selection().set(int[])`` on the raw Java handle,
+        with the feature's selection-dim resolved either explicitly
+        via ``selection_dim`` or auto-inferred as ``geom.sdim - 1``.
+
+        For non-default dims (PointLoad on 3D = dim 0, EdgeLoad on
+        3D = dim 1) the canonical 3-arg ``physics.create(tag, type,
+        dim)`` form is used (KB ProgrammingReferenceManual chunk
+        77014); this binds the selection at the requested dim from
+        the start.
+
+        Common feature types for Electrostatics:
         - "Ground": Zero potential boundary
         - "ElectricPotential": Specified voltage
         - "SurfaceChargeDensity": Surface charge
         - "ZeroCharge": Zero normal displacement field
-        
+
         Common for Solid Mechanics:
-        - "Fixed": Fixed constraint
-        - "Roller": Roller constraint
-        - "Symmetry": Symmetry plane
-        - "BoundaryLoad": Applied force/pressure
-        
+        - "Fixed": Fixed constraint (boundary)
+        - "Roller": Roller constraint (boundary)
+        - "Symmetry": Symmetry plane (boundary)
+        - "BoundaryLoad": Applied force/pressure (boundary)
+        - "PointLoad": Point force — pass ``selection_dim=0``
+        - "EdgeLoad": Edge load — pass ``selection_dim=1`` on 3D
+
         Common for Heat Transfer:
         - "Temperature": Fixed temperature
         - "HeatFlux": Heat flux boundary
         - "ConvectiveHeatFlux": Convection cooling
         - "Symmetry": Symmetry (adiabatic)
-        
+
         Args:
             physics_name: Name of the physics interface
-            boundary_condition: Type of boundary condition
-            boundary_selection: Boundary/edge numbers to apply condition to
+            boundary_condition: Java feature class (e.g. "Fixed",
+                "PointLoad", "BoundaryLoad", "HeatFluxBoundary")
+            boundary_selection: Selected entity numbers
             properties: Dictionary of property names and values
+            selection_dim: 0=points, 1=edges, 2=faces, 3=domains.
+                Default ``None`` → auto-infer ``geom.sdim - 1``.
             model_name: Model name (default: current model)
-        
+
         Returns:
-            Created boundary condition info
+            Created feature info, including the resolved
+            ``selection_dim`` for caller audit.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -425,36 +534,95 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
+            jm = model.java
+
             physics_interfaces = model.physics()
             if physics_name not in physics_interfaces:
                 return {"success": False, "error": f"Physics interface not found: {physics_name}"}
-            
-            physics_node = model / "physics" / physics_name
-            bc_node = physics_node.create(boundary_condition)
-            
-            bc_node.property("selection", list(boundary_selection))
-            
+
+            comp = None
+            physics = None
+            for c in jm.component():
+                for p in c.physics():
+                    try:
+                        if physics_name in p.label():
+                            comp = c
+                            physics = p
+                            break
+                    except Exception:
+                        continue
+                if comp:
+                    break
+
+            if comp is None or physics is None:
+                return {
+                    "success": False,
+                    "error": (
+                        f"Could not locate physics interface "
+                        f"'{physics_name}' on any component."
+                    ),
+                }
+
+            # Resolve geometry tag for sdim auto-inference.
+            geom_tag = None
+            try:
+                geoms = list(comp.geom())
+                if geoms:
+                    geom_tag = str(geoms[0].tag())
+            except Exception:
+                geom_tag = None
+
+            resolved_dim = _resolve_selection_dim(
+                comp, geom_tag, selection_dim
+            )
+
+            # Generate a non-colliding tag for the feature.
+            import random
+            tag = f'bc_{random.randint(1000, 9999)}'
+            if resolved_dim is not None:
+                bc = physics.create(
+                    tag, boundary_condition, int(resolved_dim)
+                )
+            else:
+                bc = physics.create(tag, boundary_condition)
+
+            # Canonical selection path: bc.selection().set(int[]) — NOT
+            # bc.set('selection', list) and NOT
+            # bc.property('selection', list). Both of those raise
+            # UnknownEntityException for many feature classes.
+            bc.selection().set([int(b) for b in boundary_selection])
+
             if properties:
                 for prop_name, prop_value in properties.items():
                     try:
-                        bc_node.property(prop_name, prop_value)
+                        bc.set(prop_name, prop_value)
                     except Exception:
                         pass
-            
+
+            try:
+                bc.label(
+                    f'{boundary_condition} (Entities '
+                    f'{list(boundary_selection)})'
+                )
+            except Exception:
+                pass
+
             return {
                 "success": True,
                 "boundary_condition": {
-                    "name": bc_node.name() if hasattr(bc_node, 'name') else boundary_condition,
+                    "name": str(tag),
+                    "tag": str(tag),
                     "type": boundary_condition,
                     "physics": physics_name,
                     "selection": list(boundary_selection),
+                    "selection_dim": resolved_dim,
                     "properties": properties,
                 }
             }
         except Exception as e:
-            return {"success": False, "error": f"Failed to configure boundary: {str(e)}"}
+            return {"success": False, "error": f"Failed to configure boundary: {type(e).__name__}: {e}"}
     
     @mcp.tool()
     def physics_set_material(
@@ -640,17 +808,134 @@ def register_physics_tools(mcp: FastMCP) -> None:
             physics_interfaces = model.physics()
             if physics_name not in physics_interfaces:
                 return {"success": False, "error": f"Physics interface not found: {physics_name}"}
-            
+
             physics_node = model / "physics" / physics_name
             model.remove(physics_node)
-            
+
             return {
                 "success": True,
                 "removed": physics_name,
             }
         except Exception as e:
             return {"success": False, "error": f"Failed to remove physics: {str(e)}"}
-    
+
+    @mcp.tool()
+    def physics_set_property(
+        physics_name: str,
+        property_group: str,
+        property_name: str,
+        value,
+        model_name: Optional[str] = None
+    ) -> dict:
+        """
+        Set a scalar interface-level property on a physics interface.
+
+        This is the canonical Java path for properties that live on the
+        physics interface itself (rather than on a feature/BC node):
+
+            model.component(<ctag>).physics(<tag>)
+                 .prop(<property_group>).set(<property_name>, <value>);
+
+        See KB ProgrammingReferenceManual chunk 77014 for the API
+        signature. Common Solid Mechanics use cases the Pilot 08
+        comsol_12681_force fix needs:
+
+        - 2D out-of-plane thickness:
+            ``physics_set_property(physics, "d", "d", "1[m]")``
+        - Reference temperature for thermal expansion:
+            ``physics_set_property(physics, "Tref", "Tref", "293.15[K]")``
+        - Equation form override:
+            ``physics_set_property(physics, "EquationForm",
+              "form", "Stationary")``
+        - Shape function order:
+            ``physics_set_property(physics, "ShapeProperty",
+              "order_displacement", 2)``
+
+        Args:
+            physics_name: Name of the physics interface (label or tag
+                that ``model.physics()`` enumerates).
+            property_group: The ``prop()`` group id (e.g. "d", "Tref",
+                "ShapeProperty", "EquationForm").
+            property_name: The key inside the group (e.g. "d", "Tref",
+                "order_displacement", "form").
+            value: The value to set. Strings, ints, and string
+                expressions like ``"1[m]"`` are passed through to Java
+                without coercion.
+            model_name: Model name (default: current model).
+
+        Returns:
+            ``{success, physics, property_group, property_name, value}``
+            on success; ``{success: False, error}`` otherwise.
+        """
+        model = session_manager.get_model(model_name)
+        if model is None:
+            return {
+                "success": False,
+                "error": f"Model not found: {model_name or 'no current model'}"
+            }
+
+        try:
+            jm = model.java
+
+            physics_interfaces = model.physics()
+            if physics_name not in physics_interfaces:
+                return {
+                    "success": False,
+                    "error": (
+                        f"Physics '{physics_name}' not found. Available: "
+                        f"{physics_interfaces}"
+                    ),
+                }
+
+            physics = None
+            for c in jm.component():
+                for p in c.physics():
+                    try:
+                        if physics_name in p.label():
+                            physics = p
+                            break
+                    except Exception:
+                        continue
+                if physics is not None:
+                    break
+
+            if physics is None:
+                return {
+                    "success": False,
+                    "error": (
+                        f"Could not locate physics interface "
+                        f"'{physics_name}' on any component."
+                    ),
+                }
+
+            try:
+                physics.prop(property_group).set(property_name, value)
+            except Exception as set_e:
+                return {
+                    "success": False,
+                    "error": (
+                        f"physics.prop({property_group!r})"
+                        f".set({property_name!r}, ...) failed: "
+                        f"{type(set_e).__name__}: {set_e}"
+                    ),
+                }
+
+            return {
+                "success": True,
+                "physics": physics_name,
+                "property_group": property_group,
+                "property_name": property_name,
+                "value": value,
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": (
+                    f"Failed to set physics property: "
+                    f"{type(e).__name__}: {e}"
+                ),
+            }
+
     # NOTE: the public MCP tool ``geometry_get_boundaries`` is now registered
     # from tools/geometry.py against the Java getNBoundaries/getNDomains API.
     # The closure below is kept only because
@@ -1155,42 +1440,61 @@ def register_physics_tools(mcp: FastMCP) -> None:
         boundary_condition_type: str,
         boundary_numbers: Sequence[int],
         properties: dict = {},
+        selection_dim: Optional[int] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
-        Generic boundary condition setup with boundary selection.
-        
-        Use this tool to configure any boundary condition by specifying:
+        Generic boundary/edge/point/domain condition setup with selection.
+
+        Use this tool to configure any feature by specifying:
         1. The physics interface name
-        2. The boundary condition type
-        3. The boundary numbers to apply the condition to
-        4. Properties specific to the boundary condition
-        
-        Common boundary condition types by physics:
-        
+        2. The feature type (BC, point load, edge constraint, ...)
+        3. The entity numbers to apply the condition to
+        4. The geometric entity dimension of the selection
+           (``selection_dim``: 0=points, 1=edges, 2=faces, 3=domains).
+           When omitted, auto-inferred as ``geom.sdim - 1`` (the
+           boundary dim — matches the natural dim of boundary BCs like
+           Fixed / BoundaryLoad / HeatFlux).
+        5. Properties specific to the feature
+
+        Solid Mechanics PointLoad (Pilot 08 fix): pass
+        ``selection_dim=0`` so ``physics.create(tag, type, dim)`` (3-arg
+        form, KB ProgrammingReferenceManual chunk 77014) creates the
+        feature at the point dim. The 2-arg ``physics.create(tag,
+        type)`` defaults the dim to the geometry's boundary dim,
+        which COMSOL then rejects when point indices are passed.
+
+        Common feature types by physics:
+
         Heat Transfer (ht):
         - TemperatureBoundary: Set T0 (temperature)
         - HeatFluxBoundary: Set q0 (heat flux)
         - ConvectiveHeatFlux: Set h (coefficient), Text (ambient temp)
-        
+
         Laminar Flow (spf):
         - InletBoundary: Set U0 (velocity)
         - OutletBoundary: Set p0 (pressure)
         - Wall: No-slip wall
-        
+
         Solid Mechanics (solid):
-        - Fixed: Fixed constraint
-        - BoundaryLoad: Set Fx, Fy, Fz or FAx, FAy, FAz
-        
+        - Fixed: Fixed constraint (dim = boundary)
+        - BoundaryLoad: Set Fx, Fy, Fz or FAx, FAy, FAz (dim = boundary)
+        - PointLoad: Set Fp (force) — ``selection_dim=0`` required
+        - EdgeLoad: Distributed edge load — ``selection_dim=1`` required
+
         Args:
             physics_name: Name of the physics interface
-            boundary_condition_type: Type of boundary condition
-            boundary_numbers: List of boundary numbers
+            boundary_condition_type: Type of feature (Java class name)
+            boundary_numbers: Selected entity numbers
             properties: Dictionary of property names and values
+            selection_dim: Selection dimension override (0/1/2/3).
+                Default ``None`` → auto-infer ``geom.sdim - 1``.
             model_name: Model name (default: current model)
-        
+
         Returns:
-            Configuration confirmation
+            Configuration confirmation. The ``boundary_condition`` block
+            includes the resolved ``selection_dim`` so callers can audit
+            whether they got points/edges/faces/domains.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -1198,15 +1502,16 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
             jm = model.java
-            
+
             physics_interfaces = model.physics()
             if physics_name not in physics_interfaces:
                 return {"success": False, "error": f"Physics '{physics_name}' not found. Available: {physics_interfaces}"}
-            
+
             comp = None
+            physics = None
             for c in jm.component():
                 for p in c.physics():
                     if physics_name in p.label():
@@ -1215,25 +1520,47 @@ def register_physics_tools(mcp: FastMCP) -> None:
                         break
                 if comp:
                     break
-            
+
             if comp is None:
                 return {"success": False, "error": "Could not find physics interface"}
-            
-            # Create boundary condition
+
+            # Resolve geometry tag for sdim auto-inference.
+            geom_tag = None
+            try:
+                geoms = list(comp.geom())
+                if geoms:
+                    geom_tag = str(geoms[0].tag())
+            except Exception:
+                geom_tag = None
+
+            resolved_dim = _resolve_selection_dim(
+                comp, geom_tag, selection_dim
+            )
+
+            # Create feature. If we resolved a dim, use the canonical
+            # 3-arg ``physics.create(tag, type, dim)`` form so the
+            # selection lives at the requested dim from the start.
+            # Otherwise fall back to 2-arg create (feature picks its
+            # natural dim).
             import random
             tag = f'bc_{random.randint(1000, 9999)}'
-            bc = physics.create(tag, boundary_condition_type)
+            if resolved_dim is not None:
+                bc = physics.create(
+                    tag, boundary_condition_type, int(resolved_dim)
+                )
+            else:
+                bc = physics.create(tag, boundary_condition_type)
             bc.selection().set([int(b) for b in boundary_numbers])
-            
+
             # Set properties
             for prop_name, prop_value in properties.items():
                 try:
                     bc.set(prop_name, prop_value)
-                except Exception as e:
+                except Exception:
                     pass  # Property might not exist
-            
-            bc.label(f'{boundary_condition_type} (Boundaries {list(boundary_numbers)})')
-            
+
+            bc.label(f'{boundary_condition_type} (Entities {list(boundary_numbers)})')
+
             return {
                 "success": True,
                 "physics": physics_name,
@@ -1241,9 +1568,13 @@ def register_physics_tools(mcp: FastMCP) -> None:
                     "type": boundary_condition_type,
                     "tag": tag,
                     "boundaries": list(boundary_numbers),
+                    "selection_dim": resolved_dim,
                     "properties": properties
                 },
-                "message": f"Created {boundary_condition_type} on boundaries {list(boundary_numbers)}",
+                "message": (
+                    f"Created {boundary_condition_type} on entities "
+                    f"{list(boundary_numbers)} at dim={resolved_dim}"
+                ),
             }
         except Exception as e:
             return {"success": False, "error": f"Failed to create boundary condition: {str(e)}"}

@@ -94,7 +94,9 @@ def test_study_has_new_tools():
 
 def test_total_tool_count_matches_spec_after_all_specs():
     """After this PR, comsol61-ops exposes the documented increments:
-        +5 material + 2 material_kb + 3 mesh + 3 study = +13.
+        +5 material + 2 material_kb + 3 mesh + 3 study = +13, plus
+        +1 physics_set_property added by the Pilot 08 Solid Mechanics
+        fix (mcp_solid_mechanics_fix_spec.md §3.3).
     Spec rationale lives in plans/code_session_routing_guide.md §1; the
     baseline number quoted there (82) was an estimate from Pilot 04 era
     that pre-dated subsequent counting; the real pre-PR count from this
@@ -110,10 +112,14 @@ def test_total_tool_count_matches_spec_after_all_specs():
     assert counts["material_kb"] == 2, f"material_kb: {counts}"
     assert counts["mesh"] == 6,        f"mesh: 3 baseline + 3 new = 6, got {counts['mesh']}"
     assert counts["study"] == 11,      f"study: 8 baseline + 3 new = 11, got {counts['study']}"
+    assert counts["physics"] == 18,    (
+        f"physics: 17 baseline + 1 new (physics_set_property) = 18, "
+        f"got {counts['physics']}"
+    )
 
-    # Total grew by exactly 13 from the baseline (5+2+3+3).
-    assert sum(counts.values()) == 88, (
-        f"Expected total 88 (75 baseline + 13 new). Got {sum(counts.values())}: {counts}"
+    # Total grew by 14 from the baseline (5+2+3+3+1).
+    assert sum(counts.values()) == 89, (
+        f"Expected total 89 (75 baseline + 14 new). Got {sum(counts.values())}: {counts}"
     )
 
 
