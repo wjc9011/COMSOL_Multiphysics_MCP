@@ -1073,23 +1073,28 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 })
 
             # Add surface-to-ambient radiation boundaries.
-            # Property names verified live (probe_sar.java export):
+            # Property names verified against KB scripting_completion_text/
+            # physics.md (data/completion/physics.xml lines 18608-18611,
+            # token batrsace = sar feature) AND live probe (Pilot 07 v3
+            # silent_exception trace + sar_probe_v3 model 2026-05-11):
             #   feature class = SurfaceToAmbientRadiation
-            #   selection: bc.selection().set(int[])  — NOT bc.set("selection", ...)
-            #     (the latter is what physics_configure_boundary attempted
-            #      and it raises "Unknown parameter X#selection")
-            # Property names (Tamb / epsilon_rad) follow COMSOL ht feature
-            # convention; if a future COMSOL version renames them, the per-
-            # property silent_exception will surface the exact failure rather
-            # than aborting the whole tool.
-            # epsilon_mat="userdef": the sar feature defaults to
-            # "from material", which makes COMSOL look up the internal
-            # property "epsilon rad" (with a space) on the boundary's
-            # material — Pilot 07 v2 measured this raises "Undefined
-            # material property 'epsilon rad'" at solve time when the
-            # material doesn't define it. Setting epsilon_mat=userdef
-            # first switches to user-defined and lets epsilon_rad take
-            # the literal value the caller passed.
+            #   selection:        bc.selection().set(int[])
+            #   ambient_temp:     bc.set('Tamb', value)             — confirmed live
+            #   emissivity mode:  bc.set('epsilon_rad_mat','userdef') — KB-authoritative
+            #   emissivity value: bc.set('epsilon_rad', value)       — confirmed live
+            # The mode key was wrongly named `epsilon_mat` in commit 256740d
+            # (Pilot 07 v3 measured silent_exception "Unknown parameter
+            # X#epsilon mat"). The KB physics.xml token table maps the
+            # surface emissivity selector for sar to `epsilon_rad_mat`
+            # (values "from_mat | userdef"), not `epsilon_mat`. Without
+            # the mode flip, sar defaults to "from material" and COMSOL
+            # looks up the internal property `epsilon rad` (with a space)
+            # on the boundary's material — solve raises "Undefined
+            # material property 'epsilon rad'". Setting
+            # epsilon_rad_mat='userdef' before epsilon_rad lets the
+            # caller-supplied literal value take effect.
+            # Tamb_src defaults to 'userdef' (KB shows it accepts only
+            # that value), so no explicit flip is needed for ambient temp.
             for i, boundary in enumerate(radiation_boundaries):
                 tag = f'sar{i+1}'
                 silent_exception = None
@@ -1102,9 +1107,9 @@ def register_physics_tools(mcp: FastMCP) -> None:
                         f"set(Tamb) -> {type(e).__name__}: {e}"
                     )
                 try:
-                    bc.set('epsilon_mat', 'userdef')
+                    bc.set('epsilon_rad_mat', 'userdef')
                 except Exception as e:
-                    msg = f"set(epsilon_mat) -> {type(e).__name__}: {e}"
+                    msg = f"set(epsilon_rad_mat) -> {type(e).__name__}: {e}"
                     silent_exception = (
                         f"{silent_exception}; {msg}" if silent_exception else msg
                     )
