@@ -957,33 +957,50 @@ def register_physics_tools(mcp: FastMCP) -> None:
         heat_flux_boundaries: Sequence[int] = [],
         temperature_boundaries: Sequence[int] = [],
         convection_boundaries: Sequence[int] = [],
+        radiation_boundaries: Sequence[int] = [],
         heat_flux_value: str = "1e6[W/m^2]",
         temperature_value: str = "293.15[K]",
         convection_coeff: str = "10[W/(m^2*K)]",
         ambient_temp: str = "293.15[K]",
+        radiation_emissivity: str = "0.9",
+        radiation_ambient_temp: str = "293.15[K]",
         model_name: Optional[str] = None
     ) -> dict:
         """
         Setup Heat Transfer boundary conditions with specified boundaries.
-        
+
         This tool configures thermal boundary conditions for heat transfer simulation:
         - Heat flux boundaries (heat sources)
         - Temperature boundaries (heat sinks)
         - Convective cooling/heating boundaries
-        
+        - Surface-to-ambient radiation boundaries (gray-body to ambient)
+
         Args:
             physics_name: Name of the Heat Transfer physics interface
             heat_flux_boundaries: List of boundary numbers for heat flux
             temperature_boundaries: List of boundary numbers for fixed temperature
             convection_boundaries: List of boundary numbers for convection
+            radiation_boundaries: List of boundary numbers for surface-to-ambient
+                radiation (Java feature class ``SurfaceToAmbientRadiation`` /
+                short id ``sar``; KB scripting_completion_text/physics.md confirms
+                this id under the ``ht`` interface).
             heat_flux_value: Heat flux value (default: "1e6[W/m^2]")
             temperature_value: Temperature value (default: "293.15[K]" = 20°C)
             convection_coeff: Convection coefficient (default: "10[W/(m^2*K)]")
             ambient_temp: Ambient temperature for convection (default: "293.15[K]")
+            radiation_emissivity: Surface emissivity ε for radiation BC,
+                dimensionless 0..1 (default: "0.9")
+            radiation_ambient_temp: Ambient temperature T_amb for radiation BC
+                (default: "293.15[K]")
             model_name: Model name (default: current model)
-        
+
         Returns:
-            Configuration confirmation
+            Configuration confirmation. ``configured_boundaries`` includes a
+            ``radiation`` list with per-feature {tag, boundary, emissivity,
+            ambient_temp, silent_exception}. ``silent_exception`` (PR-C-fix v2
+            pattern, commit 00330d0) captures any per-property setter failure
+            without aborting the tool — so callers see the exact mph/Java
+            error if e.g. a property name is unknown for this COMSOL version.
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -991,14 +1008,14 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
+
         try:
             jm = model.java
-            
+
             physics_interfaces = model.physics()
             if physics_name not in physics_interfaces:
                 return {"success": False, "error": f"Physics '{physics_name}' not found. Available: {physics_interfaces}"}
-            
+
             comp = None
             for c in jm.component():
                 for p in c.physics():
@@ -1008,12 +1025,12 @@ def register_physics_tools(mcp: FastMCP) -> None:
                         break
                 if comp:
                     break
-            
+
             if comp is None:
                 return {"success": False, "error": "Could not find physics interface"}
-            
-            results = {"heat_flux": [], "temperature": [], "convection": []}
-            
+
+            results = {"heat_flux": [], "temperature": [], "convection": [], "radiation": []}
+
             # Add heat flux boundaries (heat sources)
             for i, boundary in enumerate(heat_flux_boundaries):
                 tag = f'hf{i+1}'
@@ -1026,7 +1043,7 @@ def register_physics_tools(mcp: FastMCP) -> None:
                     "boundary": boundary,
                     "heat_flux": heat_flux_value
                 })
-            
+
             # Add temperature boundaries (heat sinks)
             for i, boundary in enumerate(temperature_boundaries):
                 tag = f'temp{i+1}'
@@ -1039,7 +1056,7 @@ def register_physics_tools(mcp: FastMCP) -> None:
                     "boundary": boundary,
                     "temperature": temperature_value
                 })
-            
+
             # Add convection boundaries
             for i, boundary in enumerate(convection_boundaries):
                 tag = f'conv{i+1}'
@@ -1054,7 +1071,44 @@ def register_physics_tools(mcp: FastMCP) -> None:
                     "h": convection_coeff,
                     "T_amb": ambient_temp
                 })
-            
+
+            # Add surface-to-ambient radiation boundaries.
+            # Property names verified live (probe_sar.java export):
+            #   feature class = SurfaceToAmbientRadiation
+            #   selection: bc.selection().set(int[])  — NOT bc.set("selection", ...)
+            #     (the latter is what physics_configure_boundary attempted
+            #      and it raises "Unknown parameter X#selection")
+            # Property names (Tamb / epsilon_rad) follow COMSOL ht feature
+            # convention; if a future COMSOL version renames them, the per-
+            # property silent_exception will surface the exact failure rather
+            # than aborting the whole tool.
+            for i, boundary in enumerate(radiation_boundaries):
+                tag = f'sar{i+1}'
+                silent_exception = None
+                bc = physics.create(tag, 'SurfaceToAmbientRadiation')
+                bc.selection().set([int(boundary)])
+                try:
+                    bc.set('Tamb', radiation_ambient_temp)
+                except Exception as e:
+                    silent_exception = (
+                        f"set(Tamb) -> {type(e).__name__}: {e}"
+                    )
+                try:
+                    bc.set('epsilon_rad', radiation_emissivity)
+                except Exception as e:
+                    msg = f"set(epsilon_rad) -> {type(e).__name__}: {e}"
+                    silent_exception = (
+                        f"{silent_exception}; {msg}" if silent_exception else msg
+                    )
+                bc.label(f'Surface-to-Ambient Radiation {i+1} (Boundary {boundary})')
+                results["radiation"].append({
+                    "tag": tag,
+                    "boundary": boundary,
+                    "emissivity": radiation_emissivity,
+                    "ambient_temp": radiation_ambient_temp,
+                    "silent_exception": silent_exception,
+                })
+
             return {
                 "success": True,
                 "physics": physics_name,
@@ -1062,9 +1116,15 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "summary": {
                     "heat_flux_boundaries": len(heat_flux_boundaries),
                     "temperature_boundaries": len(temperature_boundaries),
-                    "convection_boundaries": len(convection_boundaries)
+                    "convection_boundaries": len(convection_boundaries),
+                    "radiation_boundaries": len(radiation_boundaries),
                 },
-                "message": f"Configured {len(heat_flux_boundaries)} heat flux, {len(temperature_boundaries)} temperature, and {len(convection_boundaries)} convection boundaries",
+                "message": (
+                    f"Configured {len(heat_flux_boundaries)} heat flux, "
+                    f"{len(temperature_boundaries)} temperature, "
+                    f"{len(convection_boundaries)} convection, and "
+                    f"{len(radiation_boundaries)} radiation boundaries"
+                ),
             }
         except Exception as e:
             return {"success": False, "error": f"Failed to setup heat boundaries: {str(e)}"}
