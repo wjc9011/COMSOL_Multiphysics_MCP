@@ -9,7 +9,7 @@ also reports ``tag`` and ``label`` so callers do not have to guess
 which form their input was.
 """
 
-from typing import Optional, Tuple
+from typing import Any, Optional, Tuple
 from mcp.server.fastmcp import FastMCP
 
 from .session import session_manager
@@ -39,6 +39,38 @@ _STEP_TYPE_TO_CANONICAL = {
     "Frequency":       "frequency_domain",
     "Eigenvalue":      "eigenvalue",
 }
+
+
+# Spec mcp_study_step_set_property_spec.md §3.3 — advisory hint placed on
+# the ``step`` dict of every study_create / study_add_step response so
+# agents discover the property setter immediately after step creation.
+_STEP_SET_PROPERTY_HINT = (
+    "Use study_step_set_property(<study>, <step_tag>, <prop>, <value>) "
+    "to set tlist / atolglobal / rtol / etc. "
+    "Reference: KB html_help_text/comsol/comsol_api_solver.50.48.md "
+    "(Time properties) and comsol_api_solver.50.76.md "
+    "(Time Dependent study step properties)."
+)
+
+
+def _coerce_step_property_value(value: Any) -> Any:
+    """Coerce a Python value for ``study.feature(step).set(name, value)``.
+
+    Spec §3.2 (ii): strings (including expression strings like
+    ``range(12,-0.5,0)``) are passed through verbatim; tuples are
+    normalized to lists (Java arrays are easier to construct from
+    homogeneous Python lists under JPype); ints / floats / bools fall
+    through to JPype's automatic boxing (``Boolean.TRUE``, etc.).
+
+    Kept deliberately permissive — Java ``.set(String, Object)`` accepts
+    just about anything, and the symmetric ``physics_set_property``
+    passes its value straight through. Surfacing a Java exception
+    (caught by the caller) is more useful than a Python-side
+    pre-rejection when a property's expected type is undocumented.
+    """
+    if isinstance(value, tuple):
+        return list(value)
+    return value
 
 
 def _safe_str(value, default: str = "") -> str:
@@ -535,7 +567,13 @@ def register_study_tools(mcp: FastMCP) -> None:
                     "tag": tag,
                     "label": display_label,
                     "type": canonical,
-                    "step": {"tag": actual_step_tag, "type": step_type},
+                    "step": {
+                        "tag": actual_step_tag,
+                        "type": step_type,
+                        # Spec mcp_study_step_set_property_spec.md §3.3:
+                        # advisory hint so agents discover the setter.
+                        "set_property_hint": _STEP_SET_PROPERTY_HINT,
+                    },
                 },
             }
         except Exception as e:
@@ -598,7 +636,12 @@ def register_study_tools(mcp: FastMCP) -> None:
             return {
                 "success": True,
                 "study": {"tag": tag, "label": label},
-                "step": {"tag": actual_tag, "type": feature_type},
+                "step": {
+                    "tag": actual_tag,
+                    "type": feature_type,
+                    # Spec mcp_study_step_set_property_spec.md §3.3.
+                    "set_property_hint": _STEP_SET_PROPERTY_HINT,
+                },
             }
         except Exception as e:
             return {
@@ -644,6 +687,161 @@ def register_study_tools(mcp: FastMCP) -> None:
             return {
                 "success": False,
                 "error": f"Failed to remove study: {type(e).__name__}: {e}",
+            }
+
+    @mcp.tool()
+    def study_step_set_property(
+        study_name: str,
+        step_tag: str,
+        property_name: str,
+        value: Any,
+        model_name: Optional[str] = None,
+    ) -> dict:
+        """
+        Set a property on a study step's feature (canonical Java API path).
+
+        Spec ``plans/mcp_study_step_set_property_spec.md`` §3.1, §3.2.
+
+        Canonical Java path::
+
+            model.study(<study_tag>).feature(<step_tag>)
+                 .set(<property_name>, <value>)
+
+        This is the symmetric counterpart of ``physics_set_property``, but
+        uses the ``.feature()`` API path (vs ``.prop()`` for physics
+        interface-level scalars). The most common use case is setting
+        ``tlist`` on a time-dependent study step, but any of the ~30
+        study step properties documented in the COMSOL Programming
+        Reference can be set this way (atolglobal, rtol, useinitsol,
+        useparam, plist, disabledphysics, mesh, ...).
+
+        Common use cases:
+        - Time-dependent ``tlist``::
+            study_step_set_property("std1", "time", "tlist",
+                                    "range(0,0.1,1)")
+        - Backward-time integration (Black-Scholes, comsol_82)::
+            study_step_set_property("std1", "time", "tlist",
+                                    "range(12,-0.5,0)")
+        - Absolute tolerance override::
+            study_step_set_property("std1", "time", "atolglobal", "1e-6")
+        - Output time control::
+            study_step_set_property("std1", "time", "tout", "tsteps")
+        - Stationary continuation parameter::
+            study_step_set_property("std1", "stat", "useparam", True)
+
+        Args:
+            study_name: Study tag (e.g. ``"std1"``) or display label
+                (e.g. ``"Transient Study"``). Resolved by
+                ``_resolve_study`` — tag is preferred but label fallback
+                works.
+            step_tag: Study step tag — typically returned by
+                ``study_create`` or ``study_add_step`` as
+                ``response["study"]["step"]["tag"]`` (e.g. ``"time"`` for
+                transient, ``"stat"`` for stationary). Pass it directly;
+                no label fallback (study steps don't expose user-visible
+                labels in the same way studies do).
+            property_name: Property key as defined by COMSOL's Java API
+                (e.g. ``"tlist"``, ``"atolglobal"``, ``"rtol"``,
+                ``"initstep"``). See KB
+                ``html_help_text/comsol/comsol_api_solver.50.48.md`` and
+                ``comsol_api_solver.50.76.md`` for the full property table.
+            value: Property value. Strings are passed through to Java
+                verbatim (allowing expression syntax like
+                ``"range(12,-0.5,0)"`` or ``"[0, 0.5, 1.0, 2.0]"``).
+                Ints / floats / bools rely on JPype auto-boxing. Tuples
+                are normalized to lists for predictable array conversion.
+            model_name: Model name (default: current model).
+
+        Returns:
+            On success::
+
+                {"success": True,
+                 "study": {"tag": <resolved_tag>, "label": <study_label>},
+                 "step": {"tag": <step_tag>},
+                 "property": {"name": <property_name>, "value": <value>},
+                 "java_path":
+                     "model.study('<tag>').feature('<step>').set('<prop>', <value>)"}
+
+            On failure (spec §3.2 (iii) — diagnostic ``attempted_java_path``)::
+
+                {"success": False,
+                 "error": <message>,
+                 "attempted_java_path":
+                     "model.study('<tag>').feature('<step>').set('<prop>', <value>)"}
+        """
+        model = session_manager.get_model(model_name)
+        if model is None:
+            return {
+                "success": False,
+                "error": f"Model not found: {model_name or 'no current model'}",
+            }
+
+        try:
+            jm = model.java
+            study_obj, tag, label, _type, _steps, err = _resolve_study(
+                jm, study_name,
+            )
+            if err:
+                return {"success": False, "error": err}
+
+            attempted_path = (
+                f"model.study('{tag}').feature('{step_tag}')"
+                f".set('{property_name}', <value>)"
+            )
+
+            try:
+                feature = study_obj.feature(step_tag)
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": (
+                        f"Step '{step_tag}' not found in study "
+                        f"'{tag}': {type(e).__name__}: {e}"
+                    ),
+                    "attempted_java_path": (
+                        f"model.study('{tag}').feature('{step_tag}')"
+                    ),
+                }
+
+            if feature is None:
+                return {
+                    "success": False,
+                    "error": (
+                        f"Step '{step_tag}' not found in study '{tag}'."
+                    ),
+                    "attempted_java_path": (
+                        f"model.study('{tag}').feature('{step_tag}')"
+                    ),
+                }
+
+            java_value = _coerce_step_property_value(value)
+
+            try:
+                feature.set(property_name, java_value)
+            except Exception as e:
+                return {
+                    "success": False,
+                    "error": (
+                        f"{attempted_path} failed: "
+                        f"{type(e).__name__}: {e}"
+                    ),
+                    "attempted_java_path": attempted_path,
+                }
+
+            return {
+                "success": True,
+                "study": {"tag": tag, "label": label},
+                "step": {"tag": step_tag},
+                "property": {"name": property_name, "value": value},
+                "java_path": attempted_path,
+            }
+        except Exception as e:
+            return {
+                "success": False,
+                "error": (
+                    f"Failed to set study step property: "
+                    f"{type(e).__name__}: {e}"
+                ),
             }
 
     @mcp.tool()
