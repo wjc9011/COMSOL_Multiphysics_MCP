@@ -47,6 +47,18 @@ PHYSICS_INTERFACES = {
         "electromechanical": "Electromechanical Forces",
         "joule_heating": "Joule Heating (jh)",
     },
+    "Mathematics": {
+        "coefficient_form_pde": "Coefficient Form PDE (c)",
+        "general_form_pde": "General Form PDE (g)",
+        "weak_form_pde": "Weak Form PDE (w)",
+        "convection_diffusion": "Convection-Diffusion Equation (cdeq)",
+        "coefficient_form_boundary_pde": "Coefficient Form Boundary PDE (cb)",
+        "coefficient_form_edge_pde": "Coefficient Form Edge PDE (ce)",
+        "coefficient_form_point_pde": "Coefficient Form Point PDE (cp)",
+        "general_form_boundary_pde": "General Form Boundary PDE (gb)",
+        "general_form_edge_pde": "General Form Edge PDE (ge)",
+        "general_form_point_pde": "General Form Point PDE (gp)",
+    },
 }
 
 
@@ -82,6 +94,53 @@ PHYSICS_TYPE_ALIASES: dict[str, tuple[str, str]] = {
     "spf": ("LaminarFlow", "spf"),
     "laminar_flow": ("LaminarFlow", "spf"),
     "LaminarFlow": ("LaminarFlow", "spf"),
+
+    # ============ Mathematics > PDE Interfaces (spec #13) ============
+    # Added 2026-05-11 to unblock Pilot 09 / comsol_82 (Black-Scholes)
+    # and similar FEABench Gold cases needing Math/PDE branch.
+    # Canonical class names sourced from KB scripting_completion_text
+    # (data/completion/physics.xml) and FEABench ground_truth.
+    # Coefficient Form PDE — domain (default for 1D/2D/3D)
+    "c": ("CoefficientFormPDE", "c"),
+    "coefficient_form_pde": ("CoefficientFormPDE", "c"),
+    "CoefficientFormPDE": ("CoefficientFormPDE", "c"),
+    # General Form PDE — domain
+    "g": ("GeneralFormPDE", "g"),
+    "general_form_pde": ("GeneralFormPDE", "g"),
+    "GeneralFormPDE": ("GeneralFormPDE", "g"),
+    # Weak Form PDE — domain
+    "w": ("WeakFormPDE", "w"),
+    "weak_form_pde": ("WeakFormPDE", "w"),
+    "WeakFormPDE": ("WeakFormPDE", "w"),
+    # Convection-Diffusion Equation
+    "cdeq": ("ConvectionDiffusionEquation", "cdeq"),
+    "convection_diffusion": ("ConvectionDiffusionEquation", "cdeq"),
+    "convection_diffusion_equation": ("ConvectionDiffusionEquation", "cdeq"),
+    "ConvectionDiffusionEquation": ("ConvectionDiffusionEquation", "cdeq"),
+    # Coefficient Form Boundary PDE — 2D/3D
+    "cb": ("CoefficientFormBoundaryPDE", "cb"),
+    "coefficient_form_boundary_pde": ("CoefficientFormBoundaryPDE", "cb"),
+    "CoefficientFormBoundaryPDE": ("CoefficientFormBoundaryPDE", "cb"),
+    # Coefficient Form Edge PDE — 3D
+    "ce": ("CoefficientFormEdgePDE", "ce"),
+    "coefficient_form_edge_pde": ("CoefficientFormEdgePDE", "ce"),
+    "CoefficientFormEdgePDE": ("CoefficientFormEdgePDE", "ce"),
+    # Coefficient Form Point PDE
+    "cp": ("CoefficientFormPointPDE", "cp"),
+    "coefficient_form_point_pde": ("CoefficientFormPointPDE", "cp"),
+    "CoefficientFormPointPDE": ("CoefficientFormPointPDE", "cp"),
+    # General Form Boundary PDE — 2D/3D
+    "gb": ("GeneralFormBoundaryPDE", "gb"),
+    "general_form_boundary_pde": ("GeneralFormBoundaryPDE", "gb"),
+    "GeneralFormBoundaryPDE": ("GeneralFormBoundaryPDE", "gb"),
+    # General Form Edge PDE — 3D
+    "ge": ("GeneralFormEdgePDE", "ge"),
+    "general_form_edge_pde": ("GeneralFormEdgePDE", "ge"),
+    "GeneralFormEdgePDE": ("GeneralFormEdgePDE", "ge"),
+    # General Form Point PDE
+    "gp": ("GeneralFormPointPDE", "gp"),
+    "general_form_point_pde": ("GeneralFormPointPDE", "gp"),
+    "GeneralFormPointPDE": ("GeneralFormPointPDE", "gp"),
 }
 
 
@@ -325,13 +384,19 @@ def register_physics_tools(mcp: FastMCP) -> None:
         """
         Add a physics interface to the model.
 
-        Accepts the canonical Java type ("HeatTransfer"), the short
-        tag ("ht"), or the snake_case key from physics_get_available
-        ("heat_transfer"). All three resolve to the same interface.
+        Accepts the canonical Java type ("HeatTransfer",
+        "CoefficientFormPDE"), the short tag ("ht", "c"), or the
+        snake_case key ("heat_transfer", "coefficient_form_pde").
+        All resolve to the same interface. The Math/PDE branch
+        (CoefficientFormPDE, GeneralFormPDE, WeakFormPDE,
+        ConvectionDiffusionEquation + boundary/edge/point variants)
+        was added in spec #13 (2026-05-11) for Pilot 09 / comsol_82
+        (Black-Scholes) and similar FEABench Gold cases.
 
         Args:
             physics_type: Type identifier (e.g. "HeatTransfer", "ht",
-                "heat_transfer")
+                "heat_transfer", "CoefficientFormPDE", "c",
+                "coefficient_form_pde")
             component_name: Component to add physics to
                 (default: first component)
             geometry_tag: Geometry sequence tag to bind the physics to
