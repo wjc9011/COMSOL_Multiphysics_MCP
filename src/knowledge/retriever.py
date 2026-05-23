@@ -281,28 +281,48 @@ class VectorRetriever:
             logger.error(f"Failed to clear vector store: {e}")
             return False
     
-    def rebuild_from_pdfs(self, limit: Optional[int] = None) -> dict:
-        """Rebuild the vector store from PDF files."""
-        processor = PDFProcessor(self.pdf_dir)
-        
+    def rebuild_from_pdfs(self, limit: Optional[int] = None,
+                            default_language: Optional[str] = None,
+                            clear_first: bool = True) -> dict:
+        """Rebuild the vector store from PDF files.
+
+        Args:
+            limit: optional cap on number of PDFs to process
+            default_language: ISO 639-1 language tag applied to all
+                              chunks from this directory (e.g. "en", "ja").
+                              Stored in metadata and searchable via
+                              `search(language_filter=...)`.
+            clear_first: if True (default), clear the existing collection
+                          before re-ingesting. Set False to additively
+                          append to an existing collection.
+        """
+        processor = PDFProcessor(self.pdf_dir, default_language=default_language)
+
         # Get stats before
         stats = {"pdf_files_found": len(processor.get_pdf_files())}
-        
+
         # Process PDFs
         chunks = processor.process_all_pdfs(limit=limit)
         stats["chunks_generated"] = len(chunks)
-        
-        # Clear and rebuild
-        self.clear()
+
+        # Clear (optional) and ensure collection exists
+        if clear_first:
+            self.clear()
         self.initialize()
-        
+
         added = self.add_chunks(chunks)
         stats["chunks_added"] = added
-        
-        # Get final stats
-        stats["final_count"] = self._collection.count() if self._collection else 0
-        
+
+        # Get final stats via the public-ish accessor
+        stats["final_count"] = self.count()
+
         return stats
+
+    def count(self) -> int:
+        """Return the number of documents in the collection (0 if not initialized)."""
+        if not self._collection:
+            return 0
+        return self._collection.count()
 
 
 # Global retriever instance

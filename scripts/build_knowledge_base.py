@@ -118,8 +118,8 @@ Examples:
         print(f"\n[ERROR] PDF directory not found: {pdf_dir}")
         return 1
     
-    # Initialize processor (with optional language tag for the main pdf_dir)
-    processor = PDFProcessor(pdf_dir, default_language=args.language)
+    # Initialize processor (used for the --status path, listing modules)
+    processor = PDFProcessor(pdf_dir)
 
     # Validate --extra-pdfs / --extra-language pairing
     if args.extra_language and len(args.extra_language) != len(args.extra_pdfs):
@@ -164,12 +164,11 @@ Examples:
         retriever_kwargs["embedding_model"] = args.embedding_model
         print(f"    Embedding model: {args.embedding_model}")
     retriever = VectorRetriever(pdf_dir, db_dir, **retriever_kwargs)
-
-    if args.rebuild:
-        print("    Clearing existing database...")
-        retriever.clear()
-
-    retriever.initialize()
+    # initialize() is called inside rebuild_from_pdfs(); avoid the
+    # legacy `retriever.clear()` here so the --rebuild flag controls
+    # clear-or-not via rebuild_from_pdfs(clear_first=args.rebuild)
+    # (fixes the upstream-was-always-clearing ambiguity flagged in
+    # Copilot review of PR #3).
 
     # Process PDFs
     print(f"\n[5] Processing PDFs...")
@@ -177,8 +176,18 @@ Examples:
         print(f"    Limit: {args.limit} files")
     if args.language:
         print(f"    Language tag for {pdf_dir.name}: {args.language}")
+    if not args.rebuild:
+        print(f"    --rebuild not set: appending to existing collection")
 
-    stats = retriever.rebuild_from_pdfs(limit=args.limit)
+    # Pass language + clear flag through so main --pdf-dir chunks
+    # actually get tagged (Copilot reviewer caught the bug where
+    # rebuild_from_pdfs internally constructed its own un-tagged
+    # PDFProcessor)
+    stats = retriever.rebuild_from_pdfs(
+        limit=args.limit,
+        default_language=args.language,
+        clear_first=bool(args.rebuild),
+    )
 
     # Process --extra-pdfs directories
     extra_stats: list[dict] = []
@@ -209,8 +218,8 @@ Examples:
     for es in extra_stats:
         print(f"    Extra ({es['language']}) from {es['dir']}: "
               f"{es['added']} added")
-    final_count = retriever._collection.count() if retriever._collection else 0
-    print(f"    Total in database: {final_count}")
+    # Use the public .count() helper (was: private ._collection.count())
+    print(f"    Total in database: {retriever.count()}")
     
     # Test search
     print(f"\n[7] Testing search...")
