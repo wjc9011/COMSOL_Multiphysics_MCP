@@ -154,6 +154,8 @@ class VectorRetriever:
                 meta["chapter"] = chunk.chapter
             if chunk.page is not None:
                 meta["page"] = chunk.page
+            if chunk.language:
+                meta["language"] = chunk.language
             metadatas.append(meta)
         
         try:
@@ -180,17 +182,36 @@ class VectorRetriever:
             logger.error(f"Failed to add chunks: {e}")
             return 0
     
-    def search(self, query: str, n_results: int = 5, 
-               module_filter: Optional[str] = None) -> list[SearchResult]:
-        """Search for relevant documents."""
+    def search(self, query: str, n_results: int = 5,
+               module_filter: Optional[str] = None,
+               language_filter: Optional[str] = None) -> list[SearchResult]:
+        """Search for relevant documents.
+
+        Args:
+            query: free-text query (matched against chunk embeddings)
+            n_results: top N hits to return
+            module_filter: optional COMSOL module name (e.g. "ACDC_Module")
+            language_filter: optional language code (e.g. "en", "ja")
+                              to restrict hits to chunks tagged with that
+                              language by build_knowledge_base.py --language
+        """
         if not self._collection:
             if not self.initialize():
                 return []
-        
+
         try:
-            where_filter = None
+            # Build where filter: support both single-key and multi-key
+            filters: list[dict] = []
             if module_filter:
-                where_filter = {"module": module_filter}
+                filters.append({"module": module_filter})
+            if language_filter:
+                filters.append({"language": language_filter})
+            if len(filters) == 0:
+                where_filter = None
+            elif len(filters) == 1:
+                where_filter = filters[0]
+            else:
+                where_filter = {"$and": filters}
             
             results = self._collection.query(
                 query_texts=[query],

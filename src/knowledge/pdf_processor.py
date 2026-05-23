@@ -21,8 +21,9 @@ class DocumentChunk:
     chapter: Optional[str] = None
     page: Optional[int] = None
     chunk_id: str = ""
+    language: Optional[str] = None   # e.g. "en", "ja", "zh" (None = unspecified)
     metadata: dict = field(default_factory=dict)
-    
+
     def to_dict(self) -> dict:
         return {
             "text": self.text,
@@ -31,6 +32,7 @@ class DocumentChunk:
             "chapter": self.chapter,
             "page": self.page,
             "chunk_id": self.chunk_id,
+            "language": self.language,
             "metadata": self.metadata,
         }
 
@@ -52,9 +54,18 @@ class PDFProcessor:
     # Overlap between chunks
     CHUNK_OVERLAP = 200
     
-    def __init__(self, pdf_dir: str | Path):
+    def __init__(self, pdf_dir: str | Path, default_language: Optional[str] = None):
+        """
+        Args:
+            pdf_dir: root directory for PDF discovery
+            default_language: language tag applied to all chunks unless
+                              overridden (e.g. "en", "ja"). Useful when
+                              an entire directory is single-language.
+                              None = unspecified (chunks have no lang tag).
+        """
         self.pdf_dir = Path(pdf_dir)
-        
+        self.default_language = default_language
+
     def get_pdf_files(self) -> list[Path]:
         """Get all PDF files in the directory."""
         pdf_files = []
@@ -174,6 +185,7 @@ class PDFProcessor:
                     module=module,
                     page=page,
                     chunk_id=chunk_id,
+                    language=self.default_language,
                 ))
                 chunk_index += 1
             
