@@ -1,5 +1,7 @@
 # COMSOL MCP Server
 
+[![MCP Toplist](https://mcptoplist.com/badge/glama%2Fwjc9011%2FCOMSOL_Multiphysics_MCP.svg)](https://mcptoplist.com/server/glama%2Fwjc9011%2FCOMSOL_Multiphysics_MCP)
+
 MCP Server for COMSOL Multiphysics simulation automation via AI agents.
 
 English | [中文](README_CN.md)
