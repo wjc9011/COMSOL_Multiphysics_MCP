@@ -60,6 +60,10 @@ def main() -> None:
     else:
         mcp.settings.host = os.environ.get("COMSOL_MCP_HOST", "127.0.0.1")
         mcp.settings.port = int(os.environ.get("COMSOL_MCP_PORT", "8765"))
+        # Session state lives in the process-level SessionManager, not in the MCP
+        # transport session, so run stateless: a restarted server keeps serving
+        # clients that still hold a session id from the previous process.
+        mcp.settings.stateless_http = True
         logger.info(
             f"HTTP transport '{transport}' on {mcp.settings.host}:{mcp.settings.port}"
             " (COMSOL starts lazily on first tool call)"

@@ -54,7 +54,8 @@ def register_study_tools(mcp: FastMCP) -> None:
     def study_create(
         study_type: str = "Stationary",
         study_name: Optional[str] = None,
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        time_range: Optional[str] = None
     ) -> dict:
         """
         Create a new study in the model.
@@ -70,6 +71,9 @@ def register_study_tools(mcp: FastMCP) -> None:
             study_type: Type of study to create
             study_name: Optional name/tag for the study
             model_name: Model name (default: current model)
+            time_range: Optional COMSOL range expression for a time-dependent
+                step's output times, e.g. "range(0,1,60)". Stored in the step's
+                tlist property.
 
         Returns:
             Created study info
@@ -86,30 +90,46 @@ def register_study_tools(mcp: FastMCP) -> None:
             existing_studies = jm.study().size()
             study_tag = study_name or f"std{existing_studies + 1}"
 
+            # COMSOL 6.3 spells study-step types out ("Stationary", "Transient",
+            # ...); the short codes are not accepted as feature types.
             TYPE_MAP = {
-                "Stationary": "stat",
-                "TimeDependent": "time",
-                "Eigenfrequency": "eig",
-                "Frequency": "freq",
-                "Perturbation": "pert",
-                "stat": "stat",
-                "time": "time",
-                "eig": "eig",
-                "freq": "freq",
+                "Stationary": "Stationary",
+                "TimeDependent": "Transient",
+                "Transient": "Transient",
+                "Eigenfrequency": "Eigenfrequency",
+                "Frequency": "Frequency",
+                "Perturbation": "Perturbation",
+                "stat": "Stationary",
+                "time": "Transient",
+                "eig": "Eigenfrequency",
+                "freq": "Frequency",
             }
 
             step_type = TYPE_MAP.get(study_type, study_type)
 
             study = jm.study().create(study_tag)
-            study.create("step1", step_type)
+            step = study.create("step1", step_type)
 
-            return {
+            applied_time_range = None
+            time_range_error = None
+            if time_range:
+                try:
+                    step.set("tlist", time_range)
+                    applied_time_range = time_range
+                except Exception as e:
+                    time_range_error = str(e)
+
+            result = {
                 "success": True,
                 "study": study_tag,
                 "type": study_type,
                 "step_type": step_type,
                 "model": model.name(),
             }
+            if time_range:
+                result["time_range"] = applied_time_range
+                result["time_range_error"] = time_range_error
+            return result
         except Exception as e:
             return {"success": False, "error": f"Failed to create study: {str(e)}"}
     

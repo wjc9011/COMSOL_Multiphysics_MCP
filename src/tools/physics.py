@@ -408,7 +408,13 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 return {"success": False, "error": f"Component not found: {component_name}"}
 
             tag = physics_type.replace(" ", "_").lower()
-            physics_java = comp.physics().create(tag, physics_type)
+            # COMSOL 6.3 must be given the geometry sequence on creation,
+            # otherwise the interface is created detached (0-dimensional).
+            try:
+                geom_tag = _get_geometry_tag(comp)
+                physics_java = comp.physics().create(tag, physics_type, geom_tag)
+            except Exception:
+                physics_java = comp.physics().create(tag, physics_type)
 
             return {
                 "success": True,
@@ -447,7 +453,13 @@ def register_physics_tools(mcp: FastMCP) -> None:
         try:
             jm = model.java
             comp = _get_component_java(jm)
-            physics_java = comp.physics().create("es", "Electrostatics")
+            # COMSOL 6.3 must be given the geometry sequence on creation,
+            # otherwise the interface is created detached (0-dimensional).
+            try:
+                geom_tag = _get_geometry_tag(comp)
+                physics_java = comp.physics().create("es", "Electrostatics", geom_tag)
+            except Exception:
+                physics_java = comp.physics().create("es", "Electrostatics")
 
             if domain_selection:
                 try:
@@ -492,7 +504,13 @@ def register_physics_tools(mcp: FastMCP) -> None:
         try:
             jm = model.java
             comp = _get_component_java(jm)
-            physics_java = comp.physics().create("solid", "SolidMechanics")
+            # COMSOL 6.3 must be given the geometry sequence on creation,
+            # otherwise the interface is created detached (0-dimensional).
+            try:
+                geom_tag = _get_geometry_tag(comp)
+                physics_java = comp.physics().create("solid", "SolidMechanics", geom_tag)
+            except Exception:
+                physics_java = comp.physics().create("solid", "SolidMechanics")
 
             if domain_selection:
                 try:
@@ -537,7 +555,14 @@ def register_physics_tools(mcp: FastMCP) -> None:
         try:
             jm = model.java
             comp = _get_component_java(jm)
-            physics_java = comp.physics().create("ht", "HeatTransfer")
+            # COMSOL 6.3 must be given the geometry sequence on creation,
+            # otherwise the interface is created detached (0-dimensional).
+            try:
+                geom_tag = _get_geometry_tag(comp)
+                physics_java = comp.physics().create("ht", "HeatTransfer", geom_tag)
+            except Exception:
+                geom_tag = None
+                physics_java = comp.physics().create("ht", "HeatTransfer")
 
             if domain_selection:
                 try:
@@ -582,7 +607,13 @@ def register_physics_tools(mcp: FastMCP) -> None:
         try:
             jm = model.java
             comp = _get_component_java(jm)
-            physics_java = comp.physics().create("spf", "LaminarFlow")
+            # COMSOL 6.3 must be given the geometry sequence on creation,
+            # otherwise the interface is created detached (0-dimensional).
+            try:
+                geom_tag = _get_geometry_tag(comp)
+                physics_java = comp.physics().create("spf", "LaminarFlow", geom_tag)
+            except Exception:
+                physics_java = comp.physics().create("spf", "LaminarFlow")
 
             if domain_selection:
                 try:
