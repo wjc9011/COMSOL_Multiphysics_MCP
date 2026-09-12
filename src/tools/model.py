@@ -131,12 +131,21 @@ def register_model_tools(mcp: FastMCP) -> None:
 
         try:
             jm = model.java
-            comp = jm.component().create(component_name, True, space_dimension)
+            # COMSOL 6.3 removed create(tag, boolean, spaceDimension); the space
+            # dimension is carried by the geometry sequence (geometry_create).
+            try:
+                comp = jm.component().create(component_name, True)
+                creation_api = "create(tag, True)"
+            except Exception:
+                comp = jm.component().create(component_name, True, space_dimension)
+                creation_api = "create(tag, True, spaceDimension)"
 
             return {
                 "success": True,
                 "component": component_name,
                 "space_dimension": space_dimension,
+                "space_dimension_applied_by": "geometry_create",
+                "creation_api": creation_api,
                 "model": model.name(),
             }
         except Exception as e:
