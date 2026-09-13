@@ -120,6 +120,7 @@ def register_geometry_tools(mcp: FastMCP) -> None:
     def geometry_add_feature(
         feature_type: str,
         geometry_name: Optional[str] = None,
+        component_name: str = "comp1",
         feature_name: Optional[str] = None,
         model_name: Optional[str] = None,
         **kwargs
@@ -142,6 +143,7 @@ def register_geometry_tools(mcp: FastMCP) -> None:
         Args:
             feature_type: Type of geometry feature (Block, Cylinder, etc.)
             geometry_name: Geometry sequence name (default: first geometry)
+            component_name: Component name (default: 'comp1')
             feature_name: Name for the feature (auto-generated if None)
             model_name: Model name (default: current model)
             **kwargs: Feature-specific properties (position, size, etc.)
@@ -157,31 +159,30 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             }
         
         try:
-            geometries = model.geometries()
-            if not geometries:
-                return {"success": False, "error": "No geometry sequences found. Create one first."}
+            geom, error = _get_geometry_node(model, geometry_name, component_name)
+            if error:
+                return {"success": False, "error": error}
             
-            target_geom = geometry_name or geometries[0]
-            if target_geom not in geometries:
-                return {"success": False, "error": f"Geometry not found: {target_geom}"}
+            feat_name = feature_name or f"{feature_type.lower()}{geom.feature().size() + 1}"
+            feature = geom.feature().create(feat_name, feature_type)
             
-            geom_node = model / "geometries" / target_geom
-            feature_node = geom_node.create(feature_type, feature_name)
-            
+            failed_properties = {}
             for prop_name, prop_value in kwargs.items():
                 try:
-                    feature_node.property(prop_name, prop_value)
-                except Exception:
-                    pass
+                    feature.set(prop_name, prop_value)
+                except Exception as exc:
+                    failed_properties[prop_name] = str(exc)
             
-            return {
+            result = {
                 "success": True,
                 "feature": {
-                    "name": feature_node.name() if hasattr(feature_node, 'name') else feature_name,
+                    "name": feat_name,
                     "type": feature_type,
-                    "geometry": target_geom,
                 }
             }
+            if failed_properties:
+                result["failed_properties"] = failed_properties
+            return result
         except Exception as e:
             return {"success": False, "error": f"Failed to add geometry feature: {str(e)}"}
     
@@ -406,6 +407,8 @@ def register_geometry_tools(mcp: FastMCP) -> None:
         position: Sequence[float] = (0, 0),
         radius: float = 0.5,
         geometry_name: Optional[str] = None,
+        component_name: str = "comp1",
+        feature_name: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
@@ -415,6 +418,8 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             position: Center [x, y] in meters
             radius: Radius in meters (default: 0.5)
             geometry_name: Geometry sequence name
+            component_name: Component name (default: 'comp1')
+            feature_name: Name for the feature (auto-generated if None)
             model_name: Model name (default: current model)
         
         Returns:
@@ -428,24 +433,22 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             }
         
         try:
-            geometries = model.geometries()
-            if not geometries:
-                return {"success": False, "error": "No geometry sequences found."}
+            geom, error = _get_geometry_node(model, geometry_name, component_name)
+            if error:
+                return {"success": False, "error": error}
             
-            target_geom = geometry_name or geometries[0]
-            geom_node = model / "geometries" / target_geom
-            circle_node = geom_node.create("Circle")
+            feat_name = feature_name or f"c{geom.feature().size() + 1}"
+            circle = geom.feature().create(feat_name, "Circle")
             
             if len(position) == 2:
-                circle_node.property("pos", list(position))
-            circle_node.property("r", radius)
+                circle.set("pos", [str(p) for p in position])
+            circle.set("r", str(radius))
             
             return {
                 "success": True,
                 "feature": {
-                    "name": circle_node.name() if hasattr(circle_node, 'name') else "Circle",
+                    "name": feat_name,
                     "type": "Circle",
-                    "geometry": target_geom,
                     "position": list(position),
                     "radius": radius,
                 }
@@ -569,6 +572,8 @@ def register_geometry_tools(mcp: FastMCP) -> None:
         file_path: str,
         geometry_name: Optional[str] = None,
         import_type: str = "CAD",
+        component_name: str = "comp1",
+        feature_name: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
@@ -579,7 +584,10 @@ def register_geometry_tools(mcp: FastMCP) -> None:
         Args:
             file_path: Path to the CAD file
             geometry_name: Geometry sequence name
-            import_type: Import type (CAD, mesh, etc.)
+            import_type: Echoed back for reference. COMSOL chooses the reader
+                from the file extension, so this value is not applied.
+            component_name: Component name (default: 'comp1')
+            feature_name: Name for the feature (auto-generated if None)
             model_name: Model name (default: current model)
         
         Returns:
@@ -593,22 +601,20 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             }
         
         try:
-            geometries = model.geometries()
-            if not geometries:
-                return {"success": False, "error": "No geometry sequences found."}
+            geom, error = _get_geometry_node(model, geometry_name, component_name)
+            if error:
+                return {"success": False, "error": error}
             
-            target_geom = geometry_name or geometries[0]
-            geom_node = model / "geometries" / target_geom
-            import_node = geom_node.create("Import")
+            feat_name = feature_name or f"imp{geom.feature().size() + 1}"
+            import_feature = geom.feature().create(feat_name, "Import")
             
-            model.import_(import_node, file_path)
+            import_feature.set("filename", file_path)
             
             return {
                 "success": True,
                 "feature": {
-                    "name": import_node.name() if hasattr(import_node, 'name') else "Import",
+                    "name": feat_name,
                     "type": "Import",
-                    "geometry": target_geom,
                     "file": file_path,
                     "import_type": import_type,
                 }
@@ -660,6 +666,7 @@ def register_geometry_tools(mcp: FastMCP) -> None:
     @mcp.tool()
     def geometry_list_features(
         geometry_name: Optional[str] = None,
+        component_name: str = "comp1",
         model_name: Optional[str] = None
     ) -> dict:
         """
@@ -667,10 +674,11 @@ def register_geometry_tools(mcp: FastMCP) -> None:
         
         Args:
             geometry_name: Geometry sequence name (default: first geometry)
+            component_name: Component name (default: 'comp1')
             model_name: Model name (default: current model)
         
         Returns:
-            List of geometry features with their types
+            List of geometry features with their tags and labels
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -680,28 +688,23 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             }
         
         try:
-            geometries = model.geometries()
-            if not geometries:
-                return {"success": False, "error": "No geometry sequences found."}
+            geom, error = _get_geometry_node(model, geometry_name, component_name)
+            if error:
+                return {"success": False, "error": error}
             
-            target_geom = geometry_name or geometries[0]
-            if target_geom not in geometries:
-                return {"success": False, "error": f"Geometry not found: {target_geom}"}
-            
-            geom_node = model / "geometries" / target_geom
             features = []
-            
-            for child in geom_node.children():
-                feat_info = {"name": child.name()}
+            for feat_tag in geom.feature().tags():
+                feat_info = {"name": str(feat_tag)}
                 try:
-                    feat_info["type"] = child.type() if hasattr(child, 'type') else "unknown"
+                    label = geom.feature(str(feat_tag)).label()
+                    if label:
+                        feat_info["label"] = label
                 except Exception:
                     pass
                 features.append(feat_info)
             
             return {
                 "success": True,
-                "geometry": target_geom,
                 "features": features,
                 "count": len(features),
             }
