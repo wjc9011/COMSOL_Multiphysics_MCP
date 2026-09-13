@@ -43,10 +43,12 @@ def generate_version_path(model_name: str, base_path: str = None) -> str:
     """
     Generate a versioned file path with timestamp suffix.
     Uses structured path: ./comsol_models/{model_name}/{model_name}_{timestamp}.mph
+    unless an explicit base path is given.
     
     Args:
         model_name: Name of the model (used for directory)
-        base_path: Optional custom base path (ignored if None, uses structured path)
+        base_path: Optional custom base directory; defaults to the structured
+            ./comsol_models/{model_name} path
         
     Returns:
         Versioned file path with timestamp
@@ -55,7 +57,7 @@ def generate_version_path(model_name: str, base_path: str = None) -> str:
     clean_name = Path(model_name).stem
     
     # Get model directory
-    model_dir = get_model_directory(clean_name)
+    model_dir = Path(base_path) if base_path else get_model_directory(clean_name)
     model_dir.mkdir(parents=True, exist_ok=True)
     
     # Generate versioned filename
