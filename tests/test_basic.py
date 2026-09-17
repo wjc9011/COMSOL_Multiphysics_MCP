@@ -21,12 +21,33 @@ class TestVersioning:
         assert result.startswith("model_")
         assert result.endswith(".mph")
     
-    def test_generate_version_path(self):
-        from src.utils.versioning import generate_version_path
-        
-        result = generate_version_path("/path/to/model.mph")
-        assert "/path/to/model_" in result
+    def test_generate_version_path_uses_structured_directory(self):
+        from pathlib import Path
+
+        from src.utils.versioning import generate_version_path, get_model_directory
+
+        result = generate_version_path("model.mph")
+
+        assert Path(result).parent == get_model_directory("model")
+        assert Path(result).name.startswith("model_")
         assert result.endswith(".mph")
+
+    def test_generate_version_path_honours_base_path(self):
+        import shutil
+        from pathlib import Path
+
+        from src.utils.versioning import generate_version_path
+
+        base = Path(__file__).resolve().parents[1] / "comsol_models" / "_test_base_path"
+        shutil.rmtree(base, ignore_errors=True)
+        try:
+            result = generate_version_path("model.mph", base_path=str(base))
+
+            assert Path(result).parent == base
+            assert Path(result).name.startswith("model_")
+            assert result.endswith(".mph")
+        finally:
+            shutil.rmtree(base, ignore_errors=True)
     
     def test_parse_version_info_valid(self):
         from src.utils.versioning import parse_version_info
