@@ -1250,15 +1250,20 @@ def register_physics_tools(mcp: FastMCP) -> None:
         """
         Add a multiphysics coupling between physics interfaces.
         
-        Common coupling types:
-        - "ThermalStress": Couples Heat Transfer and Solid Mechanics
-        - "FluidStructureInteraction": Couples Fluid Flow and Solid Mechanics
-        - "ElectromechanicalForces": Couples Electrostatics and Solid Mechanics
-        - "JouleHeating": Couples Electric Currents and Heat Transfer
+        coupling_type is a COMSOL coupling id, not a display name. Ids
+        registered by the Multiphysics module include:
+        - "ThermalExpansion": Heat Transfer + Solid Mechanics (thermal stress)
+        - "ElectromagneticHeating": Electric Currents + Heat Transfer (Joule heating)
+        - "ElectromechanicalForces": Electrostatics + Solid Mechanics
+        - "PiezoelectricEffect": Electrostatics + Solid Mechanics
+        - "FluidStructureInteractionPair": Fluid Flow + Solid Mechanics
+        - "NonIsothermalFlow": Fluid Flow + Heat Transfer
+        Anything else raises "Unknown multiphysics coupling" from COMSOL.
         
         Args:
-            coupling_type: Type of multiphysics coupling
-            physics_list: Names of physics interfaces to couple
+            coupling_type: COMSOL multiphysics coupling id
+            physics_list: Names of the physics interfaces to couple. The first
+                entry selects the component the coupling is created in.
             model_name: Model name (default: current model)
         
         Returns:
@@ -1272,12 +1277,24 @@ def register_physics_tools(mcp: FastMCP) -> None:
             }
         
         try:
-            coupling_node = model.create("multiphysics", coupling_type)
+            jm = model.java
+
+            # A coupling belongs to the component that owns the coupled physics,
+            # and COMSOL 6.x wants that component's geometry tag here:
+            # multiphysics().create(String, String) does not exist.
+            context = _find_physics_context(jm, physics_list[0]) if physics_list else None
+            component = context[0] if context else _get_component_java(jm)
+            geom_tag = _get_geometry_tag(component)
+
+            coupling = jm.multiphysics().create(
+                _make_tag("mp"), coupling_type, geom_tag
+            )
             
             return {
                 "success": True,
                 "coupling": {
-                    "name": coupling_node.name() if hasattr(coupling_node, 'name') else coupling_type,
+                    "name": coupling.label() if hasattr(coupling, "label") else coupling_type,
+                    "tag": coupling.tag() if hasattr(coupling, "tag") else None,
                     "type": coupling_type,
                     "physics": list(physics_list),
                 }
@@ -1408,7 +1425,7 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 geoms = comp.geom()
                 if geoms.size() == 0:
                     return {"success": False, "error": "No geometries in component."}
-                geom_tag = geoms[0].tag()
+                geom_tag = str(geoms.tags()[0])
 
             geom = comp.geom(geom_tag)
             geom.run()
