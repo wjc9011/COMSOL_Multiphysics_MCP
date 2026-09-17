@@ -408,7 +408,11 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 return {"success": False, "error": f"Component not found: {component_name}"}
 
             tag = physics_type.replace(" ", "_").lower()
-            physics_java = comp.physics().create(tag, physics_type)
+            # COMSOL 6.x needs the geometry tag here: without it the interface
+            # is created at space dimension 0D and fails to initialize.
+            physics_java = comp.physics().create(
+                tag, physics_type, _get_geometry_tag(comp)
+            )
 
             return {
                 "success": True,
@@ -447,7 +451,9 @@ def register_physics_tools(mcp: FastMCP) -> None:
         try:
             jm = model.java
             comp = _get_component_java(jm)
-            physics_java = comp.physics().create("es", "Electrostatics")
+            physics_java = comp.physics().create(
+                "es", "Electrostatics", _get_geometry_tag(comp)
+            )
 
             if domain_selection:
                 try:
@@ -492,7 +498,9 @@ def register_physics_tools(mcp: FastMCP) -> None:
         try:
             jm = model.java
             comp = _get_component_java(jm)
-            physics_java = comp.physics().create("solid", "SolidMechanics")
+            physics_java = comp.physics().create(
+                "solid", "SolidMechanics", _get_geometry_tag(comp)
+            )
 
             if domain_selection:
                 try:
@@ -537,7 +545,9 @@ def register_physics_tools(mcp: FastMCP) -> None:
         try:
             jm = model.java
             comp = _get_component_java(jm)
-            physics_java = comp.physics().create("ht", "HeatTransfer")
+            physics_java = comp.physics().create(
+                "ht", "HeatTransfer", _get_geometry_tag(comp)
+            )
 
             if domain_selection:
                 try:
@@ -582,7 +592,9 @@ def register_physics_tools(mcp: FastMCP) -> None:
         try:
             jm = model.java
             comp = _get_component_java(jm)
-            physics_java = comp.physics().create("spf", "LaminarFlow")
+            physics_java = comp.physics().create(
+                "spf", "LaminarFlow", _get_geometry_tag(comp)
+            )
 
             if domain_selection:
                 try:
