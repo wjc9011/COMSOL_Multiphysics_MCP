@@ -54,8 +54,9 @@ def register_study_tools(mcp: FastMCP) -> None:
     def study_create(
         study_type: str = "Stationary",
         study_name: Optional[str] = None,
-        step_properties: Optional[dict] = None,
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        time_range: Optional[str] = None,
+        step_properties: Optional[dict] = None
     ) -> dict:
         """
         Create a new study in the model.
@@ -74,6 +75,9 @@ def register_study_tools(mcp: FastMCP) -> None:
                 e.g. {"tlist": "range(0,60[s],3600[s])"} for TimeDependent output
                 times, or {"freq": "..."} for Frequency studies
             model_name: Model name (default: current model)
+            time_range: Optional COMSOL range expression for a time-dependent
+                step's output times, e.g. "range(0,1,60)". Stored in the step's
+                tlist property.
 
         Returns:
             Created study info
@@ -103,6 +107,7 @@ def register_study_tools(mcp: FastMCP) -> None:
                 "eig": ("eig", "Eigenfrequency"),
                 "Frequency": ("freq", "Frequency"),
                 "freq": ("freq", "Frequency"),
+                "Perturbation": ("per", "Perturbation"),
             }
             if study_type not in STEP_TYPES:
                 return {
@@ -120,6 +125,15 @@ def register_study_tools(mcp: FastMCP) -> None:
             study.label(study_tag)
             step = study.create(step_tag, step_type)
 
+            applied_time_range = None
+            time_range_error = None
+            if time_range:
+                try:
+                    step.set("tlist", time_range)
+                    applied_time_range = time_range
+                except Exception as e:
+                    time_range_error = str(e)
+
             property_failures = {}
             if step_properties:
                 for prop_name, prop_value in step_properties.items():
@@ -128,8 +142,8 @@ def register_study_tools(mcp: FastMCP) -> None:
                     except Exception as e:
                         property_failures[prop_name] = str(e)[:120]
 
-            return {
-                "success": not property_failures,
+            result = {
+                "success": not property_failures and not time_range_error,
                 "study": study_tag,
                 "type": study_type,
                 "step_type": step_type,
@@ -137,6 +151,11 @@ def register_study_tools(mcp: FastMCP) -> None:
                 "property_errors": property_failures or None,
                 "model": model.name(),
             }
+            if time_range:
+                # surface the tlist outcome explicitly; success is already False if it failed
+                result["time_range"] = applied_time_range
+                result["time_range_error"] = time_range_error
+            return result
         except Exception as e:
             return {"success": False, "error": f"Failed to create study: {str(e)}"}
     
