@@ -92,3 +92,75 @@ class TestSessionManager:
         sm = SessionManager()
         status = sm.get_status()
         assert status["connected"] is False
+
+
+class FakeClient:
+    """Stand-in for mph.Client that records its constructor arguments."""
+
+    def __init__(self, **kwargs):
+        self.kwargs = kwargs
+        self.version = kwargs.get("version") or "6.3"
+        self.cores = kwargs.get("cores") or 1
+        self.standalone = True
+
+    def clear(self):
+        self.cleared = True
+
+
+@pytest.fixture
+def session_env(monkeypatch):
+    """Isolate the SessionManager singleton and capture mph.Client construction."""
+    from src.tools import session as session_module
+
+    created = []
+
+    def fake_client(**kwargs):
+        client = FakeClient(**kwargs)
+        created.append(client)
+        return client
+
+    monkeypatch.setattr(session_module.mph, "Client", fake_client)
+    monkeypatch.setattr(session_module.mph_session, "client", None, raising=False)
+
+    manager = session_module.SessionManager()
+    monkeypatch.setattr(manager, "_client", None)
+    monkeypatch.setattr(manager, "_models", {})
+    monkeypatch.setattr(manager, "_current_model", None)
+    return manager, created
+
+
+class TestDefaultVersion:
+    """COMSOL_MCP_VERSION selects the back-end when no version is passed."""
+
+    def test_env_version_is_used(self, session_env, monkeypatch):
+        monkeypatch.setenv("COMSOL_MCP_VERSION", "6.3")
+        manager, created = session_env
+
+        result = manager.start(cores=4)
+
+        assert result["success"] is True
+        assert created[0].kwargs == {"cores": 4, "version": "6.3"}
+
+    def test_explicit_version_wins_over_env(self, session_env, monkeypatch):
+        monkeypatch.setenv("COMSOL_MCP_VERSION", "6.1")
+        manager, created = session_env
+
+        manager.start(version="6.3")
+
+        assert created[0].kwargs["version"] == "6.3"
+
+    def test_version_omitted_without_env(self, session_env, monkeypatch):
+        monkeypatch.delenv("COMSOL_MCP_VERSION", raising=False)
+        manager, created = session_env
+
+        manager.start()
+
+        assert "version" not in created[0].kwargs
+
+    def test_blank_env_falls_back_to_default(self, session_env, monkeypatch):
+        monkeypatch.setenv("COMSOL_MCP_VERSION", "")
+        manager, created = session_env
+
+        manager.start()
+
+        assert "version" not in created[0].kwargs

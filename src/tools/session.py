@@ -1,5 +1,6 @@
 """Session management tools for COMSOL MCP Server."""
 
+import os
 from typing import Optional
 
 import anyio
@@ -40,6 +41,9 @@ class SessionManager:
     
     def start(self, cores: Optional[int] = None, version: Optional[str] = None, products: Optional[list[str]] = None) -> dict:
         """Start a COMSOL client session."""
+        # Several COMSOL installations may coexist; COMSOL_MCP_VERSION
+        # selects the default back-end when no version is given.
+        version = version or os.environ.get("COMSOL_MCP_VERSION") or None
         if self._client is not None:
             try:
                 self._client.clear()
@@ -208,7 +212,7 @@ def register_session_tools(mcp: FastMCP) -> None:
         
         Args:
             cores: Number of processor cores to use (default: all available)
-            version: COMSOL version to use, e.g., '6.0' (default: latest installed)
+            version: COMSOL version to use, e.g., '6.3' (default: $COMSOL_MCP_VERSION, else latest installed)
             products: List of COMSOL products to load, e.g., ["ACDC"], ["ACDC", "CADImport"]
                      (default: all available products)
         
