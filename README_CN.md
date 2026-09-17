@@ -174,7 +174,7 @@ COMSOL_Multiphysics_MCP/
 └── comsol_models/                   # 保存的模型（结构化）
 ```
 
-## 🛠️ 可用工具（80+ 个）
+## 🛠️ 可用工具（100+ 个）
 
 ### 会话管理（4 个）
 
@@ -261,6 +261,25 @@ COMSOL_Multiphysics_MCP/
 | `physics_setup_heat_boundaries` | 配置传热边界 |
 | `physics_interactive_setup_flow` | 交互式流体设置 |
 | `physics_boundary_selection` | 通用边界设置 |
+
+### 电化学（10 个）
+
+电池、燃料电池、电镀与腐蚀支持，基于**在真实 COMSOL 6.3 会话中逐一创建验证**的类型
+注册表（26 个接口、600+ 特征/子特征类型）。详见
+`src/knowledge/prompts/electrochemistry.md`，或调用 `docs_get("electrochemistry")`。
+
+| 工具 | 说明 |
+|------|------|
+| `electrochemistry_get_interfaces` | 列出已验证的接口类型（电池、电流分布、腐蚀等） |
+| `electrochemistry_get_feature_types` | 列出某接口已验证的特征类型及维度 |
+| `electrochemistry_add_interface` | 添加已验证接口（如 `LithiumIonBatteryMPH`、`LumpedBattery`） |
+| `electrochemistry_list_features` | 用 COMSOL 真实类型名（`getType()`）内省特征 |
+| `electrochemistry_add_feature` | 创建特征，子特征通过 `parent_feature` 指定父节点 |
+| `electrochemistry_set_feature_selection` | 为已有特征指定域/边界选择 |
+| `electrochemistry_set_feature_properties` | 设置属性（被拒绝的属性名会显式报告） |
+| `electrochemistry_list_feature_properties` | 向 COMSOL 查询特征的合法属性名 |
+| `electrochemistry_list_interface_properties` | 读取接口级属性组(如 `BatterySettings`) |
+| `electrochemistry_set_interface_properties` | 配置接口级设置(容量/SOC/电流等) |
 
 ### 网格划分（4 个）
 

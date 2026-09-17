@@ -220,7 +220,7 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             if error:
                 return {"success": False, "error": error}
             
-            feat_name = feature_name or f"blk{len(geom.feature().tags())+1}"
+            feat_name = feature_name or f"blk{geom.feature().size() + 1}"
             block = geom.feature().create(feat_name, "Block")
             
             block.set("pos", [str(p) for p in position])
@@ -275,7 +275,7 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             if error:
                 return {"success": False, "error": error}
             
-            feat_name = feature_name or f"cyl{len(geom.feature().tags())+1}"
+            feat_name = feature_name or f"cyl{geom.feature().size() + 1}"
             cyl = geom.feature().create(feat_name, "Cylinder")
             
             cyl.set("pos", [str(p) for p in position])
@@ -330,7 +330,7 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             if error:
                 return {"success": False, "error": error}
             
-            feat_name = feature_name or f"sph{len(geom.feature().tags())+1}"
+            feat_name = feature_name or f"sph{geom.feature().size() + 1}"
             sphere = geom.feature().create(feat_name, "Sphere")
             
             sphere.set("pos", [str(p) for p in position])
@@ -383,7 +383,7 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             if error:
                 return {"success": False, "error": error}
             
-            feat_name = feature_name or f"r{len(geom.feature().tags())+1}"
+            feat_name = feature_name or f"r{geom.feature().size() + 1}"
             rect = geom.feature().create(feat_name, "Rectangle")
             
             rect.set("pos", [str(p) for p in position])
@@ -457,14 +457,18 @@ def register_geometry_tools(mcp: FastMCP) -> None:
     def geometry_boolean_union(
         input_objects: Sequence[str],
         geometry_name: Optional[str] = None,
+        component_name: str = "comp1",
+        feature_name: Optional[str] = None,
         model_name: Optional[str] = None
     ) -> dict:
         """
         Create a boolean union of geometry objects.
-        
+
         Args:
             input_objects: Names of objects to unite
-            geometry_name: Geometry sequence name
+            geometry_name: Geometry sequence name (default: first geometry)
+            component_name: Component name (default: 'comp1')
+            feature_name: Feature tag (auto-generated if None)
             model_name: Model name (default: current model)
         
         Returns:
@@ -478,21 +482,25 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             }
         
         try:
-            geometries = model.geometries()
-            if not geometries:
-                return {"success": False, "error": "No geometry sequences found."}
-            
-            target_geom = geometry_name or geometries[0]
-            geom_node = model / "geometries" / target_geom
-            union_node = geom_node.create("Union")
-            union_node.property("input", list(input_objects))
+            geom, error = _get_geometry_node(model, geometry_name, component_name)
+            if error:
+                return {"success": False, "error": error}
+
+            feat_tag = feature_name or f"uni{geom.feature().size() + 1}"
+            union_node = geom.feature().create(feat_tag, "Union")
+            try:
+                union_node.selection("input").set([str(o) for o in input_objects])
+            except Exception:
+                # a failed selection leaves an empty-input node that breaks all later builds
+                geom.feature().remove(feat_tag)
+                raise
             
             return {
                 "success": True,
                 "feature": {
-                    "name": union_node.name() if hasattr(union_node, 'name') else "Union",
+                    "name": feat_tag,
                     "type": "Union",
-                    "geometry": target_geom,
+                    "geometry": str(geom.tag()),
                     "input_objects": list(input_objects),
                 }
             }
@@ -534,11 +542,15 @@ def register_geometry_tools(mcp: FastMCP) -> None:
             if error:
                 return {"success": False, "error": error}
             
-            feat_name = feature_name or f"dif{len(geom.feature().tags())+1}"
+            feat_name = feature_name or f"dif{geom.feature().size() + 1}"
             diff = geom.feature().create(feat_name, "Difference")
-            
-            diff.selection("input").set([input_object])
-            diff.selection("input2").set(list(objects_to_subtract))
+            try:
+                diff.selection("input").set([input_object])
+                diff.selection("input2").set(list(objects_to_subtract))
+            except Exception:
+                # a failed selection leaves an empty-input node that breaks all later builds
+                geom.feature().remove(feat_name)
+                raise
             
             return {
                 "success": True,

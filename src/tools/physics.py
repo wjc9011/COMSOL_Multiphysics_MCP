@@ -1432,8 +1432,8 @@ def register_physics_tools(mcp: FastMCP) -> None:
             geom = comp.geom(geom_tag)
             geom.run()
 
-            nboundary = geom.getNboundary()
-            ndomain = geom.getNdomain()
+            nboundary = geom.getNBoundaries()
+            ndomain = geom.getNDomains()
 
             boundaries = []
             for i in range(1, nboundary + 1):

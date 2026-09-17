@@ -55,7 +55,8 @@ def register_study_tools(mcp: FastMCP) -> None:
         study_type: str = "Stationary",
         study_name: Optional[str] = None,
         model_name: Optional[str] = None,
-        time_range: Optional[str] = None
+        time_range: Optional[str] = None,
+        step_properties: Optional[dict] = None
     ) -> dict:
         """
         Create a new study in the model.
@@ -70,6 +71,9 @@ def register_study_tools(mcp: FastMCP) -> None:
         Args:
             study_type: Type of study to create
             study_name: Optional name/tag for the study
+            step_properties: Optional properties set on the study step,
+                e.g. {"tlist": "range(0,60[s],3600[s])"} for TimeDependent output
+                times, or {"freq": "..."} for Frequency studies
             model_name: Model name (default: current model)
             time_range: Optional COMSOL range expression for a time-dependent
                 step's output times, e.g. "range(0,1,60)". Stored in the step's
@@ -90,25 +94,36 @@ def register_study_tools(mcp: FastMCP) -> None:
             existing_studies = jm.study().size()
             study_tag = study_name or f"std{existing_studies + 1}"
 
-            # COMSOL 6.3 spells study-step types out ("Stationary", "Transient",
-            # ...); the short codes are not accepted as feature types.
-            TYPE_MAP = {
-                "Stationary": "Stationary",
-                "TimeDependent": "Transient",
-                "Transient": "Transient",
-                "Eigenfrequency": "Eigenfrequency",
-                "Frequency": "Frequency",
-                "Perturbation": "Perturbation",
-                "stat": "Stationary",
-                "time": "Transient",
-                "eig": "Eigenfrequency",
-                "freq": "Frequency",
+            # COMSOL Java API: study.create(tag, <full step type name>).
+            # "Stationary"/"Transient" etc. are the feature type names; the
+            # short forms ("stat", "time", ...) are conventional tags.
+            STEP_TYPES = {
+                "Stationary": ("stat", "Stationary"),
+                "stat": ("stat", "Stationary"),
+                "TimeDependent": ("time", "Transient"),
+                "Transient": ("time", "Transient"),
+                "time": ("time", "Transient"),
+                "Eigenfrequency": ("eig", "Eigenfrequency"),
+                "eig": ("eig", "Eigenfrequency"),
+                "Frequency": ("freq", "Frequency"),
+                "freq": ("freq", "Frequency"),
+                "Perturbation": ("per", "Perturbation"),
             }
-
-            step_type = TYPE_MAP.get(study_type, study_type)
+            if study_type not in STEP_TYPES:
+                return {
+                    "success": False,
+                    "error": (
+                        f"Unknown study type: {study_type}. Use one of: "
+                        + ", ".join(sorted(set(STEP_TYPES)))
+                    ),
+                }
+            step_tag, step_type = STEP_TYPES[study_type]
 
             study = jm.study().create(study_tag)
-            step = study.create("step1", step_type)
+            # keep the display label equal to the tag so name-based lookups
+            # (MPh resolves model/studies/<name> by label) succeed
+            study.label(study_tag)
+            step = study.create(step_tag, step_type)
 
             applied_time_range = None
             time_range_error = None
@@ -119,14 +134,25 @@ def register_study_tools(mcp: FastMCP) -> None:
                 except Exception as e:
                     time_range_error = str(e)
 
+            property_failures = {}
+            if step_properties:
+                for prop_name, prop_value in step_properties.items():
+                    try:
+                        step.set(prop_name, prop_value)
+                    except Exception as e:
+                        property_failures[prop_name] = str(e)[:120]
+
             result = {
-                "success": True,
+                "success": not property_failures and not time_range_error,
                 "study": study_tag,
                 "type": study_type,
                 "step_type": step_type,
+                "step_properties": step_properties or {},
+                "property_errors": property_failures or None,
                 "model": model.name(),
             }
             if time_range:
+                # surface the tlist outcome explicitly; success is already False if it failed
                 result["time_range"] = applied_time_range
                 result["time_range_error"] = time_range_error
             return result

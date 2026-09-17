@@ -112,15 +112,17 @@ def register_model_tools(mcp: FastMCP) -> None:
         Create a component in the model (required before adding geometry/physics).
 
         Components are containers for geometry, physics, materials, and mesh.
-        Must be created before adding geometry or physics.
+        Must be created before adding geometry or physics. The space dimension
+        is set by the component's geometry sequence, which this tool creates
+        along with the component.
 
         Args:
             component_name: Name for the component (default: 'comp1')
-            space_dimension: Space dimension - 0=0D, 1=1D, 2=2D, 3=3D, 20=2D axisymmetric, 30=3D axisymmetric (default: 3)
+            space_dimension: Space dimension - 1=1D, 2=2D, 3=3D, 20=2D axisymmetric (default: 3)
             model_name: Model name (default: current model)
 
         Returns:
-            Created component info
+            Created component info including the geometry tag
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -129,23 +131,32 @@ def register_model_tools(mcp: FastMCP) -> None:
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
 
+        dim_map = {1: (1, False), 2: (2, False), 3: (3, False), 20: (2, True)}
+        if space_dimension not in dim_map:
+            return {
+                "success": False,
+                "error": (
+                    f"Unsupported space dimension: {space_dimension}. "
+                    "Use 1, 2, 3, or 20 (2D axisymmetric)."
+                ),
+            }
+
         try:
             jm = model.java
-            # COMSOL 6.3 removed create(tag, boolean, spaceDimension); the space
-            # dimension is carried by the geometry sequence (geometry_create).
-            try:
-                comp = jm.component().create(component_name, True)
-                creation_api = "create(tag, True)"
-            except Exception:
-                comp = jm.component().create(component_name, True, space_dimension)
-                creation_api = "create(tag, True, spaceDimension)"
+            geom_dim, axisymmetric = dim_map[space_dimension]
+            comp = jm.component().create(component_name, True)
+            geom_tag = f"{component_name}_geom"
+            geom = comp.geom().create(geom_tag, geom_dim)
+            if axisymmetric:
+                geom.axisymmetric(True)
+            geom.run()
 
             return {
                 "success": True,
                 "component": component_name,
+                "geometry": geom_tag,
                 "space_dimension": space_dimension,
-                "space_dimension_applied_by": "geometry_create",
-                "creation_api": creation_api,
+                "axisymmetric": axisymmetric,
                 "model": model.name(),
             }
         except Exception as e:

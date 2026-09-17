@@ -35,6 +35,28 @@ KNOWLEDGE_FILES = {
         "description": "Step-by-step workflows for common simulation tasks",
         "keywords": ["workflow", "example", "tutorial", "step", "process", "howto"],
     },
+    "electrochemistry": {
+        "file": "electrochemistry.md",
+        "title": "Electrochemistry Module Guide",
+        "description": "Verified battery, fuel cell, electrodeposition and "
+                       "corrosion interfaces, features, and properties "
+                       "(COMSOL 6.3)",
+        "keywords": [
+            "electrochemistry",
+            "battery",
+            "lithium",
+            "lumped",
+            "electrode",
+            "electrolyte",
+            "current distribution",
+            "fuel cell",
+            "electrolyzer",
+            "electrodeposition",
+            "corrosion",
+            "porous electrode",
+            "soc",
+        ],
+    },
 }
 
 TOPIC_GUIDES = {
@@ -139,6 +161,30 @@ TOPIC_GUIDES = {
             "Set the domain weak expression through equation_properties",
             "Use WeakContribution for an additional weak boundary contribution",
             "Dependent-variable names are user-defined and default to u",
+        ],
+    },
+    "electrochemistry": {
+        "physics": "electrochemistry",
+        "boundary_conditions": [
+            "ElectrodeSurface",
+            "PorousElectrode",
+            "Separator",
+            "ExternalShort",
+            "CircuitTerminal",
+            "Insulation",
+            "ElectricGround",
+            "ElectricPotential",
+        ],
+        "common_expressions": ["lb.SOC", "lb.I_1C_cell", "phil", "phis"],
+        "tips": [
+            "The lithium-ion battery interface type is LithiumIonBatteryMPH",
+            "Use electrochemistry_get_feature_types before adding features; "
+            "singleton features must be configured, not re-created",
+            "Feature dimensions differ for shell interfaces (their 'domain' "
+            "level is the boundary selection)",
+            "Set mesh before solving; the API does not auto-mesh",
+            "Use electrochemistry_list_feature_properties to discover valid "
+            "property names (e.g. sigmal with sigmal_mat=userdef)",
         ],
     },
 }
@@ -529,6 +575,8 @@ def register_knowledge_tools(mcp: FastMCP) -> None:
         - "mph_api": MPh Python API reference
         - "physics_guide": Physics interfaces and boundary conditions
         - "workflow": Step-by-step modeling workflows
+        - "electrochemistry": Verified battery/electrochemistry interfaces and
+          features (COMSOL 6.3)
         
         Args:
             topic: Documentation topic to retrieve
@@ -562,6 +610,7 @@ def register_knowledge_tools(mcp: FastMCP) -> None:
         - "coefficient_form_pde": Coefficient Form PDE
         - "general_form_pde": General Form PDE
         - "weak_form_pde": Weak Form PDE
+        - "electrochemistry": Battery/electrochemistry interfaces (COMSOL 6.3)
         
         Args:
             physics_type: Type of physics to get guide for

@@ -174,7 +174,7 @@ comsol_mcp/
     └── test_basic.py                # Unit tests
 ```
 
-## Available Tools (80+ total)
+## Available Tools (100+ total)
 
 ### Session (4)
 
@@ -261,6 +261,28 @@ comsol_mcp/
 | `physics_setup_heat_boundaries` | Configure heat boundaries |
 | `physics_interactive_setup_flow` | Interactive flow BC setup |
 | `physics_boundary_selection` | Generic boundary setup |
+
+### Electrochemistry (10)
+
+Battery, fuel cell, electrodeposition, and corrosion support backed by a type
+registry **verified against a live COMSOL 6.3 session** (26 interfaces, 600+
+feature/subfeature types). A complete worked example — an 18650 cell 1C
+constant-current discharge — is included in
+`src/knowledge/prompts/electrochemistry.md`; call `docs_get("electrochemistry")`
+to retrieve it at runtime.
+
+| Tool | Description |
+|------|-------------|
+| `electrochemistry_get_interfaces` | List verified interface types (battery, current distribution, corrosion, ...) |
+| `electrochemistry_get_feature_types` | List verified feature types of an interface with dimensions |
+| `electrochemistry_add_interface` | Add a verified interface (e.g. `LithiumIonBatteryMPH`, `LumpedBattery`) |
+| `electrochemistry_list_features` | Inspect features with actual COMSOL types (`getType()`) |
+| `electrochemistry_add_feature` | Create a feature, incl. subfeatures via `parent_feature` |
+| `electrochemistry_set_feature_selection` | Assign domains/boundaries to an existing feature |
+| `electrochemistry_set_feature_properties` | Set feature properties (rejected names reported) |
+| `electrochemistry_list_feature_properties` | Ask COMSOL for a feature's valid property names |
+| `electrochemistry_list_interface_properties` | Read interface-level property groups (e.g. `BatterySettings`) |
+| `electrochemistry_set_interface_properties` | Configure interface-level settings (capacity, SOC, current, ...) |
 
 ### Mesh (4)
 
