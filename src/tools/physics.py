@@ -7,6 +7,39 @@ from .session import session_manager
 
 _tag_counter = {}
 
+# COMSOL client API has no loadLibraryMaterial(), so material nodes created as
+# "Common" come up empty. These built-in `def`-group properties let common
+# physics interfaces (heat transfer etc.) resolve k / rho / Cp / sigma.
+_BUILTIN_MATERIALS = {
+    "copper": {"thermalconductivity": "400[W/(m*K)]", "density": "8960[kg/m^3]", "heatcapacity": "385[J/(kg*K)]", "electricconductivity": "5.998e7[S/m]", "youngsmodulus": "110e9[Pa]", "poissonsratio": "0.35", "relpermittivity": "1", "relpermeability": "1"},
+    "aluminum": {"thermalconductivity": "237[W/(m*K)]", "density": "2700[kg/m^3]", "heatcapacity": "900[J/(kg*K)]", "electricconductivity": "3.774e7[S/m]", "youngsmodulus": "70e9[Pa]", "poissonsratio": "0.33", "relpermittivity": "1", "relpermeability": "1"},
+    "steel": {"thermalconductivity": "44.5[W/(m*K)]", "density": "7850[kg/m^3]", "heatcapacity": "475[J/(kg*K)]", "electricconductivity": "4.032e6[S/m]", "youngsmodulus": "205e9[Pa]", "poissonsratio": "0.28"},
+    "steel aisi 4340": {"thermalconductivity": "44.5[W/(m*K)]", "density": "7850[kg/m^3]", "heatcapacity": "475[J/(kg*K)]", "electricconductivity": "4.032e6[S/m]", "youngsmodulus": "205e9[Pa]", "poissonsratio": "0.28"},
+    "structural steel": {"thermalconductivity": "44.5[W/(m*K)]", "density": "7850[kg/m^3]", "heatcapacity": "475[J/(kg*K)]", "electricconductivity": "4.032e6[S/m]", "youngsmodulus": "200e9[Pa]", "poissonsratio": "0.30"},
+    "iron": {"thermalconductivity": "76.2[W/(m*K)]", "density": "7870[kg/m^3]", "heatcapacity": "440[J/(kg*K)]", "electricconductivity": "1.12e7[S/m]", "youngsmodulus": "200e9[Pa]", "poissonsratio": "0.29"},
+    "titanium": {"thermalconductivity": "21.9[W/(m*K)]", "density": "4500[kg/m^3]", "heatcapacity": "520[J/(kg*K)]", "electricconductivity": "2.38e6[S/m]", "youngsmodulus": "116e9[Pa]", "poissonsratio": "0.32"},
+    "brass": {"thermalconductivity": "120[W/(m*K)]", "density": "8500[kg/m^3]", "heatcapacity": "380[J/(kg*K)]", "electricconductivity": "1.5e7[S/m]", "youngsmodulus": "100e9[Pa]", "poissonsratio": "0.34"},
+    "silicon": {"thermalconductivity": "130[W/(m*K)]", "density": "2329[kg/m^3]", "heatcapacity": "700[J/(kg*K)]", "electricconductivity": "1e-12[S/m]", "youngsmodulus": "170e9[Pa]", "poissonsratio": "0.28", "relpermittivity": "11.7"},
+    "glass": {"thermalconductivity": "1.4[W/(m*K)]", "density": "2500[kg/m^3]", "heatcapacity": "840[J/(kg*K)]", "youngsmodulus": "70e9[Pa]", "poissonsratio": "0.22"},
+    "water": {"thermalconductivity": "0.6[W/(m*K)]", "density": "1000[kg/m^3]", "heatcapacity": "4180[J/(kg*K)]", "dynamicviscosity": "1e-3[Pa*s]", "electricconductivity": "5.5e-6[S/m]", "relpermittivity": "80"},
+    "air": {"thermalconductivity": "0.026[W/(m*K)]", "density": "1.225[kg/m^3]", "heatcapacity": "1005[J/(kg*K)]", "dynamicviscosity": "1.8e-5[Pa*s]", "relpermittivity": "1"},
+}
+
+
+def _apply_material_properties(mat_node, material_name):
+    """Populate a COMSOL material node with built-in property values."""
+    props = _BUILTIN_MATERIALS.get((material_name or "").strip().lower())
+    if not props:
+        return {}
+    applied = {}
+    for key, value in props.items():
+        try:
+            mat_node.propertyGroup("def").set(key, value)
+            applied[key] = value
+        except Exception:
+            pass
+    return applied
+
 
 def _get_component_java(java_model, component_name=None):
     """Return an explicit component or the model's first component by tag."""
@@ -1213,8 +1246,8 @@ def register_physics_tools(mcp: FastMCP) -> None:
             materials = model.materials()
             tag = material_name.replace(" ", "_").replace("-", "_")
 
+            comp = _get_component_java(jm)
             if material_name not in materials:
-                comp = _get_component_java(jm)
                 try:
                     mat = comp.material().create(tag, "Common")
                     mat.label(material_name)
@@ -1230,13 +1263,16 @@ def register_physics_tools(mcp: FastMCP) -> None:
             if domain_selection:
                 mat_node.selection().set([int(d) for d in domain_selection])
 
+            applied = _apply_material_properties(mat_node, material_name)
+
             return {
                 "success": True,
                 "material": material_name,
                 "physics": physics_name,
                 "domain_selection": list(domain_selection) if domain_selection else "all",
+                "properties_applied": applied,
                 "message": f"Material '{material_name}' assigned to physics '{physics_name}'",
-                "warning": "Material node has no physical properties. Set properties manually in COMSOL GUI.",
+                "warning": None if applied else "Material node has no physical properties. Set properties manually in COMSOL GUI.",
             }
         except Exception as e:
             return {"success": False, "error": f"Failed to set material: {str(e)}"}
