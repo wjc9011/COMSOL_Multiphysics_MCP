@@ -1,0 +1,769 @@
+{
+ "knowledge": {
+  "adapt": {
+   "exprtype": "error (expression-based) | size (size field) | metric (anisotropic metric -> forces method=modify)",
+   "method": "regular (r>1 only) | modify",
+   "decision_props": [
+    "errorexpr",
+    "horder",
+    "maxrefinement",
+    "elselect: globalmin|worstpar|elementspar (element selection for refinement)",
+    "solution (ref)",
+    "reevaluate",
+    "updatecondition"
+   ],
+   "note": "error type requires solution data; errorexpr -> lib prop adapedim; identical-until computed via MeshIdentical.computeIdenticalUntil"
+  },
+  "boundary_layer": {
+   "method": "latest | legacy",
+   "geom_props": [
+    "sharpcorners=split",
+    "trimminangle/trimmaxangle",
+    "splitangle",
+    "splitdivangle",
+    "layerdec (layer distribution)",
+    "smoothtransition=on + smoothmaxiter/maxdepth",
+    "thickness from Size sub-feature; stretch/numlayers on edge/corner levels"
+   ],
+   "note": "geometry-side healing is INTEGRAL (trim/split angles) - BLM builds geometry edit + mesh together; MeshControl geometry entities feed it"
+  },
+  "mesh_geom_mapping": {
+   "mechanism": "MeshFinalize links mesh to geometric model via getGeometricModelMesh()/getGeom(); mesh sequences share geom by tag; Form Union entity numbering flows in; identical-mesh ops (MeshIdentical) reuse mesh on unchanged subtrees during rebuilds"
+  },
+  "generators": {
+   "FreeTet/FreeTri/FreeQuad": "Delaunay-class (native csmesh.dll)",
+   "Sweep/Map": "structured; take source face mesh + Distribution/Size along"
+  }
+ },
+ "categories": {
+  "adaptivity": [
+   {
+    "type": "Adapt",
+    "props": [
+     "solution",
+     "exprtype",
+     "errorexpr",
+     "horder",
+     "errexpractive",
+     "maxrefinement",
+     "elselect",
+     "globalminpar",
+     "worstpar",
+     "elementspar",
+     "sizeexpr",
+     "reevaluate",
+     "updatecondition",
+     "selection",
+     "adapsolnum",
+     "weights"
+    ]
+   }
+  ],
+  "boundary_layer": [
+   {
+    "type": "BndLayer",
+    "props": [
+     "sharpcorners",
+     "trimminangle",
+     "layerdec",
+     "trimmaxangle",
+     "splitangle",
+     "splitdivangle",
+     "smoothtransition",
+     "smoothmaxiter",
+     "smoothmaxdepth",
+     "method",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   }
+  ],
+  "edit_topology": [
+   {
+    "type": "Convert",
+    "props": [
+     "splitmethod",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "Copy",
+    "props": [
+     "mesh",
+     "buildsource",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "CopyDomain",
+    "props": [
+     "source",
+     "destination",
+     "copymethod",
+     "smoothcontrol",
+     "smoothmaxiter",
+     "smoothmaxdepth",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "CopyEdge",
+    "props": [
+     "source",
+     "destination",
+     "direction",
+     "copymethod",
+     "smoothcontrol",
+     "smoothmaxiter",
+     "smoothmaxdepth",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "CopyFace",
+    "props": [
+     "source",
+     "destination",
+     "copymethod",
+     "smoothcontrol",
+     "smoothmaxiter",
+     "smoothmaxdepth",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "CreateDomains",
+    "props": [
+     "seldom",
+     "seldomshow",
+     "colordom",
+     "customcolordom",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "CreateEdges",
+    "props": [
+     "edgespec",
+     "type",
+     "size",
+     "numelem",
+     "explicit",
+     "reverse",
+     "elemcount",
+     "elemratio",
+     "growthrate",
+     "symmetric",
+     "coordsel",
+     "groupcontang",
+     "angletol",
+     "start",
+     "end",
+     "seledg"
+    ]
+   },
+   {
+    "type": "CreateFaces",
+    "props": [
+     "groupadjedg",
+     "createdom",
+     "seldom",
+     "seldomshow",
+     "colordom",
+     "customcolordom",
+     "selfac",
+     "selfacshow",
+     "colorfac",
+     "customcolorfac",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "CreateVertices",
+    "props": [
+     "vertexspec",
+     "coordformat",
+     "points",
+     "x",
+     "y",
+     "relsnaptol",
+     "coordsel",
+     "selvtx",
+     "selvtxshow",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "DeleteEntities",
+    "props": [
+     "deleteadj",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "Edge",
+    "props": [
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "FillHoles",
+    "props": [
+     "fillholestol",
+     "perimeter",
+     "join",
+     "createdom",
+     "seldom",
+     "seldomshow",
+     "colordom",
+     "customcolordom",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "IdenticalMesh",
+    "props": [
+     "group1",
+     "group2"
+    ]
+   },
+   {
+    "type": "Import",
+    "props": [
+     "source",
+     "filename",
+     "selection",
+     "sequence",
+     "buildsource",
+     "dataset",
+     "outsel_bnd",
+     "outsel_dom",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "Imprint",
+    "props": [
+     "groupadjedg",
+     "source",
+     "destination",
+     "symmetric",
+     "distancetype",
+     "maxreldistance",
+     "maxabsdistance",
+     "placement",
+     "precision",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "IntersectLine",
+    "props": [
+     "point",
+     "vertex",
+     "coord",
+     "direction",
+     "vertex2",
+     "dirvector",
+     "placement",
+     "toltype",
+     "reltol",
+     "abstol",
+     "selinter",
+     "selintershow",
+     "selabove",
+     "selaboveshow",
+     "colorabove",
+     "customcolorabove"
+    ]
+   },
+   {
+    "type": "IntersectPlane",
+    "props": [
+     "planetype",
+     "quickplane",
+     "quickoffsettype",
+     "offsetvertex",
+     "quickx",
+     "quicky",
+     "quickz",
+     "face",
+     "offsettype",
+     "offset",
+     "reverse",
+     "planaredge",
+     "normalvector",
+     "normalpoint",
+     "normalcoord",
+     "normalvertex"
+    ]
+   },
+   {
+    "type": "JoinEntities",
+    "props": [
+     "joinadj",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "MergeEntities",
+    "props": [
+     "dimension",
+     "pairing",
+     "keep",
+     "remove",
+     "placement",
+     "deformation",
+     "distancetype",
+     "maxreldistance",
+     "maxabsdistance",
+     "method",
+     "precision",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "Reference",
+    "props": [
+     "sequence"
+    ]
+   },
+   {
+    "type": "RemeshDomains",
+    "props": [
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "RemeshEdges",
+    "props": [
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "RemeshFaces",
+    "props": [
+     "facerep",
+     "narrowreg",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "Union",
+    "props": [
+     "dimension",
+     "cleanup",
+     "placement",
+     "toltype",
+     "reltol",
+     "abstol",
+     "domain",
+     "face",
+     "edge",
+     "vertex",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   }
+  ],
+  "generators_2d": [
+   {
+    "type": "FreeQuad",
+    "props": [
+     "xscale",
+     "yscale",
+     "smoothcontrol",
+     "smoothmaxiter",
+     "smoothmaxdepth",
+     "method",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "FreeTri",
+    "props": [
+     "xscale",
+     "yscale",
+     "smoothcontrol",
+     "smoothmaxiter",
+     "smoothmaxdepth",
+     "method",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   }
+  ],
+  "generators_3d": [
+   {
+    "type": "FreeTet",
+    "props": [
+     "xscale",
+     "yscale",
+     "smoothcontrol",
+     "smoothmaxiter",
+     "smoothmaxdepth",
+     "zscale",
+     "method",
+     "optlevel",
+     "optacceptgroup",
+     "optlarge",
+     "optsmall",
+     "optcurved",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails"
+    ]
+   }
+  ],
+  "generators_structured": [
+   {
+    "type": "Map",
+    "props": [
+     "adjustedgdistr",
+     "smoothcontrol",
+     "smoothmaxiter",
+     "smoothmaxdepth",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "Sweep",
+    "props": [
+     "sweeppath",
+     "targetmesh",
+     "facemethod",
+     "mapinterpmethod",
+     "smoothcontrol",
+     "smoothmaxiter",
+     "smoothmaxdepth",
+     "sourceface",
+     "targetface",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   }
+  ],
+  "misc": [
+   {
+    "type": "AdjacentSelection",
+    "props": [
+     "groupcontang",
+     "angletol",
+     "outputdim",
+     "exterior",
+     "interior",
+     "selshow",
+     "color",
+     "customcolor"
+    ]
+   },
+   {
+    "type": "Ball",
+    "props": [
+     "posx",
+     "posy",
+     "r",
+     "condition",
+     "selinside",
+     "selinsideshow",
+     "colorinside",
+     "customcolorinside",
+     "seloutside",
+     "seloutsideshow",
+     "coloroutside",
+     "customcoloroutside",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails"
+    ]
+   },
+   {
+    "type": "Box",
+    "props": [
+     "xmin",
+     "xmax",
+     "ymin",
+     "ymax",
+     "condition",
+     "selinside",
+     "selinsideshow",
+     "colorinside",
+     "customcolorinside",
+     "seloutside",
+     "seloutsideshow",
+     "coloroutside",
+     "customcoloroutside",
+     "buildtime",
+     "buildinfo",
+     "buildnote"
+    ]
+   },
+   {
+    "type": "CollapseEntities",
+    "props": [
+     "sizetype",
+     "maxrelsize",
+     "maxabssize",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "Cylinder",
+    "props": [
+     "r",
+     "top",
+     "bottom",
+     "pos",
+     "axis",
+     "axistype",
+     "ax3",
+     "ax2",
+     "condition",
+     "selinside",
+     "selinsideshow",
+     "colorinside",
+     "customcolorinside",
+     "seloutside",
+     "seloutsideshow",
+     "coloroutside"
+    ]
+   },
+   {
+    "type": "DetectFaces",
+    "props": [
+     "facemaxangle",
+     "detectfacesplanar",
+     "planarfaceminareafraction",
+     "planarfacemaxangle",
+     "detectadjfillets",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "ExplicitSelection",
+    "props": [
+     "groupcontang",
+     "angletol",
+     "selshow",
+     "color",
+     "customcolor"
+    ]
+   },
+   {
+    "type": "LogicalExpression",
+    "props": [
+     "expression",
+     "condition",
+     "seltrue",
+     "seltrueshow",
+     "colortrue",
+     "customcolortrue",
+     "selfalse",
+     "selfalseshow",
+     "colorfalse",
+     "customcolorfalse",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "Vertex",
+    "props": [
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   }
+  ],
+  "size_control": [
+   {
+    "type": "CornerRefinement",
+    "props": [
+     "boundary",
+     "minangle",
+     "usefilter",
+     "corner",
+     "filter",
+     "refinement"
+    ]
+   },
+   {
+    "type": "Distribution",
+    "props": [
+     "type",
+     "explicit",
+     "reverse",
+     "numelem",
+     "equidistant",
+     "elemcount",
+     "elemratio",
+     "growthrate",
+     "symmetric"
+    ]
+   },
+   {
+    "type": "Refine",
+    "props": [
+     "numrefine",
+     "buildtime",
+     "buildinfo",
+     "buildnote",
+     "builddetails",
+     "buildoutput"
+    ]
+   },
+   {
+    "type": "Scale",
+    "props": [
+     "scale"
+    ]
+   },
+   {
+    "type": "Size",
+    "props": [
+     "table",
+     "hmax",
+     "hmaxactive",
+     "hmin",
+     "hminactive",
+     "hcurve",
+     "hcurveactive",
+     "hnarrow",
+     "hnarrowactive",
+     "hgrad",
+     "hgradactive",
+     "hauto",
+     "custom"
+    ]
+   },
+   {
+    "type": "SizeExpression",
+    "props": [
+     "evaltype",
+     "sizeexpr",
+     "gridtype",
+     "numcell",
+     "cellsize",
+     "solution",
+     "selection",
+     "adapsolnum",
+     "weights",
+     "exprtype",
+     "errorexpr",
+     "horder",
+     "errexpractive",
+     "elselect",
+     "globalminpar",
+     "worstpar"
+    ]
+   }
+  ]
+ }
+}

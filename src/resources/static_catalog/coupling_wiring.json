@@ -1,0 +1,3106 @@
+[
+ {
+  "class": "PotentialCouplings.java",
+  "module": "acdc",
+  "interface_refs": {
+   "MagneticFieldFormulation": 12,
+   "MagnetostaticsNoCurrents": 5
+  },
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "Couplings.java",
+  "module": "acdc",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "Couplings.java",
+  "module": "acdc",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "Heating.java",
+  "module": "acdc",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 26,
+  "sample_vars": [
+   {
+    "name": "Qrh",
+    "expression": "arg.QrhFrequency"
+   },
+   {
+    "name": "Qrh",
+    "expression": "arg.QrhTime"
+   },
+   {
+    "name": "Qrh",
+    "expression": "arg.QrhStationary"
+   },
+   {
+    "name": "Qh",
+    "expression": "Qrh"
+   },
+   {
+    "name": "Qsh",
+    "expression": "Qsrh"
+   },
+   {
+    "name": "Qsh",
+    "expression": "0.5*Qsrh"
+   },
+   {
+    "name": "Qsrh",
+    "expression": "arg.QsrhFrequency"
+   },
+   {
+    "name": "Qsrh",
+    "expression": "arg.QsrhTime"
+   }
+  ]
+ },
+ {
+  "class": "PotentialFlowCouplingFeatures.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "PressureAcousticsThermoviscousBoundaryLayer.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 30,
+  "sample_vars": [
+   {
+    "name": "item.vel",
+    "expression": "par.vel"
+   },
+   {
+    "name": "item.d",
+    "expression": "par.d"
+   },
+   {
+    "name": "item.nvel",
+    "expression": "-dot(item.vel,phys.ns)"
+   },
+   {
+    "name": "item.vip",
+    "expression": "item.vel-dot(item.vel,phys.ns)*phys.ns"
+   },
+   {
+    "name": "item.v_bl",
+    "expression": "item.vel-phys.v_t"
+   },
+   {
+    "name": "item.nvel",
+    "expression": "par.nvel"
+   },
+   {
+    "name": "item.v_bl",
+    "expression": "item.nvel*nsmesh-phys.v_t"
+   },
+   {
+    "name": "item.v_bl",
+    "expression": "-phys.v_t"
+   }
+  ]
+ },
+ {
+  "class": "ThermoacousticsBoundaryMode.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ThermoacousticsDomainSources.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 2,
+  "sample_vars": [
+   {
+    "name": "item.Q",
+    "expression": "par.Q"
+   },
+   {
+    "name": "res_e",
+    "expression": "-item.Q"
+   }
+  ]
+ },
+ {
+  "class": "ThermoacousticsEquationDisplay.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ThermoacousticsModel.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 35,
+  "sample_vars": [
+   {
+    "name": "gradrho",
+    "expression": "{0,0,-ikz}*rho_t"
+   },
+   {
+    "name": "gradrho",
+    "expression": "{0,-i*phys.km,0}*rho_t"
+   },
+   {
+    "name": "I",
+    "expression": "1/2*real(rho0*u_t*conj(p_t/rho0)-transpose(transpose(u_t)\\u00b7conj(K_stress_tensor))+T_t*"
+   },
+   {
+    "name": "phys.I_b",
+    "expression": "1/2*real(rho0*u_b*conj(p_b/rho0)-transpose(transpose(u_b)\\u00b7conj(K_stress_tensor_b))+T_"
+   },
+   {
+    "name": "phys.I_s",
+    "expression": "1/2*real(rho0*u_s*conj(p_s/rho0)-transpose(transpose(u_s)\\u00b7conj(K_stress_tensor_s))+T_"
+   },
+   {
+    "name": "phys.I_t",
+    "expression": "I"
+   },
+   {
+    "name": "item.T",
+    "expression": "phys.alpha_p*phys.T0/(phys.rho0*phys.Cp)*item.p"
+   },
+   {
+    "name": "item.T",
+    "expression": "par.T"
+   }
+  ]
+ },
+ {
+  "class": "ThermoacousticsPhysicsInterfaceComponents.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ThermoacousticsPorts.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 66,
+  "sample_vars": [
+   {
+    "name": "item.PortName",
+    "expression": "par.PortName"
+   },
+   {
+    "name": "item.p",
+    "expression": "par.p"
+   },
+   {
+    "name": "item.u",
+    "expression": "par.u"
+   },
+   {
+    "name": "item.T",
+    "expression": "par.T"
+   },
+   {
+    "name": "item.kn",
+    "expression": "par.kn"
+   },
+   {
+    "name": "item.Q_out",
+    "expression": "item.intop(phys.ns\\u00b7item.u_out)*item.A_scale"
+   },
+   {
+    "name": "item.Q_in",
+    "expression": "-item.intop(phys.ns\\u00b7item.u_in)*item.A_scale"
+   },
+   {
+    "name": "item.P_out",
+    "expression": "(item.intop(phys.ns\\u00b7item.I_out))*item.A_scale"
+   }
+  ]
+ },
+ {
+  "class": "ThermoacousticsSimpleBC.java",
+  "module": "aco",
+  "interface_refs": {
+   "ThermoacousticsSinglePhysics": 6
+  },
+  "arg_bindings": [],
+  "n_named_vars": 16,
+  "sample_vars": [
+   {
+    "name": "item.u0",
+    "expression": "par.u0"
+   },
+   {
+    "name": "item.T_wall",
+    "expression": "par.T_wall"
+   },
+   {
+    "name": "item.alpha_v",
+    "expression": "par.alpha_v"
+   },
+   {
+    "name": "item.curv_per",
+    "expression": "item.dn*(curv1_geometry^2+curv2_geometry^2)+trace(gradientT(item.n_lm))/ta.iomega"
+   },
+   {
+    "name": "item.curv_per",
+    "expression": "item.dn*(curv_geometry^2-phys.kz^2)+trace(gradientT(item.n_lm))/ta.iomega"
+   },
+   {
+    "name": "item.curv_per",
+    "expression": "(item.un*(curv_geometry^2+(nsmesh\\u00b7{1,0,0})^2/(r)^2-phys.km^2)+trace(gradientT(item.n_"
+   },
+   {
+    "name": "item.u_wall",
+    "expression": "par.u_wall"
+   },
+   {
+    "name": "item.sigma_s",
+    "expression": "(2-item.alpha_v)/item.alpha_v"
+   }
+  ]
+ },
+ {
+  "class": "ThermoacousticsSinglePhysics.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ThermoacousticsSinglePhysicsTimeDomain.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ThermoacousticsStabilization.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 23,
+  "sample_vars": [
+   {
+    "name": "convScale",
+    "expression": "isNL*emetric(u.1) + c^2*sqrt(emetric2)"
+   },
+   {
+    "name": "me_u",
+    "expression": "1/(if(order.u==1,3,0)+if(order.u==2,6,0)+if(order.u==3,30,0)+if(order.u==4,85,0)+if(order."
+   },
+   {
+    "name": "me_T",
+    "expression": "1/(if(order.T==1,3,0)+if(order.T==2,6,0)+if(order.T==3,30,0)+if(order.T==4,85,0)+if(order."
+   },
+   {
+    "name": "convScale",
+    "expression": "isNL*emetric(u.1,u.2) + c^2*sqrt(emetric2)"
+   },
+   {
+    "name": "me_u",
+    "expression": "1/(if(order.u==1,3,0)+if(order.u==2,12,0)+if(order.u==3,56,0)+if(order.u==4,112,0)+if(orde"
+   },
+   {
+    "name": "me_T",
+    "expression": "1/(if(order.T==1,3,0)+if(order.T==2,12,0)+if(order.T==3,56,0)+if(order.T==4,112,0)+if(orde"
+   },
+   {
+    "name": "convScale",
+    "expression": "isNL*emetric(u.1,u.2,u.3) + c^2*sqrt(emetric2)"
+   },
+   {
+    "name": "me_u",
+    "expression": "1/(if(order.u==1,3,0)+if(order.u==2,24,0)+if(order.u==3,74,0)+if(order.u==4,148,0)+if(orde"
+   }
+  ]
+ },
+ {
+  "class": "ThermoviscousAcousticsSLNSApproximation.java",
+  "module": "aco",
+  "interface_refs": {
+   "ThermoviscousAcousticsSLNSApproximation": 4
+  },
+  "arg_bindings": [],
+  "n_named_vars": 11,
+  "sample_vars": [
+   {
+    "name": "rho",
+    "expression": "par.rho"
+   },
+   {
+    "name": "c",
+    "expression": "par.c"
+   },
+   {
+    "name": "mu",
+    "expression": "par.mu"
+   },
+   {
+    "name": "muB",
+    "expression": "par.muB"
+   },
+   {
+    "name": "Cp",
+    "expression": "par.Cp"
+   },
+   {
+    "name": "kcond",
+    "expression": "par.kcond"
+   },
+   {
+    "name": "gamma",
+    "expression": "par.gamma"
+   },
+   {
+    "name": "item.b",
+    "expression": "item.b_therm"
+   }
+  ]
+ },
+ {
+  "class": "ThermoviscousAcousticsSpeakerBC.java",
+  "module": "aco",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "u_here",
+    "expr": "u_t_here"
+   },
+   {
+    "local": "un_here",
+    "expr": "un_t_here"
+   }
+  ],
+  "n_named_vars": 1,
+  "sample_vars": [
+   {
+    "name": "item.n",
+    "expression": "phys.nsmesh"
+   }
+  ]
+ },
+ {
+  "class": "BFCChemistryCoupling.java",
+  "module": "bfc",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "BFCMultiphysicsCouplingsComponents.java",
+  "module": "bfc",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "CouplingBCFeatures_SinglePhaseFlow.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "c_here",
+    "expr": "sigma_dgext_k"
+   },
+   {
+    "local": "gammaR_here",
+    "expr": "gammaR_there"
+   },
+   {
+    "local": "gammak_here",
+    "expr": "gammak_there"
+   },
+   {
+    "local": "mu_here",
+    "expr": "muT_here"
+   },
+   {
+    "local": "test_xiH_here",
+    "expr": "xiH_num"
+   },
+   {
+    "local": "u_here",
+    "expr": "n_here"
+   },
+   {
+    "local": "var_here",
+    "expr": "var_there"
+   }
+  ],
+  "n_named_vars": 68,
+  "sample_vars": [
+   {
+    "name": "map.kjump",
+    "expression": "kJump_epsilon_p"
+   },
+   {
+    "name": "map.epjump",
+    "expression": "epJump_epsilon_p"
+   },
+   {
+    "name": "map.omJump",
+    "expression": "omJump_epsilon_p"
+   },
+   {
+    "name": "arg.c_here_k",
+    "expression": "(arg.order_u+1)*nojac(arg.Dk)*6*arg.order_u*map.meshVol/map.meshVolInt"
+   },
+   {
+    "name": "arg.c_here_k",
+    "expression": "(arg.order_u+2)*nojac(arg.Dk)*6*arg.order_u*map.meshVol/map.meshVolInt"
+   },
+   {
+    "name": "arg.upwind_k",
+    "expression": "arg.rhoFace*arg.conv_vel*(arg.kjump\\u00b7test(arg.k))/phys.epsilon_p"
+   },
+   {
+    "name": "arg.upwind_k",
+    "expression": "arg.rhoFace*map.umxTnTurbFace*(arg.kjump\\u00b7test(arg.k))"
+   },
+   {
+    "name": "arg.Dk",
+    "expression": "arg.mu/arg.rho+dep.nutilde"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsComponents_SinglePhaseFlow.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "BubblyFlow_CouplingBCFeatures.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 1,
+  "sample_vars": [
+   {
+    "name": "pdiff",
+    "expression": "par.pdiff"
+   }
+  ]
+ },
+ {
+  "class": "CompressibleFlowDG_CouplingBCFeatures.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ConservativeHMNF_CouplingBCFeatures.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "EE_CouplingBCFeatures.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "KStressn_here",
+    "expr": "KStressn_there"
+   },
+   {
+    "local": "c_here",
+    "expr": "sigma_dg_ns"
+   },
+   {
+    "local": "contCoeff_here",
+    "expr": "contCoeffFace"
+   },
+   {
+    "local": "gammak_here",
+    "expr": "gammak_there"
+   },
+   {
+    "local": "k_here",
+    "expr": "k_there"
+   },
+   {
+    "local": "mu_here",
+    "expr": "muT_here"
+   },
+   {
+    "local": "rho_here",
+    "expr": "rhoFace"
+   },
+   {
+    "local": "u_here",
+    "expr": "u_there"
+   },
+   {
+    "local": "umxTn_here",
+    "expr": "umxTn_there"
+   }
+  ],
+  "n_named_vars": 12,
+  "sample_vars": [
+   {
+    "name": "pdiff",
+    "expression": "par.pdiff"
+   },
+   {
+    "name": "arg.muT_here",
+    "expression": "arg.muT"
+   },
+   {
+    "name": "map.meshVolInt",
+    "expression": "up(root.meshvol_spatial)"
+   },
+   {
+    "name": "map.meshVolInt",
+    "expression": "down(root.meshvol_spatial)"
+   },
+   {
+    "name": "map.meshVol",
+    "expression": "root.meshvol_spatial"
+   },
+   {
+    "name": "map.p_there",
+    "expression": "map.dst2src(dep.p)+pdiff"
+   },
+   {
+    "name": "map.p_there",
+    "expression": "map.src2dst(dep.p)-pdiff"
+   },
+   {
+    "name": "arg.c_here",
+    "expression": "(arg.order_u+1)*nojac(arg.mu_here+arg.muT_here)*12*arg.order_u*map.meshVol/map.meshVolInt"
+   }
+  ]
+ },
+ {
+  "class": "MixtureModel_CouplingBCFeatures.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 6,
+  "sample_vars": [
+   {
+    "name": "arg.upwind",
+    "expression": "if(0.5*(phys.nmesh\\u00b7(arg.beta+rot.dst2src(map.dst2src(arg.beta))))>0,0,0.5*(phys.nmesh"
+   },
+   {
+    "name": "arg.upwind",
+    "expression": "if(0.5*(phys.nmesh\\u00b7(arg.beta+rot.src2dst(map.src2dst(arg.beta))))>0,0,0.5*(phys.nmesh"
+   },
+   {
+    "name": "arg.upwind",
+    "expression": "if(0.5*(phys.nmesh\\u00b7(arg.beta+map.dst2src(arg.beta)))>0,0,0.5*(phys.nmesh\\u00b7(arg.be"
+   },
+   {
+    "name": "arg.upwind",
+    "expression": "if(0.5*(phys.nmesh\\u00b7(arg.beta+map.src2dst(arg.beta)))>0,0,0.5*(phys.nmesh\\u00b7(arg.be"
+   },
+   {
+    "name": "arg.c_here",
+    "expression": "6*arg.D*arg.order_phid*(arg.order_phid+1)*map.meshVol/map.meshVolInt"
+   },
+   {
+    "name": "arg.c_here",
+    "expression": "9*arg.D*arg.order_phid*(arg.order_phid+2)*map.meshVol/map.meshVolInt"
+   }
+  ]
+ },
+ {
+  "class": "IncompressiblePotentialFlow_CouplingBCFeatures.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 7,
+  "sample_vars": [
+   {
+    "name": "phys.Delta_phi",
+    "expression": "par.Delta_phi"
+   },
+   {
+    "name": "map.item.ck_src",
+    "expression": "3*order.phi*(order.phi+2)*map.item.mesharea_src/map.item.meshvol_src"
+   },
+   {
+    "name": "map.item.ck_dst",
+    "expression": "3*order.phi*(order.phi+2)*map.item.mesharea_dst/map.item.meshvol_dst"
+   },
+   {
+    "name": "map.item.ck_src",
+    "expression": "3*order.phi*(order.phi+1)*map.item.mesharea_src/map.item.meshvol_src"
+   },
+   {
+    "name": "map.item.ck_dst",
+    "expression": "3*order.phi*(order.phi+1)*map.item.mesharea_dst/map.item.meshvol_dst"
+   },
+   {
+    "name": "map.item.ck_src",
+    "expression": "order.phi^2/map.item.meshvol_src"
+   },
+   {
+    "name": "map.item.ck_dst",
+    "expression": "order.phi^2/map.item.meshvol_dst"
+   }
+  ]
+ },
+ {
+  "class": "ShallowWaterEqDG_CouplingBCFeatures.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ShallowWaterEq_CouplingBCFeatures.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "VolumeAveragedMixtureModel_CouplingBCFeatures.java",
+  "module": "cfd",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 7,
+  "sample_vars": [
+   {
+    "name": "arg.upwind",
+    "expression": "if(0.5*(phys.nmesh\\u00b7(arg.beta+rot.dst2src(map.dst2src(arg.beta))))>0,0,0.5*(phys.nmesh"
+   },
+   {
+    "name": "arg.upwind",
+    "expression": "if(0.5*(phys.nmesh\\u00b7(arg.beta+rot.src2dst(map.src2dst(arg.beta))))>0,0,0.5*(phys.nmesh"
+   },
+   {
+    "name": "arg.upwind",
+    "expression": "if(0.5*(phys.nmesh\\u00b7(arg.beta+map.dst2src(arg.beta)))>0,0,0.5*(phys.nmesh\\u00b7(arg.be"
+   },
+   {
+    "name": "arg.upwind",
+    "expression": "if(0.5*(phys.nmesh\\u00b7(arg.beta+map.src2dst(arg.beta)))>0,0,0.5*(phys.nmesh\\u00b7(arg.be"
+   },
+   {
+    "name": "arg.c_here",
+    "expression": "6*arg.D*arg.order_phid*(arg.order_phid+1)*map.meshVol/map.meshVolInt"
+   },
+   {
+    "name": "arg.c_here",
+    "expression": "9*arg.D*arg.order_phid*(arg.order_phid+2)*map.meshVol/map.meshVolInt"
+   },
+   {
+    "name": "pdiff",
+    "expression": "par.pdiff"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsComponents_HeatTransfer.java",
+  "module": "heat",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "NoCoupling.java",
+  "module": "maxwell",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ElectricFieldCouplings.java",
+  "module": "maxwell",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "Multiphysics.java",
+  "module": "maxwell",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "Couplings.java",
+  "module": "maxwell",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "AcousticsCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "u_here",
+    "expr": "u_t_here"
+   },
+   {
+    "local": "un_here",
+    "expr": "un_t_here"
+   }
+  ],
+  "n_named_vars": 33,
+  "sample_vars": [
+   {
+    "name": "item.u",
+    "expression": "{phys.Structure.um.1,phys.Structure.um.2,phys.Structure.um.3}"
+   },
+   {
+    "name": "item.us_t",
+    "expression": "item.u*phys.Structure.iomega"
+   },
+   {
+    "name": "item.us_t",
+    "expression": "phys.Structure.us_t"
+   },
+   {
+    "name": "item.T_t",
+    "expression": "phys.Thermoacoustics.T_t"
+   },
+   {
+    "name": "item.T_t",
+    "expression": "dep.ThermalPerturbation.T"
+   },
+   {
+    "name": "item.T_t",
+    "expression": "phys.Thermoacoustics.T_t"
+   },
+   {
+    "name": "item.T_t",
+    "expression": "dep.ThermalPerturbation.T-phys.ThermalPerturbation.Tref"
+   },
+   {
+    "name": "item.eig",
+    "expression": "{ { sqrt(item.M1), 0, 0 }, { 0, sqrt(item.M2), 0 }, { 0, 0, sqrt(item.M3) } }"
+   }
+  ]
+ },
+ {
+  "class": "CommonTransportCoupling.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 71,
+  "sample_vars": [
+   {
+    "name": "arg.Trho",
+    "expression": "arg.Tref"
+   },
+   {
+    "name": "arg.prho",
+    "expression": "arg.pref"
+   },
+   {
+    "name": "arg.rho",
+    "expression": "arg.rhoref"
+   },
+   {
+    "name": "arg.prho",
+    "expression": "arg.pref"
+   },
+   {
+    "name": "mph.rho",
+    "expression": "arg.rho"
+   },
+   {
+    "name": "mph.rhoref",
+    "expression": "arg.rhoref"
+   },
+   {
+    "name": "arg.varName",
+    "expression": "subst(arg.var,arg.c,arg.cref,phys.Fluid.pA,phys.Fluid.pref)"
+   },
+   {
+    "name": "arg.rho",
+    "expression": "arg.rhoa*arg.Xa+arg.rhov*arg.Xv"
+   }
+  ]
+ },
+ {
+  "class": "ElectromagneticHeatingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 15,
+  "sample_vars": [
+   {
+    "name": "Q_material",
+    "expression": "item.Q"
+   },
+   {
+    "name": "Qtot_material",
+    "expression": "item.Q"
+   },
+   {
+    "name": "Qbtot_material",
+    "expression": "item.Qb"
+   },
+   {
+    "name": "Q_material",
+    "expression": "item.Q"
+   },
+   {
+    "name": "Qtot_material",
+    "expression": "item.Q"
+   },
+   {
+    "name": "Qbtot_material",
+    "expression": "item.Qb"
+   },
+   {
+    "name": "item.T_cmi",
+    "expression": "minput.T_cmi"
+   },
+   {
+    "name": "Q_material",
+    "expression": "item.Q"
+   }
+  ]
+ },
+ {
+  "class": "EquilibriumDischargeCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 5,
+  "sample_vars": [
+   {
+    "name": "V0",
+    "expression": "par.V0"
+   },
+   {
+    "name": "item.E0",
+    "expression": "par.E0"
+   },
+   {
+    "name": "Ec",
+    "expression": "par.Ec"
+   },
+   {
+    "name": "c",
+    "expression": "par.c"
+   },
+   {
+    "name": "rc",
+    "expression": "par.rc"
+   }
+  ]
+ },
+ {
+  "class": "LocalThermalNonEquilibriumCouplingFeature.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 32,
+  "sample_vars": [
+   {
+    "name": "d_p",
+    "expression": "par.d_p"
+   },
+   {
+    "name": "mu",
+    "expression": "par.mu"
+   },
+   {
+    "name": "theta_p",
+    "expression": "par.theta_p"
+   },
+   {
+    "name": "q_sf",
+    "expression": "par.q_sf"
+   },
+   {
+    "name": "kmean_f",
+    "expression": "(k_f.1.1+k_f.2.2)/2"
+   },
+   {
+    "name": "kmean_s",
+    "expression": "(k_s.1.1+k_s.2.2)/2"
+   },
+   {
+    "name": "kmean_f",
+    "expression": "(k_f.1.1+k_f.3.3)/2"
+   },
+   {
+    "name": "kmean_s",
+    "expression": "(k_s.1.1+k_s.3.3)/2"
+   }
+  ]
+ },
+ {
+  "class": "LorentzForceFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 3,
+  "sample_vars": [
+   {
+    "name": "item.F",
+    "expression": "0.5*real(phys.EMForce.J\\u00d7conj(phys.EMForce.B))"
+   },
+   {
+    "name": "item.F",
+    "expression": "phys.EMForce.J\\u00d7phys.EMForce.B"
+   },
+   {
+    "name": "phys.Plasma.F",
+    "expression": "item.F"
+   }
+  ]
+ },
+ {
+  "class": "MagnetohydrodynamicsFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 6,
+  "sample_vars": [
+   {
+    "name": "item.F",
+    "expression": "0.5*real(phys.EMForce.J\\u00d7conj(phys.EMForce.B))"
+   },
+   {
+    "name": "item.Eel",
+    "expression": "dep.FluidFlow.u\\u00d7phys.EMForce.B"
+   },
+   {
+    "name": "item.F",
+    "expression": "phys.EMForce.J\\u00d7phys.EMForce.B"
+   },
+   {
+    "name": "item.Eel",
+    "expression": "dep.FluidFlow.u\\u00d7phys.EMForce.B"
+   },
+   {
+    "name": "phys.FluidFlow.F",
+    "expression": "item.F"
+   },
+   {
+    "name": "phys.EMForce.Eel",
+    "expression": "item.Eel"
+   }
+  ]
+ },
+ {
+  "class": "MappingCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "c_here",
+    "expr": "mu"
+   },
+   {
+    "local": "u_here",
+    "expr": "dep.u"
+   },
+   {
+    "local": "u_here",
+    "expr": "u"
+   }
+  ],
+  "n_named_vars": 7,
+  "sample_vars": [
+   {
+    "name": "item.delta_diff",
+    "expression": "par.delta_diff"
+   },
+   {
+    "name": "item.F",
+    "expression": "+gradient(item.Lac)"
+   },
+   {
+    "name": "item.tau",
+    "expression": "0.5*real(item.mu1d*conj(gradient(phys.Source.v)+gradient(phys.Source.v)\\u1d40))"
+   },
+   {
+    "name": "item.tau",
+    "expression": "+0.5*real(item.mu1*conj(gradient(phys.Source.u_t)+gradient(phys.Source.u_t)\\u1d40))"
+   },
+   {
+    "name": "item.tau",
+    "expression": "-arg.I3 \\u00b7item.Lac"
+   },
+   {
+    "name": "item.A",
+    "expression": "+1/(2*phys.Source.rho)*(phys.Source.d_therm/phys.Source.d_visc)^2*(real(phys.Source.d_visc"
+   },
+   {
+    "name": "item.B",
+    "expression": "-1/(2*phys.Source.rho)*realdot(item.vac_delta, item.rho1delta)"
+   }
+  ]
+ },
+ {
+  "class": "MetPhaseCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 16,
+  "sample_vars": [
+   {
+    "name": "phys.Metphase.etrip",
+    "expression": "{{phys.Metphase.etripc11,0,phys.Metphase.etripc13},{0,-(phys.Metphase.etripc11+phys.Metpha"
+   },
+   {
+    "name": "phys.Metphase.etrip",
+    "expression": "{{phys.Metphase.etripc11,phys.Metphase.etripc12,0},{phys.Metphase.etripc12,phys.Metphase.e"
+   },
+   {
+    "name": "phys.Metphase.etrip",
+    "expression": "{{phys.Metphase.etripc11,0,0},{0,phys.Metphase.etripc22,0},{0,0,-(phys.Metphase.etripc11+p"
+   },
+   {
+    "name": "phys.Metphase.etrip",
+    "expression": "{{phys.Metphase.etripc11,phys.Metphase.etripc12,phys.Metphase.etripc13},{phys.Metphase.etr"
+   },
+   {
+    "name": "phys.SolidMechanics.eiel",
+    "expression": "phys.Metphase.etrip"
+   },
+   {
+    "name": "phys.SolidMechanics.Fiil",
+    "expression": "inverse({{1, 0, 0}, {0, 1, 0}, {0, 0, 1}} +phys.Metphase.etrip)"
+   },
+   {
+    "name": "phys.SolidMechanics.eiel",
+    "expression": "phys.Metphase.eth"
+   },
+   {
+    "name": "phys.SolidMechanics.Fiil",
+    "expression": "inverse({{1, 0, 0}, {0, 1, 0}, {0, 0, 1}} +phys.Metphase.eth)"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsAcousticsCouplings.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsBatteryDeformedGeometry.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsCorrosionElectrodepositionDeformedGeometry.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsElectromechanics.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsElectromechanicsBEM.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsElectromechanicsMembrane.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsElectromechanicsShell.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsElectrostriction.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsEquilibriumDischargeCouplings.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsFEMBEMRF.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsFEMBEMWO.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsFerroelasticity.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsHeatAndMoistureFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsHeatAndMoistureTransport.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 6,
+  "sample_vars": [
+   {
+    "name": "phys.Heat.D_H",
+    "expression": "M_v*D_eff_tensor*(phys.Heat.Cpv-phys.Heat.Cpa)\\u00b7\\u2207cv"
+   },
+   {
+    "name": "phys.Heat.D_H",
+    "expression": "phys.Heat.rho*D_eff_tensor*(phys.Heat.Cpv-phys.Heat.Cpa)\\u00b7\\u2207omega_v"
+   },
+   {
+    "name": "Qtot",
+    "expression": "phys.Moist.Q_evaptot"
+   },
+   {
+    "name": "ntflux_contrib",
+    "expression": "phys.Moist.q_evaptot"
+   },
+   {
+    "name": "Qtot_material",
+    "expression": "phys.Moist.Q_evaptot"
+   },
+   {
+    "name": "ntflux_contrib_material",
+    "expression": "phys.Moist.q_evaptot"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsHeatTransferWithRadiationInParticipatingMedia.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 22,
+  "sample_vars": [
+   {
+    "name": "phys.Heat.ndflux_u",
+    "expression": "if(phys.Heat.isSolving,0,if(TuIsDown,0,phys.RPM.qr_net*arg.correctionFactorup)+if(TdIsUp,p"
+   },
+   {
+    "name": "phys.Heat.ndflux_d",
+    "expression": "if(phys.Heat.isSolving,0,if(TdIsUp,0,phys.RPM.qr_net*arg.correctionFactordown)+if(TuIsDown"
+   },
+   {
+    "name": "phys.Heat.ndflux_u",
+    "expression": "if(phys.Heat.isSolving,0,if(TuIsDown,0,phys.RPM.qr_net_u*arg.correctionFactorup)+if(TdIsUp"
+   },
+   {
+    "name": "phys.Heat.ndflux_d",
+    "expression": "if(phys.Heat.isSolving,0,if(TdIsUp,0,phys.RPM.qr_net_d*arg.correctionFactordown)+if(TuIsDo"
+   },
+   {
+    "name": "phys.Heat.ndflux_u_material",
+    "expression": "if(phys.Heat.isSolving,0,if(TuIsDown,0,phys.RPM.qr_net*arg.correctionFactorup)+if(TdIsUp,p"
+   },
+   {
+    "name": "phys.Heat.ndflux_u_material",
+    "expression": "if(phys.Heat.isSolving,0,if(TuIsDown,0,phys.RPM.qr_net_u*arg.correctionFactorup)+if(TdIsUp"
+   },
+   {
+    "name": "phys.Heat.ndflux_d_material",
+    "expression": "if(phys.Heat.isSolving,0,if(TdIsUp,0,phys.RPM.qr_net*arg.correctionFactordown)+if(TuIsDown"
+   },
+   {
+    "name": "phys.Heat.ndflux_d_material",
+    "expression": "if(phys.Heat.isSolving,0,if(TdIsUp,0,phys.RPM.qr_net_d*arg.correctionFactordown)+if(TuIsDo"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsHeatTransferWithRadiativeBeamInAbsorbingMedia.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 12,
+  "sample_vars": [
+   {
+    "name": "ndflux_u",
+    "expression": "if(isSolving,0,if(TuIsDown,0,-0.5*phys.RBAM.Qb)+if(TdIsUp,-0.5*phys.RBAM.Qb,0))"
+   },
+   {
+    "name": "ndflux_d",
+    "expression": "if(isSolving,0,if(TdIsUp,0,-0.5*phys.RBAM.Qb)+if(TuIsDown,-0.5*phys.RBAM.Qb,0))"
+   },
+   {
+    "name": "ndflux_u_material",
+    "expression": "if(isSolving,0,if(TuIsDown,0,-0.5*phys.RBAM.Qb)+if(TdIsUp,-0.5*phys.RBAM.Qb,0))"
+   },
+   {
+    "name": "ndflux_d_material",
+    "expression": "if(isSolving,0,if(TdIsUp,0,-0.5*phys.RBAM.Qb)+if(TuIsDown,-0.5*phys.RBAM.Qb,0))"
+   },
+   {
+    "name": "Q",
+    "expression": "item.Q"
+   },
+   {
+    "name": "Qtot",
+    "expression": "item.Q"
+   },
+   {
+    "name": "ntflux_contrib",
+    "expression": "phys.RBAM.Qb"
+   },
+   {
+    "name": "rflux",
+    "expression": "phys.RBAM.Qb"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsHeatTransferWithSurfaceToSurfaceRadiation.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 15,
+  "sample_vars": [
+   {
+    "name": "item.T_cmi",
+    "expression": "minput.T_cmi"
+   },
+   {
+    "name": "item.T_cmiu",
+    "expression": "par.T_cmiu"
+   },
+   {
+    "name": "item.T_cmid",
+    "expression": "par.T_cmid"
+   },
+   {
+    "name": "phys.Heat.ndflux_u",
+    "expression": "if(isSolving,0,if(TuIsDown,0,-(0.5*(1+phys.Rad.opaque))\\u00b7phys.Rad.rfluxu_band-(0.5*(1-"
+   },
+   {
+    "name": "phys.Heat.ndflux_d",
+    "expression": "if(isSolving,0,if(TdIsUp,0,-(0.5*(1+phys.Rad.opaque))\\u00b7phys.Rad.rfluxd_band-(0.5*(1-ph"
+   },
+   {
+    "name": "phys.Heat.ndflux_u_material",
+    "expression": "if(isSolving,0,if(TuIsDown,0,-(0.5*(1+phys.Rad.opaque))\\u00b7phys.Rad.rfluxu_band-(0.5*(1-"
+   },
+   {
+    "name": "phys.Heat.ndflux_d_material",
+    "expression": "if(isSolving,0,if(TdIsUp,0,-(0.5*(1+phys.Rad.opaque))\\u00b7phys.Rad.rfluxd_band-(0.5*(1-ph"
+   },
+   {
+    "name": "mph.d",
+    "expression": "d"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsHighMachNumberFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "X_here",
+    "expr": "X_there"
+   },
+   {
+    "local": "bX_here",
+    "expr": "int_order"
+   },
+   {
+    "local": "gammak_here",
+    "expr": "gammak_there"
+   },
+   {
+    "local": "mu_here",
+    "expr": "muT_here"
+   }
+  ],
+  "n_named_vars": 100,
+  "sample_vars": [
+   {
+    "name": "muinit",
+    "expression": "subst(mu,dep.T,Tinit)"
+   },
+   {
+    "name": "rhoinit",
+    "expression": "rhoInit"
+   },
+   {
+    "name": "rhoref",
+    "expression": "rhoInit"
+   },
+   {
+    "name": "localCFLvalue",
+    "expression": "1+if(niterCMP>=10,1.2^min(niterCMP-10,12),0)+if(niterCMP>=32,9*1.3^min(niterCMP-32,9),0)+i"
+   },
+   {
+    "name": "localCFLvalue",
+    "expression": "1+if(niterCMP>=10,1.2^min(niterCMP-10,12),0)+if(niterCMP>=120,1.3^min(niterCMP-120,9),0)+i"
+   },
+   {
+    "name": "locCFL",
+    "expression": "localCFLvalue"
+   },
+   {
+    "name": "u_init",
+    "expression": "par.u_init"
+   },
+   {
+    "name": "p_init",
+    "expression": "par.p_init"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsHighMachNumberReactingFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {
+   "Chemistry": 4
+  },
+  "arg_bindings": [],
+  "n_named_vars": 17,
+  "sample_vars": [
+   {
+    "name": "item.dz",
+    "expression": "phys.Species.dz"
+   },
+   {
+    "name": "item.dz",
+    "expression": "1"
+   },
+   {
+    "name": "loop.item.j_bndFlux",
+    "expression": "loop.bndFlux"
+   },
+   {
+    "name": "loop.item.j_bndFlux",
+    "expression": "-item.j_bndFluxSum"
+   },
+   {
+    "name": "phys.Fluid.res_T",
+    "expression": "loop.item.j\\u00b7\\u2207laginterp(order.w,loop.item.h/loop.item.M)"
+   },
+   {
+    "name": "item.rho",
+    "expression": "rho"
+   },
+   {
+    "name": "phys.Fluid.rho",
+    "expression": "item.rho"
+   },
+   {
+    "name": "phys.Fluid.mu",
+    "expression": "item.mu"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsInductionHeating.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsJouleHeating.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsJouleHeatingThermalExpansion.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsLaserHeating.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsMagnetomechanics.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsMagnetomechanicsNoCurrents.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsMetPhaseWithHeatTransfer.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsMicrowaveHeating.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsMixtureModel.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 38,
+  "sample_vars": [
+   {
+    "name": "phimax",
+    "expression": "par.phimax"
+   },
+   {
+    "name": "mumixture",
+    "expression": "par.mumixture"
+   },
+   {
+    "name": "ScT",
+    "expression": "par.ScT"
+   },
+   {
+    "name": "C_kbf",
+    "expression": "par.C_kbf"
+   },
+   {
+    "name": "C_epsbf",
+    "expression": "par.C_epsbf"
+   },
+   {
+    "name": "alphaombf",
+    "expression": "par.alphaombf"
+   },
+   {
+    "name": "Kc",
+    "expression": "par.Kc"
+   },
+   {
+    "name": "lambda",
+    "expression": "par.lambda"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsMoistureFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 14,
+  "sample_vars": [
+   {
+    "name": "ScT",
+    "expression": "par.ScT"
+   },
+   {
+    "name": "ScT_LES",
+    "expression": "par.ScT_LES"
+   },
+   {
+    "name": "uStefan_u",
+    "expression": "item.Nwalltot_u/up(item.rho)"
+   },
+   {
+    "name": "uStefan_d",
+    "expression": "item.Nwalltot_d/down(item.rho)"
+   },
+   {
+    "name": "uStefan_u",
+    "expression": "0"
+   },
+   {
+    "name": "uStefan_d",
+    "expression": "0"
+   },
+   {
+    "name": "item.u_cmi",
+    "expression": "minput.u_cmi"
+   },
+   {
+    "name": "item.pA_cmi",
+    "expression": "minput.pA_cmi"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsMultiphaseFlowInPorousMedia.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsNavierStokesDarcyCoupling.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "c_here",
+    "expr": "mu"
+   },
+   {
+    "local": "u_here",
+    "expr": "dep.u"
+   },
+   {
+    "local": "u_here",
+    "expr": "u"
+   }
+  ],
+  "n_named_vars": 8,
+  "sample_vars": [
+   {
+    "name": "utr",
+    "expression": "d(s.coord.var,TIME)"
+   },
+   {
+    "name": "ubnd",
+    "expression": "utr+nojac(phys.nmesh)*phys.Darcy.pb_lm/phys.rho+(phys.Darcy.u-phys.nmesh*(phys.nmesh\\u00b7"
+   },
+   {
+    "name": "ubnd",
+    "expression": "utr+nojac(phys.nmesh)*phys.Darcy.pb_lm/phys.rho"
+   },
+   {
+    "name": "ubnd",
+    "expression": "utr+nojac(phys.nmesh)*phys.Darcy.pb_lm/phys.rho+(phys.Darcy.u-phys.nmesh*(phys.nmesh\\u00b7"
+   },
+   {
+    "name": "ubnd",
+    "expression": "utr+nojac(phys.nmesh)*phys.Darcy.pb_lm/phys.rho+(phys.Darcy.u-phys.nmesh*(phys.nmesh\\u00b7"
+   },
+   {
+    "name": "ubnd",
+    "expression": "utr+nojac(phys.nmesh)*phys.Darcy.pb_lm/phys.rho-(sqrt(phys.Darcy.kappa_mean)*(((\\u2207dep."
+   },
+   {
+    "name": "ubnd",
+    "expression": "utr+nojac(phys.nmesh)*phys.Darcy.pb_lm/phys.rho-(sqK*(((\\u2207dep.u+(\\u2207dep.u)\\u1d40)\\u"
+   },
+   {
+    "name": "ubnd",
+    "expression": "utr+nojac(phys.nmesh)*phys.Darcy.pb_lm/phys.rho+(par.uvw-phys.nmesh*(phys.nmesh\\u00b7par.u"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsNernstPlanckPoissonEquations.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsNonIsothermalFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 111,
+  "sample_vars": [
+   {
+    "name": "arg.varName",
+    "expression": "subst(arg.var,dep.Heat.T,item.Tref)"
+   },
+   {
+    "name": "arg.varName",
+    "expression": "arg.var"
+   },
+   {
+    "name": "arg.varName",
+    "expression": "subst(arg.var,dep.Heat.T,item.Tref)"
+   },
+   {
+    "name": "arg.varName",
+    "expression": "arg.var"
+   },
+   {
+    "name": "item.rho",
+    "expression": "item.rhoref"
+   },
+   {
+    "name": "phys.Heat.alphap",
+    "expression": "arg.alphap_ref"
+   },
+   {
+    "name": "phys.Fluid.alphap",
+    "expression": "arg.alphap_ref"
+   },
+   {
+    "name": "phys.Heat.chiT",
+    "expression": "phys.Heat.chiT_ref"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsNonIsothermalReactingFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {
+   "Chemistry": 7
+  },
+  "arg_bindings": [],
+  "n_named_vars": 25,
+  "sample_vars": [
+   {
+    "name": "item.u_cmi",
+    "expression": "minput.u_cmi"
+   },
+   {
+    "name": "item.pA_cmi",
+    "expression": "minput.pA_cmi"
+   },
+   {
+    "name": "item.T_cmi",
+    "expression": "minput.T_cmi"
+   },
+   {
+    "name": "arg.gamma",
+    "expression": "arg.gamma_ref"
+   },
+   {
+    "name": "arg.gamma_ref",
+    "expression": "subst(phys.Chemistry.gamma,phys.Chemistry.T,arg.Tref,phys.Chemistry.p,arg.pref)"
+   },
+   {
+    "name": "arg.gamma",
+    "expression": "subst(phys.Chemistry.gamma,phys.Chemistry.p,arg.pref)"
+   },
+   {
+    "name": "arg.gamma_ref",
+    "expression": "subst(phys.Chemistry.gamma,phys.Chemistry.T,arg.Tref,phys.Chemistry.p,arg.pref)"
+   },
+   {
+    "name": "arg.gamma",
+    "expression": "phys.Chemistry.gamma"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsNonlinearMagnetostriction.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsPhaseFieldDamage.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsPiezoelectricDevices.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsPiezoelectricLayeredShell.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsPiezoelectricityPyroelectricity.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsPiezomagnetism.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsPiezoresistiveDevices.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsPlasmaCouplings.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsPoroelasticCoupling.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsPrecipitationInFluidFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 11,
+  "sample_vars": [
+   {
+    "name": "R_p",
+    "expression": "-phys.PopulationBalance.Tps_m/phys.PopulationBalance.M_p"
+   },
+   {
+    "name": "cspecies",
+    "expression": "par.cspecies"
+   },
+   {
+    "name": "cstar_species",
+    "expression": "par.cstar_species"
+   },
+   {
+    "name": "Dspecies",
+    "expression": "par.Dspecies"
+   },
+   {
+    "name": "Dspecies",
+    "expression": "par.Dspecies"
+   },
+   {
+    "name": "precipitatingSpeciesMolarMass",
+    "expression": "par.precipitatingSpeciesMolarMass"
+   },
+   {
+    "name": "precipitatingSpeciesMolarMass",
+    "expression": "par.precipitatingSpeciesMolarMass"
+   },
+   {
+    "name": "item.u_cmi",
+    "expression": "minput.u_cmi"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsPyroelectricity.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsReactingFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {
+   "PrimaryCurrentDistribution": 3
+  },
+  "arg_bindings": [],
+  "n_named_vars": 35,
+  "sample_vars": [
+   {
+    "name": "ScT",
+    "expression": "par.ScT"
+   },
+   {
+    "name": "ScT",
+    "expression": "par.ScT"
+   },
+   {
+    "name": "loop.item.D",
+    "expression": "max(trace(zeroOutOfPlane(loop.phys.Species.Dm*phys.Species.f_eff))/entity.sdim,eps)"
+   },
+   {
+    "name": "loop.item.D",
+    "expression": "max(trace(zeroOutOfPlane(loop.Df))/entity.sdim,eps)"
+   },
+   {
+    "name": "phys.Species.uStefan",
+    "expression": "item.Nwalltot/item.rho"
+   },
+   {
+    "name": "item.Nwalltot",
+    "expression": "phys.Species.Nwalltot"
+   },
+   {
+    "name": "phys.Species.uStefan",
+    "expression": "0"
+   },
+   {
+    "name": "loop.cVar",
+    "expression": "if(phys.Fluid.hasWF_d,loop.mph.cWall_d,loop.arg.c)"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsReactingFlowInPorousMedia.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsReactingFlowInVapor.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsRotatingMachineryHighMachNumberFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsRotatingMachineryMagnetic.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsRotatingMachineryNonIsothermalFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsRotatingMachineryPhaseTransportMixtureModel.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsRotatingMachineryReactingFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsRotatingMachineryTwoPhaseFlowLevelSetPhaseField.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsRotorBearing.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsSchrodingerCouplings.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsSemiconductorOptoelectronicsBeamEnvelopes.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsSemiconductorOptoelectronicsFrequencyDomain.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsShellThermalConnection.java",
+  "module": "multiphysics",
+  "interface_refs": {
+   "LayeredShell": 6
+  },
+  "arg_bindings": [],
+  "n_named_vars": 109,
+  "sample_vars": [
+   {
+    "name": "phys.HeatShell.coord",
+    "expression": "{s.coord.1,s.coord.2}+(lshell.xd.coord.1+item.z_offset*(lshell.offset-1))*atonly({phys.Hea"
+   },
+   {
+    "name": "item.coord",
+    "expression": "mph.ExtCplOp({s.coord.1,s.coord.2})"
+   },
+   {
+    "name": "item.dz",
+    "expression": "({phys.HeatShell.coord.1,phys.HeatShell.coord.2}-item.coord)\\u00b7atonly({phys.HeatShell.n"
+   },
+   {
+    "name": "phys.HeatShell.coord",
+    "expression": "{s.coord.1,s.coord.3}+(lshell.xd.coord.1+item.z_offset*(lshell.offset-1))*atonly({phys.Hea"
+   },
+   {
+    "name": "item.coord",
+    "expression": "mph.ExtCplOp({s.coord.1,s.coord.3})"
+   },
+   {
+    "name": "item.dz",
+    "expression": "({phys.HeatShell.coord.1,phys.HeatShell.coord.2}-item.coord)\\u00b7atonly({phys.HeatShell.n"
+   },
+   {
+    "name": "phys.HeatShell.coord",
+    "expression": "{s.coord.1,s.coord.2,s.coord.3}+(lshell.xd.coord.1+item.z_offset*(lshell.offset-1))*atonly"
+   },
+   {
+    "name": "item.coord",
+    "expression": "mph.ExtCplOp({s.coord.1,s.coord.2,s.coord.3})"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsSlipFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 25,
+  "sample_vars": [
+   {
+    "name": "item.Tref",
+    "expression": "minput.Tref"
+   },
+   {
+    "name": "uwall",
+    "expression": "par.uwall"
+   },
+   {
+    "name": "TWall",
+    "expression": "par.TWall"
+   },
+   {
+    "name": "alphav",
+    "expression": "par.alphav"
+   },
+   {
+    "name": "sigmata",
+    "expression": "par.sigmata"
+   },
+   {
+    "name": "sigmasa",
+    "expression": "par.sigmasa"
+   },
+   {
+    "name": "zetaTa",
+    "expression": "par.zetaTa"
+   },
+   {
+    "name": "sigmat",
+    "expression": "par.sigmat"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsStructureThinFilmCoupling.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsTernaryPhaseField.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsThermalStress.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsThermoelectricEffects.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 18,
+  "sample_vars": [
+   {
+    "name": "dflux",
+    "expression": "item.teeflux"
+   },
+   {
+    "name": "dflux_material",
+    "expression": "item.teeflux"
+   },
+   {
+    "name": "phys.Heat.teeflux",
+    "expression": "item.teeflux"
+   },
+   {
+    "name": "phys.Heat.teeflux_material",
+    "expression": "item.teeflux"
+   },
+   {
+    "name": "dflux",
+    "expression": "item.teeflux"
+   },
+   {
+    "name": "dflux_material",
+    "expression": "item.teeflux"
+   },
+   {
+    "name": "phys.EMCurrentDensity.Je",
+    "expression": "-arg.sigma_s\\u00b7(arg.S\\u00b7(arg.gradT))"
+   },
+   {
+    "name": "item.P",
+    "expression": "arg.S*dep.T"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsThinFilmAndPorousMediaFlow.java",
+  "module": "multiphysics",
+  "interface_refs": {
+   "DarcysLaw": 5,
+   "ThinFilmFlowDomain": 5
+  },
+  "arg_bindings": [],
+  "n_named_vars": 12,
+  "sample_vars": [
+   {
+    "name": "vb",
+    "expression": "up(phys.PorousMedia.u)"
+   },
+   {
+    "name": "vw",
+    "expression": "down(phys.PorousMedia.u)"
+   },
+   {
+    "name": "Lsb",
+    "expression": "sqrt(up(phys.PorousMedia.kappa_mean))/par.alphaBJb"
+   },
+   {
+    "name": "Lsw",
+    "expression": "sqrt(down(phys.PorousMedia.kappa_mean))/par.alphaBJw"
+   },
+   {
+    "name": "vb",
+    "expression": "down(phys.PorousMedia.u)"
+   },
+   {
+    "name": "vw",
+    "expression": "up(phys.PorousMedia.u)"
+   },
+   {
+    "name": "Lsb",
+    "expression": "sqrt(down(phys.PorousMedia.kappa_mean))/par.alphaBJb"
+   },
+   {
+    "name": "Lsw",
+    "expression": "sqrt(up(phys.PorousMedia.kappa_mean))/par.alphaBJw"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsTransmissionLineRLGCParameters.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "MultiphysicsTwoPhaseFlowMovingMesh.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 9,
+  "sample_vars": [
+   {
+    "name": "minput_temperature",
+    "expression": "par.minput_temperature"
+   },
+   {
+    "name": "Mf",
+    "expression": "par.Mf"
+   },
+   {
+    "name": "iN",
+    "expression": "nmesh"
+   },
+   {
+    "name": "iN",
+    "expression": "-nmesh"
+   },
+   {
+    "name": "minput_temperature",
+    "expression": "par.minput_temperature"
+   },
+   {
+    "name": "pext",
+    "expression": "par.pext"
+   },
+   {
+    "name": "Mf",
+    "expression": "par.Mf"
+   },
+   {
+    "name": "thetac",
+    "expression": "par.thetac"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsTwoPhaseFlowPhaseFieldLevelSet.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 8,
+  "sample_vars": [
+   {
+    "name": "item.rho",
+    "expression": "subst(mat.rho,root.minput.T,phys.Fluid.Tref,root.minput.pA,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rho",
+    "expression": "subst(mat.rho,root.minput.T,minput_temperature,root.minput.pA,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rho",
+    "expression": "subst(mat.rho,root.minput.T,minput_temperature,root.minput.pA,minput_pressure)"
+   },
+   {
+    "name": "item.rho1",
+    "expression": "mat.subst(mat.rho1,minput_temperature,phys.Fluid.Tref, minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rho2",
+    "expression": "mat.subst(mat.rho2,minput_temperature,phys.Fluid.Tref,minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rho1",
+    "expression": "mat.subst(mat.rho1,minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rho2",
+    "expression": "mat.subst(mat.rho2,minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "phys.Fluid.rho",
+    "expression": "item.rho"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsTwoPhaseThinFilmFlowPhaseFieldLevelSet.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 21,
+  "sample_vars": [
+   {
+    "name": "minput_temperature",
+    "expression": "par.minput_temperature"
+   },
+   {
+    "name": "rho1",
+    "expression": "par.rho1"
+   },
+   {
+    "name": "mu1",
+    "expression": "par.mu1"
+   },
+   {
+    "name": "rho2",
+    "expression": "par.rho2"
+   },
+   {
+    "name": "mu2",
+    "expression": "par.mu2"
+   },
+   {
+    "name": "item.mu",
+    "expression": "item.mu1*item.Vf1+item.mu2*item.Vf2"
+   },
+   {
+    "name": "item.mu",
+    "expression": "1/(item.Vf1/item.mu1+item.Vf2/item.mu2)"
+   },
+   {
+    "name": "item.mu",
+    "expression": "item.mu1+(item.mu2-item.mu1)*item.step_mu(item.Vf2-0.5)"
+   }
+  ]
+ },
+ {
+  "class": "PhaseFieldLevelSetCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "c_here",
+    "expr": "meshVolInt"
+   },
+   {
+    "local": "c_here",
+    "expr": "mu"
+   },
+   {
+    "local": "u_here",
+    "expr": "dep.u"
+   },
+   {
+    "local": "u_here",
+    "expr": "u"
+   },
+   {
+    "local": "u_here",
+    "expr": "un_there"
+   },
+   {
+    "local": "un_here",
+    "expr": "dep.u"
+   },
+   {
+    "local": "un_here",
+    "expr": "u"
+   }
+  ],
+  "n_named_vars": 97,
+  "sample_vars": [
+   {
+    "name": "minput_temperature",
+    "expression": "par.minput_temperature"
+   },
+   {
+    "name": "arg.sigma",
+    "expression": "par.sigma"
+   },
+   {
+    "name": "arg.sigma",
+    "expression": "-arg.T^2*2.3519705e-7-1.63350014e-5*arg.T+9.77001279e-2"
+   },
+   {
+    "name": "arg.c1",
+    "expression": "26.26"
+   },
+   {
+    "name": "arg.c2",
+    "expression": "0.1120"
+   },
+   {
+    "name": "arg.c1",
+    "expression": "29.58"
+   },
+   {
+    "name": "arg.c2",
+    "expression": "0.0994"
+   },
+   {
+    "name": "arg.c1",
+    "expression": "24.05"
+   }
+  ]
+ },
+ {
+  "class": "PipeCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "c_here",
+    "expr": "K_stress_tensor"
+   },
+   {
+    "local": "un_here",
+    "expr": "description"
+   },
+   {
+    "local": "ut_here",
+    "expr": "description"
+   }
+  ],
+  "n_named_vars": 13,
+  "sample_vars": [
+   {
+    "name": "arg.c_here",
+    "expression": "(order.u+1)*nojac((up(arg.mu)+muT)/arg.epsilon_p)*12*order.u*meshVol/meshVolInt"
+   },
+   {
+    "name": "arg.c_here",
+    "expression": "(order.u+1)*nojac((down(arg.mu)+muT)/arg.epsilon_p)*12*order.u*meshVol/meshVolInt"
+   },
+   {
+    "name": "arg.c_here",
+    "expression": "(order.u+2)*nojac((up(arg.mu)+muT)/arg.epsilon_p)*12*order.u*meshVol/meshVolInt"
+   },
+   {
+    "name": "arg.c_here",
+    "expression": "(order.u+2)*nojac((down(arg.mu)+muT)/arg.epsilon_p)*12*order.u*meshVol/meshVolInt"
+   },
+   {
+    "name": "meshVolInt",
+    "expression": "up(root.meshvol_spatial)"
+   },
+   {
+    "name": "meshVolInt",
+    "expression": "down(root.meshvol_spatial)"
+   },
+   {
+    "name": "meshVol",
+    "expression": "root.meshvol_spatial"
+   },
+   {
+    "name": "muLim",
+    "expression": "arg.side(arg.mu)"
+   }
+  ]
+ },
+ {
+  "class": "PlasmaHeatingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 9,
+  "sample_vars": [
+   {
+    "name": "Qrad",
+    "expression": "par.Qrad"
+   },
+   {
+    "name": "Q_material",
+    "expression": "item.Q"
+   },
+   {
+    "name": "Qtot_material",
+    "expression": "item.Q"
+   },
+   {
+    "name": "item.Q",
+    "expression": "item.Qr"
+   },
+   {
+    "name": "item.Q",
+    "expression": "item.Qe"
+   },
+   {
+    "name": "item.Qj",
+    "expression": "(phys.phsEMHeat.Ji+phys.phsEMHeat.Je)\\u00b7item.E"
+   },
+   {
+    "name": "item.Qj",
+    "expression": "0*phys.phsEMHeat.Qml+1/2*realdot(phys.phsEMHeat.J,item.E)"
+   },
+   {
+    "name": "item.Qj",
+    "expression": "1/2*realdot(phys.phsEMHeat.J,item.E)"
+   }
+  ]
+ },
+ {
+  "class": "PlasmaMultiphysicsCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {
+   "ColdPlasma": 35
+  },
+  "arg_bindings": [],
+  "n_named_vars": 37,
+  "sample_vars": [
+   {
+    "name": "item.k",
+    "expression": "phys.plas.k"
+   },
+   {
+    "name": "item.k",
+    "expression": "phys.plas.k_av"
+   },
+   {
+    "name": "item.k",
+    "expression": "par.k"
+   },
+   {
+    "name": "item.rho",
+    "expression": "phys.plas.rho"
+   },
+   {
+    "name": "item.rho",
+    "expression": "phys.plas.rho_av"
+   },
+   {
+    "name": "item.rho",
+    "expression": "par.rho"
+   },
+   {
+    "name": "item.mu",
+    "expression": "phys.plas.eta"
+   },
+   {
+    "name": "item.mu",
+    "expression": "phys.plas.eta_av"
+   }
+  ]
+ },
+ {
+  "class": "PolymerFlowCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 2,
+  "sample_vars": [
+   {
+    "name": "item.Hcr",
+    "expression": "par.Hcr"
+   },
+   {
+    "name": "phys.Heat.Qtot",
+    "expression": "phys.Heat.Q"
+   }
+  ]
+ },
+ {
+  "class": "RotordynamicsCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "SchrodingerCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 15,
+  "sample_vars": [
+   {
+    "name": "ni",
+    "expression": "Ni*phys.Schr.Pr"
+   },
+   {
+    "name": "mph.V_old",
+    "expression": "mph.V"
+   },
+   {
+    "name": "mph.rhoq_old",
+    "expression": "mph.rhoq"
+   },
+   {
+    "name": "loop.phys.Schr.V",
+    "expression": "mph.q*mph.V"
+   },
+   {
+    "name": "Ef",
+    "expression": "par.Ef"
+   },
+   {
+    "name": "md",
+    "expression": "minput.md"
+   },
+   {
+    "name": "gi",
+    "expression": "par.gi"
+   },
+   {
+    "name": "Ni_1D",
+    "expression": "par.Ni_1D"
+   }
+  ]
+ },
+ {
+  "class": "SemiconductorEMWavesCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 4,
+  "sample_vars": [
+   {
+    "name": "phys.Semiconductor.Enorm0_wo",
+    "expression": "phys.ElectromagneticWaves.normE"
+   },
+   {
+    "name": "phys.Semiconductor.epsilonr0_wo",
+    "expression": "phys.ElectromagneticWaves.epsilonr0"
+   },
+   {
+    "name": "phys.Semiconductor.freq_wo",
+    "expression": "phys.ElectromagneticWaves.freq"
+   },
+   {
+    "name": "phys.ElectromagneticWaves.epsilonr",
+    "expression": "phys.Semiconductor.epsilonr0_wo+phys.Semiconductor.chi_re_wo-i*phys.Semiconductor.chi_im_w"
+   }
+  ]
+ },
+ {
+  "class": "SolidMechanicsElectromagneticCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 116,
+  "sample_vars": [
+   {
+    "name": "phys.ElectricCurrents.S_mech",
+    "expression": "phys.Solid.S"
+   },
+   {
+    "name": "phys.ElectricCurrents.e_mech",
+    "expression": "phys.Solid.e"
+   },
+   {
+    "name": "item.Eeff",
+    "expression": "-{d(item.Hem, phys.Electrostatics.Pmg.1), d(item.Hem, phys.Electrostatics.Pmg.2), d(item.H"
+   },
+   {
+    "name": "phys.Electrostatics.Pe",
+    "expression": "-epsilon0_const*phys.Electrostatics.chi\\u00b7phys.Electrostatics.E"
+   },
+   {
+    "name": "item.Pe",
+    "expression": "epsilon0_const*item.J*item.Fdi\\u00b7\\n{{m.eval(phys.Electrostatics.chi.1.1), m.eval(phys.E"
+   },
+   {
+    "name": "phys.Electrostatics.Pe",
+    "expression": "-phys.Electrostatics.chi\\u00b7inverse(m.eval(phys.Electrostatics.I_s)+phys.Electrostatics."
+   },
+   {
+    "name": "item.Pe",
+    "expression": "item.Fdi\\u00b7\\n{{m.eval(phys.Electrostatics.chi.1.1), m.eval(phys.Electrostatics.chi.1.2)"
+   },
+   {
+    "name": "item.Eeff",
+    "expression": "(item.JCi-{{1, 0, 0}, {0, 1, 0}, {0, 0, 1}})\\u00b7phys.Electrostatics.E"
+   }
+  ]
+ },
+ {
+  "class": "SolidMechanicsExpansionCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {
+   "LayeredShell": 5
+  },
+  "arg_bindings": [],
+  "n_named_vars": 162,
+  "sample_vars": [
+   {
+    "name": "cmo_ref",
+    "expression": "par.cmo_ref"
+   },
+   {
+    "name": "Mm",
+    "expression": "par.Mm"
+   },
+   {
+    "name": "item.Fh",
+    "expression": "identity(3) + phys.eh"
+   },
+   {
+    "name": "item.Jh",
+    "expression": "determinant(item.Fh)"
+   },
+   {
+    "name": "item.Fhi",
+    "expression": "inverse(item.Fh)*determinant(item.Fh)/item.Jh"
+   },
+   {
+    "name": "phys.eiel",
+    "expression": "phys.eh"
+   },
+   {
+    "name": "phys.Fiil",
+    "expression": "item.Fhi"
+   },
+   {
+    "name": "phys.eiel",
+    "expression": "phys.eh"
+   }
+  ]
+ },
+ {
+  "class": "SolidMechanicsFluidStructureCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 95,
+  "sample_vars": [
+   {
+    "name": "phys.Structure.far",
+    "expression": "item.F_A*spatial.detF"
+   },
+   {
+    "name": "phys.Structure.far",
+    "expression": "item.F_A*spatial.detF"
+   },
+   {
+    "name": "phys.Structure.far",
+    "expression": "item.F_A"
+   },
+   {
+    "name": "phys.Structure.far",
+    "expression": "item.F_A"
+   },
+   {
+    "name": "phys.Structure.far",
+    "expression": "item.F_A*spatial.detF"
+   },
+   {
+    "name": "phys.Structure.far",
+    "expression": "item.F_A*spatial.detF"
+   },
+   {
+    "name": "phys.Structure.far",
+    "expression": "item.F_A"
+   },
+   {
+    "name": "phys.Structure.far",
+    "expression": "item.F_A"
+   }
+  ]
+ },
+ {
+  "class": "SolidMechanicsStructuralCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {
+   "LayeredShell": 12
+  },
+  "arg_bindings": [],
+  "n_named_vars": 210,
+  "sample_vars": [
+   {
+    "name": "item.d0",
+    "expression": "par.d0"
+   },
+   {
+    "name": "item.tol",
+    "expression": "par.tol"
+   },
+   {
+    "name": "item.d0",
+    "expression": "par.d0"
+   },
+   {
+    "name": "item.tol",
+    "expression": "par.tol"
+   },
+   {
+    "name": "item.rc",
+    "expression": "par.rc"
+   },
+   {
+    "name": "angTol",
+    "expression": "par.angTol"
+   },
+   {
+    "name": "item.zeta",
+    "expression": "par.zeta"
+   },
+   {
+    "name": "item.d0",
+    "expression": "par.d0"
+   }
+  ]
+ },
+ {
+  "class": "SolidMechanicsThinFilmCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 10,
+  "sample_vars": [
+   {
+    "name": "item.Qh_tot",
+    "expression": "-item.int(0.5*phb.sme.geomScale(0)*real(lindev(phys.Thinfilm.fwall)\\u00b7conj(phys.Structu"
+   },
+   {
+    "name": "item.Qh_tot",
+    "expression": "-item.int(0.5*phb.sme.geomScale(0)*real(phys.Thinfilm.fwall\\u00b7conj(phys.Structure.iomeg"
+   },
+   {
+    "name": "item.Qvd",
+    "expression": "0.5*(realdot(gradientT(lindev(dep.Thinfilm.pfilm)), gradientT(lindev(dep.Thinfilm.pfilm)))"
+   },
+   {
+    "name": "item.Qvd",
+    "expression": "0.5*(realdot(gradientT(dep.Thinfilm.pfilm), gradientT(dep.Thinfilm.pfilm))*phys.Thinfilm.h"
+   },
+   {
+    "name": "item.uw",
+    "expression": "phys.Structure.u_top"
+   },
+   {
+    "name": "item.uw",
+    "expression": "phys.Structure.u_bot"
+   },
+   {
+    "name": "item.Qh_tot",
+    "expression": "-item.int(0.5*real(lindev(phys.Thinfilm.fwall)\\u00b7conj(phys.Structure.iomega*lindev(item"
+   },
+   {
+    "name": "item.Qh_tot",
+    "expression": "-item.int(0.5*real(phys.Thinfilm.fwall\\u00b7conj(phys.Structure.iomega*item.uw))*phys.Stru"
+   }
+  ]
+ },
+ {
+  "class": "TemperatureCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "TernaryPhaseFieldCouplingFeatures.java",
+  "module": "multiphysics",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 74,
+  "sample_vars": [
+   {
+    "name": "minput_temperature",
+    "expression": "par.minput_temperature"
+   },
+   {
+    "name": "item.rhoA",
+    "expression": "mat.subst(mat.rhoA,minput_temperature,phys.Fluid.Tref, minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rhoB",
+    "expression": "mat.subst(mat.rhoB,minput_temperature,phys.Fluid.Tref,minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rhoC",
+    "expression": "mat.subst(mat.rhoC,minput_temperature,phys.Fluid.Tref,minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rhoA",
+    "expression": "mat.subst(mat.rhoA,minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rhoB",
+    "expression": "mat.subst(mat.rhoB,minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rhoC",
+    "expression": "mat.subst(mat.rhoC,minput_pressure,phys.Fluid.pref)"
+   },
+   {
+    "name": "item.rho",
+    "expression": "subst(mat.rho,root.minput.T,phys.Fluid.Tref,root.minput.pA,phys.Fluid.pref)"
+   }
+  ]
+ },
+ {
+  "class": "pipeflow_CouplingBCFeatures.java",
+  "module": "pipe",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "EquilibriumDischargeMultiphysicsComponents.java",
+  "module": "plasma",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "PlasmaMultiphysicsComponents.java",
+  "module": "plasma",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ViscoelasticFlow_CouplingBCFeatures.java",
+  "module": "polymer",
+  "interface_refs": {},
+  "arg_bindings": [
+   {
+    "local": "var_here",
+    "expr": "var_there"
+   }
+  ],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "SemiconductorMultiphysicsComponents.java",
+  "module": "semicond",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ShellBeamMultiphysicsComponents.java",
+  "module": "sme",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "SolidMechanicsMultiphysicsComponents.java",
+  "module": "sme",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "ThinStructuralLayerMultiphysicsCouplings.java",
+  "module": "sme",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "SolidAdiabaticHeating.java",
+  "module": "sme",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 10,
+  "sample_vars": [
+   {
+    "name": "item.Tinit",
+    "expression": "par.Tinit"
+   },
+   {
+    "name": "Cp",
+    "expression": "par.Cp"
+   },
+   {
+    "name": "item.betaah",
+    "expression": "par.betaah"
+   },
+   {
+    "name": "phys.Tah",
+    "expression": "item.T"
+   },
+   {
+    "name": "item.T",
+    "expression": "item.Tinit"
+   },
+   {
+    "name": "phys.Tah",
+    "expression": "item.T"
+   },
+   {
+    "name": "item.Qh",
+    "expression": "phys.Qh"
+   },
+   {
+    "name": "item.Qh",
+    "expression": "par.Qh"
+   }
+  ]
+ },
+ {
+  "class": "ElectrochemicalCouplingFeatures_Ssf.java",
+  "module": "ssf",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 2,
+  "sample_vars": [
+   {
+    "name": "iv",
+    "expression": "minput.iv"
+   },
+   {
+    "name": "iloc",
+    "expression": "minput.iloc"
+   }
+  ]
+ },
+ {
+  "class": "MultiphaseFlowInPorousMediaCouplingFeatures.java",
+  "module": "ssf",
+  "interface_refs": {
+   "LayeredShell": 23
+  },
+  "arg_bindings": [],
+  "n_named_vars": 43,
+  "sample_vars": [
+   {
+    "name": "item.p",
+    "expression": "circavg(item.dw/2,dep.p)"
+   },
+   {
+    "name": "item.p",
+    "expression": "dep.p"
+   },
+   {
+    "name": "item.p0",
+    "expression": "par.p0"
+   },
+   {
+    "name": "item.p0",
+    "expression": "phys.rho*phys.g*item.Hp0"
+   },
+   {
+    "name": "item.p0",
+    "expression": "phys.rho*phys.g*(item.H0-phys.D)"
+   },
+   {
+    "name": "item.Ml",
+    "expression": "phys.p_lm"
+   },
+   {
+    "name": "item.Ml",
+    "expression": "item.N0*pi*item.dw"
+   },
+   {
+    "name": "item.Ml",
+    "expression": "par.Ml"
+   }
+  ]
+ },
+ {
+  "class": "MultiphysicsCouplings_PorousMediaFlow.java",
+  "module": "ssf",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ },
+ {
+  "class": "PhaseTransport_MultiphysicsComponents.java",
+  "module": "ssf",
+  "interface_refs": {},
+  "arg_bindings": [],
+  "n_named_vars": 0,
+  "sample_vars": []
+ }
+]

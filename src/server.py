@@ -10,9 +10,13 @@ from .tools.parameters import register_parameter_tools
 from .tools.geometry import register_geometry_tools
 from .tools.physics import register_physics_tools
 from .tools.electrochemistry import register_electrochemistry_tools
+from .tools.static_catalog import register_static_catalog_tools
+from .tools.physicsbuilder import register_physicsbuilder_tools
 from .tools.mesh import register_mesh_tools
 from .tools.study import register_study_tools
 from .tools.results import register_results_tools
+from .tools.audit import register_audit_tools, register_boundary_info_tool
+from .tools.modify import register_modify_tools, register_interpolate_tool, register_material_function_tools
 from .resources.model_resources import register_model_resources
 from .knowledge.embedded import register_knowledge_tools
 
@@ -32,9 +36,16 @@ def register_all_tools() -> None:
     register_geometry_tools(mcp)
     register_physics_tools(mcp)
     register_electrochemistry_tools(mcp)
+    register_static_catalog_tools(mcp)
+    register_physicsbuilder_tools(mcp)
     register_mesh_tools(mcp)
     register_study_tools(mcp)
     register_results_tools(mcp)
+    register_audit_tools(mcp)
+    register_modify_tools(mcp)
+    register_interpolate_tool(mcp)
+    register_material_function_tools(mcp)
+    register_boundary_info_tool(mcp)
     register_knowledge_tools(mcp)
     logger.info("Registered all tools")
 

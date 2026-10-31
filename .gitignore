@@ -19,3 +19,7 @@ venv/
 Thumbs.db
 .idea/
 .vscode/
+
+# Local runtime artifacts
+knowledge_base/
+.playwright-cli/

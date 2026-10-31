@@ -1,0 +1,1092 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PhysicsBuilder fileversion="1977:COMSOL 6.3.0.252">
+  <Design tag="copyBuild1" name="SchrodingerEquation.mphphb" created="1727246355924" modified="1727252964899">
+    <!-- User comments -->
+    <entityComments T="0"></entityComments>
+    <!-- Created by -->
+    <entityAuthor T="0">magnus</entityAuthor>
+    <!-- Updated by -->
+    <entityModifiedBy T="0">magnus</entityModifiedBy>
+    <comsolVersion T="0">COMSOL Multiphysics 6.3 (Build: 252)</comsolVersion>
+    <!-- Unit base system -->
+    <baseSystem T="0">SI</baseSystem>
+    <!-- Serial number -->
+    <srl T="0">1016561</srl>
+    <!-- File version -->
+    <savedInVersion T="5">1977</savedInVersion>
+    <ModelParam tag="param" name="Parameters" created="1727245986840">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ModelParam>
+    <PhysicsList tag="physics" name="Physics" created="1727245986841">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </PhysicsList>
+    <GeomList tag="geom" name="Geometry Parts" created="1727245986845">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </GeomList>
+    <Results tag="result" name="Results" created="1727245986846">
+      <!-- Node status -->
+      <entityFlags T="51">NOREMOVE|NODEACTIVATE</entityFlags>
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+      <ResultFeatureList tag="feature" name="ResultFeatureList" created="1727245986894">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </ResultFeatureList>
+      <TableFeatureList tag="table" name="Tables" created="1727245986894">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </TableFeatureList>
+      <EvaluationGroupFeatureList tag="evaluationgroup" name="Evaluation Group" created="1727245986894">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </EvaluationGroupFeatureList>
+      <ConfigurationFeatureList tag="configuration" name="Configurations" created="1727245988867">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </ConfigurationFeatureList>
+      <ReportFeatureList tag="report" name="Reports" created="1727245988867">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </ReportFeatureList>
+      <ResultParam tag="param" name="Parameters" created="1727246201126">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </ResultParam>
+      <DatasetFeatureList tag="dataset" name="Datasets" created="1727248190806">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </DatasetFeatureList>
+      <ColorTableFeatureList tag="colortable" name="Color Tables" created="1727248197402">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </ColorTableFeatureList>
+      <ExportFeatureList tag="export" name="Export" created="1727251925806">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </ExportFeatureList>
+      <NumericalFeatureList tag="numerical" name="Derived Values" created="1727251925806">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0"></entityAuthor>
+      </NumericalFeatureList>
+    </Results>
+    <History tag="hist" created="1727245986846">
+    </History>
+    <GeomManagerNative tag="geomManagerNative" created="1727252865116">
+    </GeomManagerNative>
+    <ViewList tag="view" name="Views" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ViewList>
+    <StudyList tag="study" name="Studies" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </StudyList>
+    <BatchList tag="batch" name="Batch" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </BatchList>
+    <ReducedModelList tag="reduced" name="Reduced-Order Models" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ReducedModelList>
+    <ModelNodeList tag="modelNode" name="Extra Dimensions" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ModelNodeList>
+    <DesignPhysicsList tag="physicsInterfaceList" name="DesignPhysicsList" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+      <DesignEntity op="PhysicsInterface" tag="phys1" name="Schrodinger Equation" created="1727246201114" modified="1727250639036">
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0">magnus</entityAuthor>
+        <!-- Updated by -->
+        <entityModifiedBy T="0">magnus</entityModifiedBy>
+        <!-- Physics area -->
+        <propertyValue T="30" value="QuantumMechanics" name="p:physicsArea"></propertyValue>
+        <!-- Description -->
+        <propertyValue T="30" value="Schrodinger Equation" name="p:description"></propertyValue>
+        <!-- Type -->
+        <propertyValue T="30" value="SchrodingerEq" name="p:type"></propertyValue>
+        <!-- Type -->
+        <propertyValue T="30" value="on" name="p:typeactive"></propertyValue>
+        <!-- Default name and tag -->
+        <propertyValue T="30" value="scheq" name="p:shortName"></propertyValue>
+        <!-- Allowed study types -->
+        <propertyValue T="30" valueMatrix="1|1,'Eigenvalue'" name="p:studyTypeSelection"></propertyValue>
+        <NodeDefaultValues>17,'p:descriptionLocalized','p:icon','p:spaceDimensionSelection','p:domainLevel','p:defaultFrame','p:useDeformedMesh','p:movingFrame','p:sOrderSel','p:sOrder','p:overrideRelations','p:hideInGui','p:listOrderWeight','p:hideReason','p:hideBuildnumber','p:hideExplanation','p:customGuiId','p:isModelWizardSingle'</NodeDefaultValues>
+        <DesignEntityList tag="feature" name="DesignEntityList" created="1727246201125">
+          <!-- User comments -->
+          <entityComments T="0"></entityComments>
+          <!-- Created by -->
+          <entityAuthor T="0">magnus</entityAuthor>
+          <ReportFeature op="Comment" tag="com1" name="Developer Comments" created="1727246201126">
+            <!-- User comments -->
+            <entityComments T="0"></entityComments>
+            <!-- Created by -->
+            <entityAuthor T="0"></entityAuthor>
+            <!-- The status of this feature. -->
+            <status T="101">BUILT</status>
+            <NodeDefaultValues>1,'p:text'</NodeDefaultValues>
+            <ReportFeatureList tag="feature" name="Reports" created="1727246201129">
+              <!-- User comments -->
+              <entityComments T="0"></entityComments>
+              <!-- Created by -->
+              <entityAuthor T="0"></entityAuthor>
+            </ReportFeatureList>
+          </ReportFeature>
+          <DesignEntity op="FieldVariable" tag="fvar1" name="Dependent Variable Declaration 1" created="1727246375221" modified="1727246487671">
+            <!-- User comments -->
+            <entityComments T="0"></entityComments>
+            <!-- Created by -->
+            <entityAuthor T="0">magnus</entityAuthor>
+            <!-- Updated by -->
+            <entityModifiedBy T="0">magnus</entityModifiedBy>
+            <!-- Default variable name -->
+            <propertyValue T="30" value="psi" name="p:name"></propertyValue>
+            <!-- Description -->
+            <propertyValue T="30" value="Wave function" name="p:description"></propertyValue>
+            <!-- Symbol (LaTeX encoded) -->
+            <propertyValue T="30" value="\psi" name="p:symbol"></propertyValue>
+            <!-- # -->
+            <propertyValue T="30" value="dimensionless" name="p:quantity_builtin"></propertyValue>
+            <!-- #Show/hide -->
+            <propertyValue T="30" name="p:showDensityOptions">null</propertyValue>
+            <!-- Use strain reference temperature for density evaluation -->
+            <propertyValue T="30" name="p:useTempRefForDensity">null</propertyValue>
+            <!-- Link -->
+            <propertyValue T="30" value="none" name="p:localQuantityLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+            <!-- Imported file -->
+            <propertyValue T="30" value="none" name="p:urlq" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+            <!-- Announce variable to feature inputs -->
+            <propertyValue T="30" value="on" name="p:announce"></propertyValue>
+            <!-- Match tag -->
+            <propertyValue T="30" value="" name="p:announceType"></propertyValue>
+            <!-- Announce variable to common inputs -->
+            <propertyValue T="30" value="on" name="p:announceCommon"></propertyValue>
+            <NodeDefaultValues>41,'p:descriptionLocalized','p:fieldIDSelection','p:fieldID','p:quantity','p:unit','p:importedQuantityLink','p:usePhysicalQuantityValues','p:pluralDescriptionLocalized','p:size','p:customSize','p:minLength','p:defaultLength','p:numberOfDescription','p:numberOfDescriptionLocalized','p:plot','p:category','p:addMultiple','p:announceTag','p:discParamName','p:customParamName','p:discParamDesc','p:discParamDescLocalized','p:levelDescriptionLocalized','p:level','p:levelDescription','p:ShapeOrder','p:geometryShapeOrder','p:lowerLevel','p:defaultLevel','p:geomShapeRule','p:geomShapeRuleDyn','p:enableAccurateBoundaryFlux','p:accurateboundaryFluxDefault','p:baseVector','p:densityType','p:use_baseVectorType','p:labelsReadOnly','p:indexBaseVector','p:baseVectorType','p:frameInfoRule','p:defaultValueType'</NodeDefaultValues>
+            <DesignEntityList tag="feature" name="DesignEntityList" created="1727246375226">
+              <!-- User comments -->
+              <entityComments T="0"></entityComments>
+              <!-- Created by -->
+              <entityAuthor T="0">magnus</entityAuthor>
+              <DesignEntity op="InitFeature" tag="iv1" name="Initial Values 1" created="1727246375229">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <NodeDefaultValues>14,'p:initDefaultExpr','p:useInitTime','p:initDefaultExpr_time','p:initFeatureLevel','p:doZeroOut','p:zeroOut','p:zeroOutPropertyName','p:zeroOutParamName','p:zeroOutPropertyValue','p:zeroOutProperty','p:zeroOutOtherPropertyValue','p:zeroOutPropertyUndefined','p:zeroOutExplicitComponents','p:addInitVar'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727246375230">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                </DesignEntityList>
+              </DesignEntity>
+            </DesignEntityList>
+          </DesignEntity>
+          <DesignEntity op="PhysicsDomainFeature" tag="domfeat1" name="Schrodinger Equation Model" created="1727246494534" modified="1727246596902">
+            <!-- User comments -->
+            <entityComments T="0"></entityComments>
+            <!-- Created by -->
+            <entityAuthor T="0">magnus</entityAuthor>
+            <!-- Updated by -->
+            <entityModifiedBy T="0">magnus</entityModifiedBy>
+            <!-- Description -->
+            <propertyValue T="30" value="Schrodinger equation model" name="p:description"></propertyValue>
+            <!-- Type -->
+            <propertyValue T="30" value="SchrodingerEqu" name="p:type"></propertyValue>
+            <!-- Type -->
+            <propertyValue T="30" value="on" name="p:typeactive"></propertyValue>
+            <!-- Default name and tag -->
+            <propertyValue T="30" value="schequ" name="p:shortName"></propertyValue>
+            <!-- Allowed entity types -->
+            <propertyValue T="30" valueMatrix="1|1,'active'" name="p:domainType"></propertyValue>
+            <!-- Link -->
+            <propertyValue T="30" value="none" name="p:LocalDomainCondition" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+            <!-- Imported file -->
+            <propertyValue T="30" value="none" name="p:urldtc" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+            <!-- Link -->
+            <propertyValue T="30" value="none" name="p:localOverrideLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+            <!-- Imported file -->
+            <propertyValue T="30" value="none" name="p:url" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+            <!-- Add as default feature -->
+            <propertyValue T="30" value="on" name="p:addAsDefault"></propertyValue>
+            <!-- Default geometric entity level -->
+            <propertyValue T="30" valueMatrix="1|1,'domain'" name="p:defaultFeatureLevel"></propertyValue>
+            <!-- Default entity types -->
+            <propertyValue T="30" valueMatrix="1|1,'active'" name="p:defaultFeatureType"></propertyValue>
+            <NodeDefaultValues>43,'p:descriptionLocalized','p:spaceDimensions','p:spaceDimensionSelection','p:studyTypes','p:studyTypeSelection','p:domainLevel','p:DomainTypeSource','p:DomainConditionSource','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:importedDomainTypeConditionLink','p:overrideRuleSource','p:filterType','p:localOverrideType','p:importedOverrideLink','p:externalOverrideType','p:singleSelection','p:inputBaseVector','p:baseVector','p:matTypeActivator','p:materialType','p:allowBoundarySystem','p:isSingleton','p:defaultPrefs','p:defaultFeaturePriority','p:hideInGui','p:visibilityConstraint','p:hideReason','p:hideBuildnumber','p:hideExplanation','p:useOldGuiLogic','p:allowTagChange','p:expand'</NodeDefaultValues>
+            <DesignEntityList tag="feature" name="DesignEntityList" created="1727246494541">
+              <!-- User comments -->
+              <entityComments T="0"></entityComments>
+              <!-- Created by -->
+              <entityAuthor T="0">magnus</entityAuthor>
+              <ReportFeature op="Comment" tag="com1" name="Developer Comments" created="1727246494542">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0"></entityAuthor>
+                <!-- The status of this feature. -->
+                <status T="101">BUILT</status>
+                <NodeDefaultValues>1,'p:text'</NodeDefaultValues>
+                <ReportFeatureList tag="feature" name="Reports" created="1727246494542">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0"></entityAuthor>
+                </ReportFeatureList>
+              </ReportFeature>
+              <DesignEntity op="UserInput" tag="par1" name="User Input 1" created="1727246628050" modified="1727246719824">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <!-- Updated by -->
+                <entityModifiedBy T="0">magnus</entityModifiedBy>
+                <!-- Input name -->
+                <propertyValue T="30" value="mu" name="p:name"></propertyValue>
+                <!-- Description -->
+                <propertyValue T="30" value="Reduced mass" name="p:description"></propertyValue>
+                <!-- Symbol (LaTeX encoded) -->
+                <propertyValue T="30" value="\mu" name="p:symbol"></propertyValue>
+                <!-- # -->
+                <propertyValue T="30" value="mass" name="p:quantity_builtin"></propertyValue>
+                <!-- #Show/hide -->
+                <propertyValue T="30" name="p:showDensityOptions">null</propertyValue>
+                <!-- Use strain reference temperature for density evaluation -->
+                <propertyValue T="30" name="p:useTempRefForDensity">null</propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:localQuantityLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlq" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <!-- Default value -->
+                <propertyValue T="30" value="me_const" name="p:defaultScalarValue"></propertyValue>
+                <!-- Show range button (only applicable for some layouts) -->
+                <propertyValue T="30" name="p:annotationVectorInputView">null</propertyValue>
+                <NodeDefaultValues>63,'p:descriptionLocalized','p:tooltip','p:tooltipLocalized','p:quantity','p:unit','p:importedQuantityLink','p:levels','p:size','p:scalarType','p:validValues','p:validValuesLocalized','p:defaultSelectableValue','p:defaultVectorValue','p:defaultMatrixValue','p:customSize','p:hiddenColumns','p:customDefault1','p:customDefault2','p:customDefault3','p:customDefault4','p:customDefault5','p:customDefault6','p:defaultCustomValue','p:defaultSizableValue','p:defaultBooleanValue','p:defaultRealValue','p:outerSize','p:customOuterSize','p:innerSize','p:customInnerSize','p:spaceDimensions','p:spaceDimensionSelection','p:physSymDep','p:omitInHistory','p:resetWhenDuplicating','p:uniqueDefaults','p:defaultsMethod','p:defaultCategory','p:useConditionOnSibling','p:condition','p:inputBaseVector','p:disableGuiProp','p:noGuiLabel','p:hideWhenInactivated','p:annotationHiddenGroup','p:annotationNoDescr','p:annotationNoSymbol','p:annotationNoCoordLabels','p:annotationVectorComps','p:annotationVectorCompsExplicit','p:annotationCompsPropertyName','p:annotationCompsParamName','p:annotationVectorCompsPropertyValue','p:annotationVectorCompsProperty','p:hideInactiveComp','p:annotationMatrixComps','p:annotationMatrixCompsExplicit','p:annotationMatrixCompsPropertyValue','p:annotationMatrixCompsProperty','p:annotationMatrixSymmetry','p:annotationAddDivider','p:annotationDividerText','p:annotationDividerTextLocalized'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727246628053">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                  <DesignEntity op="InputSubDefinition" tag="def1" name="Variable Definition 1" created="1727246820201" modified="1727246820217">
+                    <!-- User comments -->
+                    <entityComments T="0"></entityComments>
+                    <!-- Created by -->
+                    <entityAuthor T="0">magnus</entityAuthor>
+                    <!-- Updated by -->
+                    <entityModifiedBy T="0">magnus</entityModifiedBy>
+                    <!-- Variable name -->
+                    <propertyValue T="30" value="mu" name="p:name"></propertyValue>
+                    <!-- Expression -->
+                    <propertyValue T="30" value="par.mu" name="p:expression"></propertyValue>
+                    <!-- Link -->
+                    <propertyValue T="30" value="none" name="p:selectionComponent" ReferenceContainerList="/physicsMakerList" CompositeIndex="0"></propertyValue>
+                    <!-- Imported file -->
+                    <propertyValue T="30" value="none" name="p:urlimpsel" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                    <NodeDefaultValues>73,'p:definitionType','p:shapeFunction','p:shapeMixedBased','p:shapeMixedExtra','p:shapeMixedOrder','p:extraShapeOrder','p:shapeOrder','p:customDiscretization','p:customShapeOrder','p:selection','p:outSelection','p:adjBoundaries','p:adjEdges','p:adjPoints','p:domainType','p:materialType','p:extraSelectionName','p:seletionOperation','p:inputSelection','p:inputSelectionDiff','p:importedSelectionFilterLink','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:featureSeletionOperation','p:inputFeatureSelection','p:inputFeatureSelectionDiff','p:aleType','p:add','p:fullScope','p:rhs','p:forceLoadGroup','p:plot','p:category','p:addMultiple','p:announce','p:announceType','p:announceTag','p:announceCommon','p:doZeroOut','p:zeroOut','p:zeroOutPropertyName','p:zeroOutParamName','p:zeroOutPropertyValue','p:zeroOutProperty','p:zeroOutOtherPropertyValue','p:zeroOutPropertyUndefined','p:zeroOutExplicitComponents','p:hide','p:encrypt','p:baseVector','p:densityType','p:use_baseVectorType','p:labelsReadOnly','p:indexBaseVector','p:baseVectorType','p:frameInfoRule','p:allFrames','p:defineDerAllFrames','p:disableAccurateFlux','p:depVarType','p:associateWithOtherShape','p:associatedStates','p:realValueType'</NodeDefaultValues>
+                    <DesignEntityList tag="feature" name="DesignEntityList" created="1727246820217">
+                      <!-- User comments -->
+                      <entityComments T="0"></entityComments>
+                      <!-- Created by -->
+                      <entityAuthor T="0">magnus</entityAuthor>
+                    </DesignEntityList>
+                  </DesignEntity>
+                </DesignEntityList>
+              </DesignEntity>
+              <DesignEntity op="UserInput" tag="par2" name="User Input 2" created="1727246831995" modified="1727246855935">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <!-- Updated by -->
+                <entityModifiedBy T="0">magnus</entityModifiedBy>
+                <!-- Input name -->
+                <propertyValue T="30" value="V" name="p:name"></propertyValue>
+                <!-- Description -->
+                <propertyValue T="30" value="Potential energy" name="p:description"></propertyValue>
+                <!-- Symbol (LaTeX encoded) -->
+                <propertyValue T="30" value="V" name="p:symbol"></propertyValue>
+                <!-- # -->
+                <propertyValue T="30" value="energy" name="p:quantity_builtin"></propertyValue>
+                <!-- #Show/hide -->
+                <propertyValue T="30" name="p:showDensityOptions">null</propertyValue>
+                <!-- Use strain reference temperature for density evaluation -->
+                <propertyValue T="30" name="p:useTempRefForDensity">null</propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:localQuantityLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlq" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <!-- Show range button (only applicable for some layouts) -->
+                <propertyValue T="30" name="p:annotationVectorInputView">null</propertyValue>
+                <NodeDefaultValues>64,'p:descriptionLocalized','p:tooltip','p:tooltipLocalized','p:quantity','p:unit','p:importedQuantityLink','p:levels','p:size','p:scalarType','p:defaultScalarValue','p:validValues','p:validValuesLocalized','p:defaultSelectableValue','p:defaultVectorValue','p:defaultMatrixValue','p:customSize','p:hiddenColumns','p:customDefault1','p:customDefault2','p:customDefault3','p:customDefault4','p:customDefault5','p:customDefault6','p:defaultCustomValue','p:defaultSizableValue','p:defaultBooleanValue','p:defaultRealValue','p:outerSize','p:customOuterSize','p:innerSize','p:customInnerSize','p:spaceDimensions','p:spaceDimensionSelection','p:physSymDep','p:omitInHistory','p:resetWhenDuplicating','p:uniqueDefaults','p:defaultsMethod','p:defaultCategory','p:useConditionOnSibling','p:condition','p:inputBaseVector','p:disableGuiProp','p:noGuiLabel','p:hideWhenInactivated','p:annotationHiddenGroup','p:annotationNoDescr','p:annotationNoSymbol','p:annotationNoCoordLabels','p:annotationVectorComps','p:annotationVectorCompsExplicit','p:annotationCompsPropertyName','p:annotationCompsParamName','p:annotationVectorCompsPropertyValue','p:annotationVectorCompsProperty','p:hideInactiveComp','p:annotationMatrixComps','p:annotationMatrixCompsExplicit','p:annotationMatrixCompsPropertyValue','p:annotationMatrixCompsProperty','p:annotationMatrixSymmetry','p:annotationAddDivider','p:annotationDividerText','p:annotationDividerTextLocalized'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727246831999">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                  <DesignEntity op="InputSubDefinition" tag="def1" name="Variable Definition 1" created="1727246887071" modified="1727246887075">
+                    <!-- User comments -->
+                    <entityComments T="0"></entityComments>
+                    <!-- Created by -->
+                    <entityAuthor T="0">magnus</entityAuthor>
+                    <!-- Updated by -->
+                    <entityModifiedBy T="0">magnus</entityModifiedBy>
+                    <!-- Variable name -->
+                    <propertyValue T="30" value="V" name="p:name"></propertyValue>
+                    <!-- Expression -->
+                    <propertyValue T="30" value="par.V" name="p:expression"></propertyValue>
+                    <!-- Link -->
+                    <propertyValue T="30" value="none" name="p:selectionComponent" ReferenceContainerList="/physicsMakerList" CompositeIndex="0"></propertyValue>
+                    <!-- Imported file -->
+                    <propertyValue T="30" value="none" name="p:urlimpsel" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                    <NodeDefaultValues>73,'p:definitionType','p:shapeFunction','p:shapeMixedBased','p:shapeMixedExtra','p:shapeMixedOrder','p:extraShapeOrder','p:shapeOrder','p:customDiscretization','p:customShapeOrder','p:selection','p:outSelection','p:adjBoundaries','p:adjEdges','p:adjPoints','p:domainType','p:materialType','p:extraSelectionName','p:seletionOperation','p:inputSelection','p:inputSelectionDiff','p:importedSelectionFilterLink','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:featureSeletionOperation','p:inputFeatureSelection','p:inputFeatureSelectionDiff','p:aleType','p:add','p:fullScope','p:rhs','p:forceLoadGroup','p:plot','p:category','p:addMultiple','p:announce','p:announceType','p:announceTag','p:announceCommon','p:doZeroOut','p:zeroOut','p:zeroOutPropertyName','p:zeroOutParamName','p:zeroOutPropertyValue','p:zeroOutProperty','p:zeroOutOtherPropertyValue','p:zeroOutPropertyUndefined','p:zeroOutExplicitComponents','p:hide','p:encrypt','p:baseVector','p:densityType','p:use_baseVectorType','p:labelsReadOnly','p:indexBaseVector','p:baseVectorType','p:frameInfoRule','p:allFrames','p:defineDerAllFrames','p:disableAccurateFlux','p:depVarType','p:associateWithOtherShape','p:associatedStates','p:realValueType'</NodeDefaultValues>
+                    <DesignEntityList tag="feature" name="DesignEntityList" created="1727246887075">
+                      <!-- User comments -->
+                      <entityComments T="0"></entityComments>
+                      <!-- Created by -->
+                      <entityAuthor T="0">magnus</entityAuthor>
+                    </DesignEntityList>
+                  </DesignEntity>
+                </DesignEntityList>
+              </DesignEntity>
+              <DesignEntity op="WeakEquation" tag="weak1" name="Weak Form Equation 1" created="1727246900466" modified="1727247039420">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <!-- Updated by -->
+                <entityModifiedBy T="0">magnus</entityModifiedBy>
+                <!-- Expression -->
+                <propertyValue T="30" value="-hbar_const^2/(2*mu)*&#x2207;psi&#xb7;test(&#x2207;psi)-(V-lambda)*psi&#xb7;test(psi)&#xa;" name="p:expression"></propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:selectionComponent" ReferenceContainerList="/physicsMakerList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlimpsel" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <NodeDefaultValues>36,'p:selection','p:outSelection','p:adjBoundaries','p:adjEdges','p:adjPoints','p:domainType','p:materialType','p:extraSelectionName','p:seletionOperation','p:inputSelection','p:inputSelectionDiff','p:importedSelectionFilterLink','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:featureSeletionOperation','p:inputFeatureSelection','p:inputFeatureSelectionDiff','p:aleType','p:useVolumeFactor','p:constantVolumeFactor','p:showSkipIfWrapper','p:skipIfWrapper','p:baseVector','p:integrationOrder','p:customDiscretization','p:customIntegrationOrder'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727246900469">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                </DesignEntityList>
+              </DesignEntity>
+              <DesignEntity op="DependentVariable" tag="dvar1" name="Dependent Variable Definition 1" created="1727247049733" modified="1727247174976">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <!-- Updated by -->
+                <entityModifiedBy T="0">magnus</entityModifiedBy>
+                <!-- Physical quantity -->
+                <propertyValue T="30" value="built_in" name="p:quantity"></propertyValue>
+                <!-- # -->
+                <propertyValue T="30" value="dimensionless" name="p:quantity_builtin"></propertyValue>
+                <!-- #Show/hide -->
+                <propertyValue T="30" name="p:showDensityOptions">null</propertyValue>
+                <!-- Use strain reference temperature for density evaluation -->
+                <propertyValue T="30" name="p:useTempRefForDensity">null</propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:localQuantityLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlq" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:selectionComponent" ReferenceContainerList="/physicsMakerList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlimpsel" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <NodeDefaultValues>52,'p:fieldIDSelection','p:importedQuantityLink','p:fieldID','p:name','p:shapeFunction','p:shapeMixedBased','p:shapeMixedExtra','p:shapeMixedOrder','p:extraShapeOrder','p:selection','p:outSelection','p:adjBoundaries','p:adjEdges','p:adjPoints','p:domainType','p:materialType','p:extraSelectionName','p:seletionOperation','p:inputSelection','p:inputSelectionDiff','p:importedSelectionFilterLink','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:featureSeletionOperation','p:inputFeatureSelection','p:inputFeatureSelectionDiff','p:aleType','p:doZeroOut','p:zeroOut','p:zeroOutPropertyName','p:zeroOutParamName','p:zeroOutPropertyValue','p:zeroOutProperty','p:zeroOutOtherPropertyValue','p:zeroOutPropertyUndefined','p:zeroOutExplicitComponents','p:slit','p:allFrames','p:defineDerAllFrames','p:depVarType','p:associateWithOtherShape','p:associatedStates'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727247049736">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                </DesignEntityList>
+              </DesignEntity>
+            </DesignEntityList>
+          </DesignEntity>
+          <DesignEntity op="PhysicsBoundaryCondition" tag="bndcond1" name="Zero Probability" created="1727247204817" modified="1727247251660">
+            <!-- User comments -->
+            <entityComments T="0"></entityComments>
+            <!-- Created by -->
+            <entityAuthor T="0">magnus</entityAuthor>
+            <!-- Updated by -->
+            <entityModifiedBy T="0">magnus</entityModifiedBy>
+            <!-- Description -->
+            <propertyValue T="30" value="Zero probability" name="p:description"></propertyValue>
+            <!-- Type -->
+            <propertyValue T="30" value="ZeroProb" name="p:type"></propertyValue>
+            <!-- Type -->
+            <propertyValue T="30" value="on" name="p:typeactive"></propertyValue>
+            <!-- Default name and tag -->
+            <propertyValue T="30" value="zpb" name="p:shortName"></propertyValue>
+            <!-- Link -->
+            <propertyValue T="30" value="none" name="p:LocalDomainCondition" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+            <!-- Imported file -->
+            <propertyValue T="30" value="none" name="p:urldtc" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+            <!-- Link -->
+            <propertyValue T="30" value="none" name="p:localOverrideLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+            <!-- Imported file -->
+            <propertyValue T="30" value="none" name="p:url" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+            <!-- Add as default feature -->
+            <propertyValue T="30" value="on" name="p:addAsDefault"></propertyValue>
+            <!-- Default geometric entity level -->
+            <propertyValue T="30" valueMatrix="1|1,'boundaryRel'" name="p:defaultFeatureLevel"></propertyValue>
+            <NodeDefaultValues>45,'p:descriptionLocalized','p:spaceDimensions','p:spaceDimensionSelection','p:studyTypes','p:studyTypeSelection','p:domainLevel','p:DomainTypeSource','p:domainType','p:DomainConditionSource','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:importedDomainTypeConditionLink','p:overrideRuleSource','p:filterType','p:localOverrideType','p:importedOverrideLink','p:externalOverrideType','p:singleSelection','p:inputBaseVector','p:baseVector','p:matTypeActivator','p:materialType','p:allowBoundarySystem','p:isSingleton','p:defaultFeatureType','p:defaultPrefs','p:defaultFeaturePriority','p:hideInGui','p:visibilityConstraint','p:hideReason','p:hideBuildnumber','p:hideExplanation','p:useOldGuiLogic','p:allowTagChange','p:expand'</NodeDefaultValues>
+            <DesignEntityList tag="feature" name="DesignEntityList" created="1727247204825">
+              <!-- User comments -->
+              <entityComments T="0"></entityComments>
+              <!-- Created by -->
+              <entityAuthor T="0">magnus</entityAuthor>
+              <ReportFeature op="Comment" tag="com1" name="Developer Comments" created="1727247204826">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0"></entityAuthor>
+                <!-- The status of this feature. -->
+                <status T="101">BUILT</status>
+                <NodeDefaultValues>1,'p:text'</NodeDefaultValues>
+                <ReportFeatureList tag="feature" name="Reports" created="1727247204826">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0"></entityAuthor>
+                </ReportFeatureList>
+              </ReportFeature>
+              <DesignEntity op="Constraint" tag="constr1" name="Constraint 1" created="1727247267817" modified="1727247395683">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <!-- Updated by -->
+                <entityModifiedBy T="0">magnus</entityModifiedBy>
+                <!-- Expression -->
+                <propertyValue T="30" value="0-psi" name="p:expression"></propertyValue>
+                <!-- Constraint force -->
+                <propertyValue T="30" value="auto" name="p:constrForce"></propertyValue>
+                <!-- Force expression -->
+                <propertyValue T="30" value="test(0-psi)" name="p:constrForceExpr"></propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:selectionComponent" ReferenceContainerList="/physicsMakerList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlimpsel" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <!-- Physical quantity -->
+                <propertyValue T="30" value="built_in" name="p:quantity"></propertyValue>
+                <!-- # -->
+                <propertyValue T="30" value="dimensionless" name="p:quantity_builtin"></propertyValue>
+                <!-- #Show/hide -->
+                <propertyValue T="30" name="p:showDensityOptions">null</propertyValue>
+                <!-- Use strain reference temperature for density evaluation -->
+                <propertyValue T="30" name="p:useTempRefForDensity">null</propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:localQuantityLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlq" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <NodeDefaultValues>53,'p:selection','p:outSelection','p:adjBoundaries','p:adjEdges','p:adjPoints','p:domainType','p:materialType','p:extraSelectionName','p:seletionOperation','p:inputSelection','p:inputSelectionDiff','p:importedSelectionFilterLink','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:featureSeletionOperation','p:inputFeatureSelection','p:inputFeatureSelectionDiff','p:aleType','p:constrShape','p:shapeFunction','p:shapeMixedBased','p:shapeMixedExtra','p:shapeMixedOrder','p:extraShapeOrder','p:shapeOrder','p:customDiscretization','p:customShapeOrder','p:fieldIDSelection','p:importedQuantityLink','p:fieldID','p:name','p:allowWeakConstraint','p:lagrangeMultiplierName','p:lagrangeMultiplierNameExp','p:weakExpression','p:weakExpressionExpr','p:baseVector','p:useVolumeFactor','p:constantVolumeFactor','p:autoExclSels','p:ignoreConstraintGroup','p:showSkipIfWrapper','p:skipIfWrapper'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727247267829">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                </DesignEntityList>
+              </DesignEntity>
+            </DesignEntityList>
+          </DesignEntity>
+          <DesignEntity op="PhysicsBoundaryCondition" tag="bndcond2" name="Wave Function Value" created="1727247455245" modified="1727247842143">
+            <!-- User comments -->
+            <entityComments T="0"></entityComments>
+            <!-- Created by -->
+            <entityAuthor T="0">magnus</entityAuthor>
+            <!-- Updated by -->
+            <entityModifiedBy T="0">magnus</entityModifiedBy>
+            <!-- Description -->
+            <propertyValue T="30" value="Wave function value" name="p:description"></propertyValue>
+            <!-- Type -->
+            <propertyValue T="30" value="WaveFunc" name="p:type"></propertyValue>
+            <!-- Type -->
+            <propertyValue T="30" value="on" name="p:typeactive"></propertyValue>
+            <!-- Default name and tag -->
+            <propertyValue T="30" value="wvfcn" name="p:shortName"></propertyValue>
+            <!-- Link -->
+            <propertyValue T="30" value="none" name="p:LocalDomainCondition" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+            <!-- Imported file -->
+            <propertyValue T="30" value="none" name="p:urldtc" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+            <!-- Link -->
+            <propertyValue T="30" value="none" name="p:localOverrideLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+            <!-- Imported file -->
+            <propertyValue T="30" value="none" name="p:url" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+            <!-- Default geometric entity level -->
+            <propertyValue T="30" valueMatrix="1|1,'boundaryRel'" name="p:defaultFeatureLevel"></propertyValue>
+            <NodeDefaultValues>46,'p:descriptionLocalized','p:spaceDimensions','p:spaceDimensionSelection','p:studyTypes','p:studyTypeSelection','p:domainLevel','p:DomainTypeSource','p:domainType','p:DomainConditionSource','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:importedDomainTypeConditionLink','p:overrideRuleSource','p:filterType','p:localOverrideType','p:importedOverrideLink','p:externalOverrideType','p:singleSelection','p:inputBaseVector','p:baseVector','p:matTypeActivator','p:materialType','p:allowBoundarySystem','p:isSingleton','p:addAsDefault','p:defaultFeatureType','p:defaultPrefs','p:defaultFeaturePriority','p:hideInGui','p:visibilityConstraint','p:hideReason','p:hideBuildnumber','p:hideExplanation','p:useOldGuiLogic','p:allowTagChange','p:expand'</NodeDefaultValues>
+            <DesignEntityList tag="feature" name="DesignEntityList" created="1727247455260">
+              <!-- User comments -->
+              <entityComments T="0"></entityComments>
+              <!-- Created by -->
+              <entityAuthor T="0">magnus</entityAuthor>
+              <ReportFeature op="Comment" tag="com1" name="Developer Comments" created="1727247455260">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0"></entityAuthor>
+                <!-- The status of this feature. -->
+                <status T="101">BUILT</status>
+                <NodeDefaultValues>1,'p:text'</NodeDefaultValues>
+                <ReportFeatureList tag="feature" name="Reports" created="1727247455260">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0"></entityAuthor>
+                </ReportFeatureList>
+              </ReportFeature>
+              <DesignEntity op="UserInput" tag="par1" name="User Input 1" created="1727247530090" modified="1727247566589">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <!-- Updated by -->
+                <entityModifiedBy T="0">magnus</entityModifiedBy>
+                <!-- Input name -->
+                <propertyValue T="30" value="psi0" name="p:name"></propertyValue>
+                <!-- Description -->
+                <propertyValue T="30" value="Wave function value" name="p:description"></propertyValue>
+                <!-- Symbol (LaTeX encoded) -->
+                <propertyValue T="30" value="\psi_0" name="p:symbol"></propertyValue>
+                <!-- # -->
+                <propertyValue T="30" value="dimensionless" name="p:quantity_builtin"></propertyValue>
+                <!-- #Show/hide -->
+                <propertyValue T="30" name="p:showDensityOptions">null</propertyValue>
+                <!-- Use strain reference temperature for density evaluation -->
+                <propertyValue T="30" name="p:useTempRefForDensity">null</propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:localQuantityLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlq" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <!-- Show range button (only applicable for some layouts) -->
+                <propertyValue T="30" name="p:annotationVectorInputView">null</propertyValue>
+                <NodeDefaultValues>64,'p:descriptionLocalized','p:tooltip','p:tooltipLocalized','p:quantity','p:unit','p:importedQuantityLink','p:levels','p:size','p:scalarType','p:defaultScalarValue','p:validValues','p:validValuesLocalized','p:defaultSelectableValue','p:defaultVectorValue','p:defaultMatrixValue','p:customSize','p:hiddenColumns','p:customDefault1','p:customDefault2','p:customDefault3','p:customDefault4','p:customDefault5','p:customDefault6','p:defaultCustomValue','p:defaultSizableValue','p:defaultBooleanValue','p:defaultRealValue','p:outerSize','p:customOuterSize','p:innerSize','p:customInnerSize','p:spaceDimensions','p:spaceDimensionSelection','p:physSymDep','p:omitInHistory','p:resetWhenDuplicating','p:uniqueDefaults','p:defaultsMethod','p:defaultCategory','p:useConditionOnSibling','p:condition','p:inputBaseVector','p:disableGuiProp','p:noGuiLabel','p:hideWhenInactivated','p:annotationHiddenGroup','p:annotationNoDescr','p:annotationNoSymbol','p:annotationNoCoordLabels','p:annotationVectorComps','p:annotationVectorCompsExplicit','p:annotationCompsPropertyName','p:annotationCompsParamName','p:annotationVectorCompsPropertyValue','p:annotationVectorCompsProperty','p:hideInactiveComp','p:annotationMatrixComps','p:annotationMatrixCompsExplicit','p:annotationMatrixCompsPropertyValue','p:annotationMatrixCompsProperty','p:annotationMatrixSymmetry','p:annotationAddDivider','p:annotationDividerText','p:annotationDividerTextLocalized'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727247530094">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                </DesignEntityList>
+              </DesignEntity>
+              <DesignEntity op="Constraint" tag="constr1" name="Constraint 1" created="1727247866676" modified="1727247919824">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <!-- Updated by -->
+                <entityModifiedBy T="0">magnus</entityModifiedBy>
+                <!-- Expression -->
+                <propertyValue T="30" value="par.psi0-psi" name="p:expression"></propertyValue>
+                <!-- Constraint force -->
+                <propertyValue T="30" value="auto" name="p:constrForce"></propertyValue>
+                <!-- Force expression -->
+                <propertyValue T="30" value="test(par.psi0-psi)" name="p:constrForceExpr"></propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:selectionComponent" ReferenceContainerList="/physicsMakerList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlimpsel" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <!-- Physical quantity -->
+                <propertyValue T="30" value="built_in" name="p:quantity"></propertyValue>
+                <!-- # -->
+                <propertyValue T="30" value="dimensionless" name="p:quantity_builtin"></propertyValue>
+                <!-- #Show/hide -->
+                <propertyValue T="30" name="p:showDensityOptions">null</propertyValue>
+                <!-- Use strain reference temperature for density evaluation -->
+                <propertyValue T="30" name="p:useTempRefForDensity">null</propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:localQuantityLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlq" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <NodeDefaultValues>53,'p:selection','p:outSelection','p:adjBoundaries','p:adjEdges','p:adjPoints','p:domainType','p:materialType','p:extraSelectionName','p:seletionOperation','p:inputSelection','p:inputSelectionDiff','p:importedSelectionFilterLink','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:featureSeletionOperation','p:inputFeatureSelection','p:inputFeatureSelectionDiff','p:aleType','p:constrShape','p:shapeFunction','p:shapeMixedBased','p:shapeMixedExtra','p:shapeMixedOrder','p:extraShapeOrder','p:shapeOrder','p:customDiscretization','p:customShapeOrder','p:fieldIDSelection','p:importedQuantityLink','p:fieldID','p:name','p:allowWeakConstraint','p:lagrangeMultiplierName','p:lagrangeMultiplierNameExp','p:weakExpression','p:weakExpressionExpr','p:baseVector','p:useVolumeFactor','p:constantVolumeFactor','p:autoExclSels','p:ignoreConstraintGroup','p:showSkipIfWrapper','p:skipIfWrapper'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727247866680">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                </DesignEntityList>
+              </DesignEntity>
+              <DesignEntity op="InputGroup" tag="grp1" name="User Input Group 1" created="1727247951055" modified="1727248014218">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <!-- Updated by -->
+                <entityModifiedBy T="0">magnus</entityModifiedBy>
+                <!-- Group name -->
+                <propertyValue T="30" value="WaveFunc_section" name="p:name"></propertyValue>
+                <!-- Description -->
+                <propertyValue T="30" value="Wave function" name="p:description"></propertyValue>
+                <!-- Group members -->
+                <propertyValue T="30" valueMatrix="1|1,'par1'" name="p:members"></propertyValue>
+                <!-- GUI layout -->
+                <propertyValue T="30" value="section" name="p:GUIlayout"></propertyValue>
+                <NodeDefaultValues>17,'p:descriptionLocalized','p:hideWhenInactivated','p:annotationAddDivider','p:annotationDividerText','p:includeImage','p:icon','p:explArrayLen','p:groupArrayLen','p:annotationVectorComps','p:annotationVectorCompsExplicit','p:annotationCompsPropertyName','p:annotationCompsParamName','p:annotationVectorCompsPropertyValue','p:annotationVectorCompsProperty','p:advancedSection','p:collapseSection','p:annotationDividerTextLocalized'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727247951055">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                </DesignEntityList>
+              </DesignEntity>
+            </DesignEntityList>
+          </DesignEntity>
+          <DesignEntity op="Variable" tag="var1" name="Variable Declaration 1" created="1727248035063" modified="1727248079537">
+            <!-- User comments -->
+            <entityComments T="0"></entityComments>
+            <!-- Created by -->
+            <entityAuthor T="0">magnus</entityAuthor>
+            <!-- Updated by -->
+            <entityModifiedBy T="0">magnus</entityModifiedBy>
+            <!-- Variable name -->
+            <propertyValue T="30" value="probdens" name="p:name"></propertyValue>
+            <!-- Description -->
+            <propertyValue T="30" value="Probability density function" name="p:description"></propertyValue>
+            <!-- Symbol (LaTeX encoded) -->
+            <propertyValue T="30" value="{\mid\psi\mid}^2" name="p:symbol"></propertyValue>
+            <!-- # -->
+            <propertyValue T="30" value="dimensionless" name="p:quantity_builtin"></propertyValue>
+            <!-- #Show/hide -->
+            <propertyValue T="30" name="p:showDensityOptions">null</propertyValue>
+            <!-- Use strain reference temperature for density evaluation -->
+            <propertyValue T="30" name="p:useTempRefForDensity">null</propertyValue>
+            <!-- Link -->
+            <propertyValue T="30" value="none" name="p:localQuantityLink" ReferenceContainerList="/materialGroupList" CompositeIndex="0"></propertyValue>
+            <!-- Imported file -->
+            <propertyValue T="30" value="none" name="p:urlq" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+            <NodeDefaultValues>25,'p:descriptionLocalized','p:quantity','p:unit','p:importedQuantityLink','p:usePhysicalQuantityValues','p:size','p:customSize','p:add','p:rhs','p:forceLoadGroup','p:annotationMatrixSymmetry','p:plot','p:category','p:addMultiple','p:announce','p:announceType','p:announceTag','p:announceCommon','p:baseVector','p:densityType','p:use_baseVectorType','p:labelsReadOnly','p:indexBaseVector','p:baseVectorType','p:frameInfoRule'</NodeDefaultValues>
+            <DesignEntityList tag="feature" name="DesignEntityList" created="1727248035077">
+              <!-- User comments -->
+              <entityComments T="0"></entityComments>
+              <!-- Created by -->
+              <entityAuthor T="0">magnus</entityAuthor>
+              <DesignEntity op="VariableSubDefinition" tag="def1" name="Variable Definition 1" created="1727248151544" modified="1727248164987">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <!-- Updated by -->
+                <entityModifiedBy T="0">magnus</entityModifiedBy>
+                <!-- Expression -->
+                <propertyValue T="30" value="abs(psi)^2" name="p:expression"></propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" value="none" name="p:selectionComponent" ReferenceContainerList="/physicsMakerList" CompositeIndex="0"></propertyValue>
+                <!-- Imported file -->
+                <propertyValue T="30" value="none" name="p:urlimpsel" ReferenceContainerList="/includeList" CompositeIndex="0"></propertyValue>
+                <NodeDefaultValues>56,'p:definitionType','p:shapeFunction','p:shapeMixedBased','p:shapeMixedExtra','p:shapeMixedOrder','p:extraShapeOrder','p:shapeOrder','p:customDiscretization','p:customShapeOrder','p:selection','p:outSelection','p:adjBoundaries','p:adjEdges','p:adjPoints','p:domainType','p:materialType','p:extraSelectionName','p:seletionOperation','p:inputSelection','p:inputSelectionDiff','p:importedSelectionFilterLink','p:selPackage','p:selLink','p:selConstructor_show_card','p:selConstructor','p:selLink_string_1_show_card','p:selLink_string_1','p:selLink_string_2_show_card','p:selLink_string_2','p:selLink_stringSet_1_show_card','p:selLink_stringSet_1','p:selLink_stringSet_2_show_card','p:selLink_stringSet_2','p:featureSeletionOperation','p:inputFeatureSelection','p:inputFeatureSelectionDiff','p:aleType','p:doZeroOut','p:zeroOut','p:zeroOutPropertyName','p:zeroOutParamName','p:zeroOutPropertyValue','p:zeroOutProperty','p:zeroOutOtherPropertyValue','p:zeroOutPropertyUndefined','p:zeroOutExplicitComponents','p:hide','p:encrypt','p:slit','p:allFrames','p:defineDerAllFrames','p:disableAccurateFlux','p:depVarType','p:associateWithOtherShape','p:associatedStates','p:realValueType'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727248151551">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                </DesignEntityList>
+              </DesignEntity>
+            </DesignEntityList>
+          </DesignEntity>
+          <DesignEntity op="PostDefault" tag="pdef1" name="Result Defaults 1" created="1727248185008">
+            <!-- User comments -->
+            <entityComments T="0"></entityComments>
+            <!-- Created by -->
+            <entityAuthor T="0">magnus</entityAuthor>
+            <NodeDefaultValues>5,'p:plotInSpatial','p:usePlotResultPolicy','p:plotResultPolicy','p:usePhaseOverride','p:phaseOverrideStudyTypes'</NodeDefaultValues>
+            <DesignEntityList tag="feature" name="DesignEntityList" created="1727248185012">
+              <!-- User comments -->
+              <entityComments T="0"></entityComments>
+              <!-- Created by -->
+              <entityAuthor T="0">magnus</entityAuthor>
+              <DesignPostPlotEntity op="PlotGroup2D" tag="pg1" name="2D Plot Group 1" created="1727248190799">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <selection T="32" selection="LocalSelection" selType="NONE">
+                </selection>
+                <!-- Dataset -->
+                <propertyValue T="30" value="solution" name="p:data" ReferenceContainerList="/physicsInterfaceList/phys1/feature/pdef1/feature" CompositeIndex="1"></propertyValue>
+                <!-- Configuration -->
+                <propertyValue T="30" value="none" name="p:config" CompositeIndex="0"></propertyValue>
+                <!-- Selection -->
+                <propertyValue T="30" value="1" name="p:solnum" CompositeIndex="1"></propertyValue>
+                <!-- Selection -->
+                <propertyValue T="30" value="empty" name="p:selection"></propertyValue>
+                <!-- Link -->
+                <propertyValue T="30" name="p:selectionComponent" ReferenceContainerList="/physicsMakerList"></propertyValue>
+                <!-- View -->
+                <propertyValue T="30" value="auto" name="p:view" CompositeIndex="0"></propertyValue>
+                <!-- Precision -->
+                <propertyValue T="30" value="3" name="p:legendprecision"></propertyValue>
+                <!-- Precision -->
+                <propertyValue T="30" value="4" name="p:axisprecision"></propertyValue>
+                <NodeDefaultValues>153,'p:showInPlotGroupName','p:descr_active_check','p:postDescription','p:postDescriptionLocalized','p:plotWeight','p:showInPlotGroup','p:resultDefaultType','p:progressactive','p:hasbeenplotted','p:renderinfo','p:ispendingzoom','p:isforexport','p:colortheme','p:isforreport','p:preventautozoomextents','p:needsstylerepaint','p:stylerepaintinprogress','p:defaultaxisunits','p:animating','p:animboundingbox','p:legendactivechanged','p:defaultPlotID','p:weight','p:solutionparams','p:solrepresentation','p:oldanalysistype','p:oldouteranalysistype','p:outertype','p:outersolnum','p:solvertype','p:timeinterp','p:t','p:showlooplevel','p:looplevel','p:showinterp','p:interp','p:solutiontouchtype','p:previousnextlevel','p:previousnextlevelinitialized','p:outSelection','p:phasetype','p:phase','p:savedatainmodel','p:titlenumberformatkey','p:titletype','p:titlecolor','p:customtitlecolor','p:titlenumberformat','p:titletrailingzeros','p:titleprecision','p:titleintegerdigits','p:titledecimals','p:titlealwayssign','p:titlealwaysimaginary','p:titleexponentdigits','p:titlealwayssignexp','p:datasetintitle','p:phaseintitle','p:solutionintitle','p:filenameintitle','p:dateintitle','p:timeintitle','p:prefixintitle','p:suffixintitle','p:typeintitle','p:descriptionintitle','p:expressionintitle','p:unitintitle','p:titleparamindicator','p:title','p:paramindicator','p:help1','p:help2','p:help3','p:temptitleexpr','p:temptitleunit','p:evaluatedtitle','p:evaluatedparamindicator','p:forceviewupdate','p:ignoreview','p:xlabel','p:xlabelactive','p:ylabel','p:ylabelactive','p:showhiddenobjects','p:inherithide','p:dataisaxisym','p:symmetryaxis','p:edges','p:edgecolor','p:customedgecolor','p:frametype','p:renderdatacached','p:inputmode','p:cutmode','p:planedepth','p:lastinputmode','p:linefirst','p:linesecond','p:lineisinit','p:planefirst','p:planesecond','p:planeisinit','p:cutlineds','p:cutlinedshash','p:cutplaneds','p:cutplanedshash','p:cutlinepg','p:cutlinepgds','p:cutplanepg','p:cutplanepgds','p:cutlineplot','p:cutplaneplot','p:showlegends','p:showlegendsmaxmin','p:showlegendstitle','p:showlegendsunit','p:legendpos','p:legendcolor','p:customlegendcolor','p:legendactive','p:legendnotation','p:legendcommonexp','p:legendtrailingzeros','p:legendupdate','p:axisactive','p:axisnotation','p:axiscommonexp','p:axistrailingzeros','p:axisupdate','p:plotarrayenable','p:arrayshape','p:arrayaxis','p:displacementlinear','p:paddinglinear','p:relpadding','p:padding','p:celldisp','p:order','p:displacementsquare','p:paddingsquare','p:relrowpadding','p:relcolumnpadding','p:rowpadding','p:columnpadding','p:rowdisp','p:columndisp','p:boxlengths','p:window','p:showwindowtitle','p:windowtitle','p:windowtitleactive','p:allowtableupdate'</NodeDefaultValues>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727248190824">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                  <DesignPostPlotEntity op="Surface" tag="surf1" name="Probability Density" created="1727248197364" modified="1727252941594">
+                    <!-- User comments -->
+                    <entityComments T="0"></entityComments>
+                    <!-- Created by -->
+                    <entityAuthor T="0">magnus</entityAuthor>
+                    <!-- Updated by -->
+                    <entityModifiedBy T="0">magnus</entityModifiedBy>
+                    <!-- Description -->
+                    <propertyValue T="30" value="on" name="p:descr_active_check"></propertyValue>
+                    <!-- Description -->
+                    <propertyValue T="30" value="Probability density" name="p:postDescription"></propertyValue>
+                    <!-- Identifier -->
+                    <propertyValue T="30" value="pdens" name="p:showInPlotGroupName"></propertyValue>
+                    <!-- Link -->
+                    <propertyValue T="30" name="p:selectionComponent" ReferenceContainerList="/physicsMakerList"></propertyValue>
+                    <!-- Dataset -->
+                    <propertyValue T="30" value="parent" name="p:data" ReferenceContainerList="/physicsInterfaceList/phys1/feature/pdef1/feature" CompositeIndex="0"></propertyValue>
+                    <!-- Show solution parameter settings -->
+                    <propertyValue T="30" value="on" name="p:showsolutionparams"></propertyValue>
+                    <!-- Selection -->
+                    <propertyValue T="30" value="1" name="p:solnum" CompositeIndex="1"></propertyValue>
+                    <!-- Expression -->
+                    <propertyValue T="30" value="probdens" name="p:expr"></propertyValue>
+                    <!-- Description -->
+                    <propertyValue T="30" value="probdens" name="p:descr"></propertyValue>
+                    <!-- Show parameters -->
+                    <propertyValue T="30" value="on" name="p:constactive"></propertyValue>
+                    <!-- Resolution -->
+                    <propertyValue T="30" value="normal" name="p:resolution"></propertyValue>
+                    <!-- Element refinement -->
+                    <propertyValue T="30" value="1" name="p:refine"></propertyValue>
+                    <!-- Plot -->
+                    <propertyValue T="30" value="none" name="p:inheritplot" ReferenceContainerList="/physicsInterfaceList/phys1/feature/pdef1/feature/pg1/feature" CompositeIndex="0"></propertyValue>
+                    <NodeDefaultValues>120,'p:postDescriptionLocalized','p:exprOp','p:showInPlotGroup','p:progressactive','p:hasbeenplotted','p:renderinfo','p:isanim','p:isanimfirst','p:iscachedirty','p:readytoplot','p:legendactivechanged','p:selection','p:outSelection','p:solutionparams','p:solrepresentation','p:oldanalysistype','p:oldouteranalysistype','p:outertype','p:outersolnum','p:solvertype','p:timeinterp','p:t','p:showlooplevel','p:looplevel','p:showinterp','p:interp','p:solutiontouchtype','p:inputmode','p:cutmode','p:planedepth','p:cutplane','p:previewpg','p:previewview','p:previewwindow','p:updatetoolbar','p:listen','p:planefirst','p:planesecond','p:planeisinit','p:phasetype','p:phase','p:previousnextlevel','p:previousnextlevelinitialized','p:unitdim','p:unittrans','p:unit','p:descractive','p:evalmethodactive','p:evalmethod','p:differential','p:const','p:constUnit','p:constisupdated','p:constprefixes','p:titletype','p:prefixintitle','p:suffixintitle','p:typeintitle','p:descriptionintitle','p:expressionintitle','p:unitintitle','p:title','p:rangecoloractive','p:rangecolormin','p:rangecolormax','p:rangedataactive','p:rangedatamin','p:rangedatamax','p:rangeactualminmax','p:rangeminpositive','p:rangeunit','p:rangeisshared','p:isuniformshown','p:isgradientshown','p:isuniform','p:isgradient','p:showcolor','p:coloring','p:colortable','p:colorlegend','p:showlegendtitle','p:legendtitle','p:legendunit','p:colortabletrans','p:nonlinearcolortablerev','p:colorcalibration','p:colortabletype','p:bandcount','p:colorscalemode','p:color','p:customcolor','p:topcolor','p:customtopcolor','p:bottomcolor','p:custombottomcolor','p:wireframe','p:resolutionfromprefs','p:smoothingsupported','p:smooth','p:showexpression','p:smoothexpr','p:showthreshold','p:threshold','p:thresholdvalue','p:recover','p:inheritcolor','p:inheritrange','p:inheritdeformscale','p:inheritheightscale','p:belongstoplotarray','p:manualindexing','p:arraydim','p:arrayindex','p:rowindex','p:colindex','p:applytodatasetedgesplotarr','p:boxlengths','p:plotarraysuccessful','p:plotinfo','p:infoupdated'</NodeDefaultValues>
+                    <DesignEntityList tag="feature" name="DesignEntityList" created="1727248197374">
+                      <!-- User comments -->
+                      <entityComments T="0"></entityComments>
+                      <!-- Created by -->
+                      <entityAuthor T="0">magnus</entityAuthor>
+                    </DesignEntityList>
+                  </DesignPostPlotEntity>
+                </DesignEntityList>
+              </DesignPostPlotEntity>
+              <DesignEntity op="PostDefMain" tag="pdm1" name="Plot Defaults 1" created="1727248291686">
+                <!-- User comments -->
+                <entityComments T="0"></entityComments>
+                <!-- Created by -->
+                <entityAuthor T="0">magnus</entityAuthor>
+                <DesignEntityList tag="feature" name="DesignEntityList" created="1727248291692">
+                  <!-- User comments -->
+                  <entityComments T="0"></entityComments>
+                  <!-- Created by -->
+                  <entityAuthor T="0">magnus</entityAuthor>
+                  <DesignEntity op="PostDefScalar" tag="pds1" name="Default Scalar Plot 1" created="1727248298895" modified="1727248343341">
+                    <!-- User comments -->
+                    <entityComments T="0"></entityComments>
+                    <!-- Created by -->
+                    <entityAuthor T="0">magnus</entityAuthor>
+                    <!-- Updated by -->
+                    <entityModifiedBy T="0">magnus</entityModifiedBy>
+                    <!-- Expression -->
+                    <propertyValue T="30" value="probdens" name="p:scalar"></propertyValue>
+                    <!-- Description -->
+                    <propertyValue T="30" value="Probability density" name="p:scalarDescr"></propertyValue>
+                    <NodeDefaultValues>4,'p:scalarDescrLocalized','p:colortable','p:colortalbetrans','p:colorscalemode'</NodeDefaultValues>
+                    <DesignEntityList tag="feature" name="DesignEntityList" created="1727248298895">
+                      <!-- User comments -->
+                      <entityComments T="0"></entityComments>
+                      <!-- Created by -->
+                      <entityAuthor T="0">magnus</entityAuthor>
+                    </DesignEntityList>
+                  </DesignEntity>
+                </DesignEntityList>
+              </DesignEntity>
+            </DesignEntityList>
+          </DesignEntity>
+        </DesignEntityList>
+      </DesignEntity>
+    </DesignPhysicsList>
+    <MeshList tag="mesh" name="Mesh Parts" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </MeshList>
+    <ExprList tag="expr" name="Variables" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ExprList>
+    <CoordsysList tag="coordsys" name="CoordsysList" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </CoordsysList>
+    <FrameList tag="frame" name="FrameList" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </FrameList>
+    <PairList tag="pair" name="PairList" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </PairList>
+    <MultiphysicsCouplingList tag="multiphysics" name="Multiphysics" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </MultiphysicsCouplingList>
+    <MaterialList tag="material" name="Materials" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </MaterialList>
+    <FieldList tag="field" name="FieldList" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </FieldList>
+    <OdeList tag="ode" name="OdeList" created="1727245986894">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </OdeList>
+    <Thermodynamics tag="tdp" name="Thermodynamics" created="1727245986910">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </Thermodynamics>
+    <FunctionFeatureList tag="func" name="Functions" created="1727245987019">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </FunctionFeatureList>
+    <ExternalInterfaceFeatureList tag="extint" name="External Interfaces" created="1727245987019">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ExternalInterfaceFeatureList>
+    <NodeGroupList tag="nodeGroup" name="NodeGroupList" created="1727245987019">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </NodeGroupList>
+    <DesignImportsList tag="includeList" name="External Resources" created="1727245987019">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+    </DesignImportsList>
+    <DesignFeatureList tag="physicsFeatureList" name="Features" created="1727245987035">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+    </DesignFeatureList>
+    <DesignPropertyList tag="physicsPropertyList" name="Properties" created="1727245987035">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+    </DesignPropertyList>
+    <DesignMultiphysicsCouplingList tag="multiphysicsCouplingsList" name="Multiphysics Couplings" created="1727245987035">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+    </DesignMultiphysicsCouplingList>
+    <DesignPhysicsAreaList tag="physicsAreaList" name="Physics Areas" created="1727245987035">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+      <DesignEntity op="PhysicsArea" tag="phar1" name="Physics Area 1" created="1727248353628" modified="1727250580156">
+        <!-- Node status -->
+        <entityFlags T="51">NODEACTIVATE</entityFlags>
+        <!-- User comments -->
+        <entityComments T="0"></entityComments>
+        <!-- Created by -->
+        <entityAuthor T="0">magnus</entityAuthor>
+        <!-- Updated by -->
+        <entityModifiedBy T="0">magnus</entityModifiedBy>
+        <!-- Name -->
+        <propertyValue T="30" value="QuantumMechanics" name="p:name"></propertyValue>
+        <!-- Description -->
+        <propertyValue T="30" value="Quantum Mechanics" name="p:description"></propertyValue>
+        <!-- Weight -->
+        <propertyValue T="30" value="10" name="p:weight"></propertyValue>
+        <!-- Parent -->
+        <propertyValue T="30" value="mathematical" name="p:parent"></propertyValue>
+        <NodeDefaultValues>2,'p:descriptionLocalized','p:icon'</NodeDefaultValues>
+        <DesignEntityList tag="feature" name="DesignEntityList" created="1727248353643">
+          <!-- User comments -->
+          <entityComments T="0"></entityComments>
+          <!-- Created by -->
+          <entityAuthor T="0">magnus</entityAuthor>
+        </DesignEntityList>
+      </DesignEntity>
+    </DesignPhysicsAreaList>
+    <DesignXDimList tag="xdimComponentList" name="Extra Dimensions" created="1727245987035">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+    </DesignXDimList>
+    <DesignMigrationVersionList tag="migrationList" name="Migration" created="1727245987035">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+    </DesignMigrationVersionList>
+    <DesignPhysicsMakerList tag="physicsMakerList" name="Components" created="1727245987051">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+    </DesignPhysicsMakerList>
+    <DesignMaterialGroupList tag="materialGroupList" name="Auxiliary Definitions" created="1727245987051">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0">magnus</entityAuthor>
+    </DesignMaterialGroupList>
+    <SolverSequenceList tag="sol" name="Solvers" created="1727245987207">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </SolverSequenceList>
+    <MethodCallFeatureList tag="methodCall" name="Method Calls" created="1727245987207">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </MethodCallFeatureList>
+    <AppBuilderFeatureList tag="applicationNodeList" name="AppBuilderFeatureList" created="1727245987207">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </AppBuilderFeatureList>
+    <FormFeatureList tag="formInstance" name="Settings Forms" created="1727245987207">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </FormFeatureList>
+    <ProbeFeatureList tag="probe" name="ProbeFeatureList" created="1727245987207">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ProbeFeatureList>
+    <ProbeFeatureList tag="massProp" name="ProbeFeatureList" created="1727245987207">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ProbeFeatureList>
+    <CplList tag="cpl" name="CplList" created="1727245987207">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </CplList>
+    <SelectionList tag="selection" name="SelectionList" created="1727251925806">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </SelectionList>
+    <ExtraDimList tag="extraDim" name="ExtraDimList" created="1727251925806">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ExtraDimList>
+    <OptSequence tag="optsequence" created="1727251925806">
+    </OptSequence>
+    <InformationList tag="information" name="Information" created="1727251925806">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </InformationList>
+    <GroupList tag="group" name="Load and Constraint Groups" created="1727251925884">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </GroupList>
+    <ElementSetList tag="elementset" name="ElementSetList" created="1727251925884">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ElementSetList>
+    <ShapeList tag="shape" name="ShapeList" created="1727251925884">
+      <!-- User comments -->
+      <entityComments T="0"></entityComments>
+      <!-- Created by -->
+      <entityAuthor T="0"></entityAuthor>
+    </ShapeList>
+  </Design>
+  <GuiModel dimension="3" viewDimension="3" guiView="DRAW" currentNode="/physicsInterfaceList/phys1" currentBuilderPhysics="phys1">
+  </GuiModel>
+</PhysicsBuilder>
+

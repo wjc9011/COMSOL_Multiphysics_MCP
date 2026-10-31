@@ -1,0 +1,1349 @@
+{
+ "PopulationBalanceSizeBased": {
+  "element_orders": {
+   "order_populationnumberdensity": "1"
+  },
+  "boundary_flux": {}
+ },
+ "AlphaBetaPhaseTransformation": {
+  "element_orders": {
+   "order_straindiscr_disc": "2",
+   "order_xidiscr_disc": "1g"
+  },
+  "boundary_flux": {}
+ },
+ "AusteniteDecomposition": {
+  "element_orders": {
+   "order_straindiscr_disc": "2",
+   "order_xidiscr_disc": "1g"
+  },
+  "boundary_flux": {}
+ },
+ "AusteniteDecompositionKV": {
+  "element_orders": {
+   "order_straindiscr_disc": "2",
+   "order_xidiscr_disc": "1g"
+  },
+  "boundary_flux": {}
+ },
+ "AusteniteDecompositionLNMA": {
+  "element_orders": {
+   "order_straindiscr_disc": "2",
+   "order_xidiscr_disc": "1g"
+  },
+  "boundary_flux": {}
+ },
+ "BatteryBinaryElectrolyte": {
+  "element_orders": {
+   "order_fastassemblydiscretization_disc": "1",
+   "order_concentration": "2",
+   "order_electricpotentialionicphase": "2",
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential": "1",
+   "boundaryFluxSmooth_electricpotential": "1"
+  }
+ },
+ "BioHeat": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "2",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "CathodicProtection": {
+  "element_orders": {
+   "order_electricpotentialionicphase": "1",
+   "order_electricpotential": "1"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential": "1",
+   "boundaryFluxSmooth_electricpotential": "1"
+  }
+ },
+ "ChargeTransport": {
+  "element_orders": {
+   "order_spacechargedensity": "1"
+  },
+  "boundary_flux": {}
+ },
+ "CompressiblePotentialFlow": {
+  "element_orders": {
+   "order_density": "2",
+   "order_meanflowvelocitypotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ConcentratedElectrolyteTransport": {
+  "element_orders": {
+   "order_electrolyte_disc": "2"
+  },
+  "boundary_flux": {}
+ },
+ "CuringReaction": {
+  "element_orders": {
+   "order_conversion": "0"
+  },
+  "boundary_flux": {}
+ },
+ "PorousMediaFlowDarcy": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ConductiveMedia": {
+  "element_orders": {
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ElectricDischarge": {
+  "element_orders": {
+   "order_electricpotential": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TertiaryElectroanalysis": {
+  "element_orders": {
+   "order_dt2InvDiscretization_disc": "0",
+   "order_concentration": "2",
+   "order_electricpotentialionicphase": "2",
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential": "1",
+   "boundaryFluxSmooth_electricpotential": "1",
+   "boundaryFluxSmooth_electricpotentialionicphase": "1",
+   "boundaryFlux_electricpotentialionicphase": "1"
+  }
+ },
+ "ElectrophoreticTransport": {
+  "element_orders": {
+   "order_concentration_disc": "1",
+   "order_electricpotentialionicphase": "2"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_concentration_disc": "1",
+   "boundaryFlux_concentration_disc": "1"
+  }
+ },
+ "Electrostatics": {
+  "element_orders": {
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "MoistureTransportPorousMedia": {
+  "element_orders": {
+   "order_relativehumidity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "HeatTransferInFluids": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "HeatTransferInPackedBeds": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "PorousMediaHeatTransfer": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "HeatTransfer": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "2",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "HeatTransferInSolidsAndFluids": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "HydrogenFuelCell": {
+  "element_orders": {
+   "order_electricpotential_disc": "1",
+   "order_massfraction_disc": "1",
+   "order_activity_disc": "1",
+   "order_electricpotentialionicphase_disc": "1",
+   "order_pressure_disc": "1",
+   "order_chemicalpotential_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential_disc": "1",
+   "boundaryFluxSmooth_electricpotential_disc": "1"
+  }
+ },
+ "LeadAcidBattery": {
+  "element_orders": {
+   "order_concentration": "2",
+   "order_electricpotentialionicphase": "2",
+   "order_porosity": "1",
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential": "1",
+   "boundaryFluxSmooth_electricpotential": "1"
+  }
+ },
+ "LevelSet": {
+  "element_orders": {
+   "order_levelsetvariable": "1"
+  },
+  "boundary_flux": {}
+ },
+ "LevelSetPorousMedia": {
+  "element_orders": {
+   "order_levelsetvariable": "1"
+  },
+  "boundary_flux": {}
+ },
+ "LithiumIonBatteryMPH": {
+  "element_orders": {
+   "order_fastassemblydiscretization_disc": "1",
+   "order_concentration": "2",
+   "order_electricpotentialionicphase": "2",
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential": "1",
+   "boundaryFluxSmooth_electricpotential": "1"
+  }
+ },
+ "LocalThermalNonequilibrium": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "MetalPhaseTransformation": {
+  "element_orders": {
+   "order_straindiscr_disc": "2",
+   "order_xidiscr_disc": "1g"
+  },
+  "boundary_flux": {}
+ },
+ "MoistureTransportInAir": {
+  "element_orders": {
+   "order_relativehumidity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "MoistureTransportInBuildingMaterials": {
+  "element_orders": {
+   "order_relativehumidity_disc": "2"
+  },
+  "boundary_flux": {}
+ },
+ "MoistureTransportFreePorousMedia": {
+  "element_orders": {
+   "order_relativehumidity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "MoistureTransportInSolids": {
+  "element_orders": {
+   "order_relativehumidity_disc": "2"
+  },
+  "boundary_flux": {}
+ },
+ "NernstPlanck": {
+  "element_orders": {
+   "order_concentration": "1",
+   "order_electricpotential": "1"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential": "1",
+   "boundaryFluxSmooth_electricpotential": "1"
+  }
+ },
+ "NonequilibriumMoistureTransportPorousMedia": {
+  "element_orders": {
+   "order_relativehumidity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "PhaseField": {
+  "element_orders": {
+   "order_phasefield": "1"
+  },
+  "boundary_flux": {}
+ },
+ "PhaseFieldSolids": {
+  "element_orders": {
+   "order_phasefieldvariable": "1"
+  },
+  "boundary_flux": {}
+ },
+ "PhaseTransportFree": {
+  "element_orders": {
+   "order_volumefraction": "1"
+  },
+  "boundary_flux": {}
+ },
+ "PhaseTransportFreePorous": {
+  "element_orders": {
+   "order_volumefraction": "1"
+  },
+  "boundary_flux": {}
+ },
+ "PhaseTransportPorous": {
+  "element_orders": {
+   "order_volumefraction": "1"
+  },
+  "boundary_flux": {}
+ },
+ "PressureAcoustics": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "TransientPressureAcoustics": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "PrimaryCurrentDistribution": {
+  "element_orders": {
+   "order_electricpotentialionicphase": "1",
+   "order_electricpotential": "1"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential": "1",
+   "boundaryFluxSmooth_electricpotential": "1"
+  }
+ },
+ "PorousMediaFlowRichards": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "SecondaryCurrentDistribution": {
+  "element_orders": {
+   "order_electricpotentialionicphase": "1",
+   "order_electricpotential": "1"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential": "1",
+   "boundaryFluxSmooth_electricpotential": "1"
+  }
+ },
+ "SolidMechanics": {
+  "element_orders": {
+   "order_displacement": "2s"
+  },
+  "boundary_flux": {}
+ },
+ "StabilizedConvectionDiffusionEquation": {
+  "element_orders": {
+   "order_none": "1"
+  },
+  "boundary_flux": {}
+ },
+ "SurfaceReactions": {
+  "element_orders": {
+   "order_surfaceconcentrationb": "1",
+   "order_surfaceconcentration": "1"
+  },
+  "boundary_flux": {}
+ },
+ "SurfaceToSurfaceRadiation": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_fluencerate_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TransmissionLine": {
+  "element_orders": {
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "TransmissionLineTransient": {
+  "element_orders": {
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "TransportInSolids": {
+  "element_orders": {
+   "order_transportedQuantity": "2"
+  },
+  "boundary_flux": {}
+ },
+ "DilutedSpecies": {
+  "element_orders": {
+   "order_concentration": "1"
+  },
+  "boundary_flux": {}
+ },
+ "DilutedSpeciesInPorousMedia": {
+  "element_orders": {
+   "order_concentration": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ConcentratedSpecies": {
+  "element_orders": {
+   "order_massfraction": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ConcentratedSpeciesInPackedBeds": {
+  "element_orders": {
+   "order_massfraction": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ConcentratedSpeciesInPorousCatalysts": {
+  "element_orders": {
+   "order_massfraction": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ConcentratedSpeciesInPorousMedia": {
+  "element_orders": {
+   "order_massfraction": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ConcentratedSpeciesInVapor": {
+  "element_orders": {
+   "order_massfraction": "1"
+  },
+  "boundary_flux": {}
+ },
+ "WaterElectrolyzer": {
+  "element_orders": {
+   "order_electricpotential_disc": "1",
+   "order_massfraction_disc": "1",
+   "order_activity_disc": "1",
+   "order_electricpotentialionicphase_disc": "1",
+   "order_pressure_disc": "1",
+   "order_chemicalpotential_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFlux_electricpotential_disc": "1",
+   "boundaryFluxSmooth_electricpotential_disc": "1"
+  }
+ },
+ "HermitianBeam": {
+  "element_orders": {
+   "order_displacement": "3",
+   "order_planeangle": "2"
+  },
+  "boundary_flux": {}
+ },
+ "PorousMediaFlowBrinkman": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BubblyFlowAlgebraicYplus": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BubblyFlowLVEL": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BubblyFlowSST": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BubblyFlowSA": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BubblyFlowkeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BubblyFlowkomega": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "LaminarBubblyFlow": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BubblyFlowLowRekeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BubblyFlowRealizablekeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BubblyFlowv2f": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ConvectedWaveEquation": {
+  "element_orders": {
+   "order_pressure": "4",
+   "order_velocity": "4"
+  },
+  "boundary_flux": {}
+ },
+ "CreepingFlow": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "CurrentDistributionShell": {
+  "element_orders": {
+   "order_electricpotentialionicphase": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ElasticWavesTimeExplicit": {
+  "element_orders": {
+   "order_velocity": "4",
+   "order_strain": "4"
+  },
+  "boundary_flux": {}
+ },
+ "ElectrodeShell": {
+  "element_orders": {
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ElectromagneticWavesAsymptoticScattering": {
+  "element_orders": {
+   "order_electricfield": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ElectromagneticWavesBEM": {
+  "element_orders": {
+   "order_bemstab_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ElectromagneticWavesBoundaryElements": {
+  "element_orders": {
+   "order_bemstab_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ElectromagneticWavesFrequencyDomain": {
+  "element_orders": {
+   "order_electricfield": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ElectromagneticWaves": {
+  "element_orders": {
+   "order_electricfield": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ElectromagneticWavesTransient": {
+  "element_orders": {
+   "order_magneticvectorpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "TransientElectromagneticWaves": {
+  "element_orders": {
+   "order_magneticvectorpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "LaminarEulerEulerModel": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "EulerEulerModelkeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "PorousMediaFlowFracture": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "FreeAndPorousMediaFlow": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "FreeMolecularFlow": {
+  "element_orders": {
+   "order_particleflux": "0"
+  },
+  "boundary_flux": {}
+ },
+ "HeatTransferInFilmsLM": {
+  "element_orders": {
+   "order_temperature": "1"
+  },
+  "boundary_flux": {}
+ },
+ "HeatTransferPipes": {
+  "element_orders": {
+   "order_temperature": "2"
+  },
+  "boundary_flux": {}
+ },
+ "HeatTransferInShellsLM": {
+  "element_orders": {
+   "order_temperature": "2"
+  },
+  "boundary_flux": {}
+ },
+ "HighMachNumberFlowTurbulentAlgebraicYplus": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentLVEL": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentRkeps": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentSSGLRR": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentSST": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentSpalartAllmaras": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentWilcoxRSM": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentkeps": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentkomega": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlow": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentLowRekeps": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "HighMachNumberFlowTurbulentv2f": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {
+   "boundaryFluxSmooth_temperature": "1",
+   "boundaryFlux_temperature": "1"
+  }
+ },
+ "IncompressiblePotentialFlow": {
+  "element_orders": {
+   "order_velocitypotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "LaminarFlow": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ElectricInductionCurrents": {
+  "element_orders": {
+   "order_magneticvectorpotential": "2",
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "MagneticFieldFormulation": {
+  "element_orders": {
+   "order_magneticfield": "2"
+  },
+  "boundary_flux": {}
+ },
+ "InductionCurrents": {
+  "element_orders": {
+   "order_magneticvectorpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "MagnetostaticsNoCurrents": {
+  "element_orders": {
+   "order_magneticscalarpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "MagneticMachineryTimePeriodic": {
+  "element_orders": {
+   "order_Discretization_disc": "4"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelLaminar": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelAlgebraicYplus": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelLVEL": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelSST": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelSA": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelkeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelkomega": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelLowRekeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelRealizablekeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "VolumeAveragedMixtureModelv2f": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "MultibodyDynamics": {
+  "element_orders": {
+   "order_displacement": "1"
+  },
+  "boundary_flux": {}
+ },
+ "NonisothermalPipeFlow": {
+  "element_orders": {
+   "order_velocity": "1",
+   "order_temperature": "2",
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "PhaseFieldThinFilmFlowEdge": {
+  "element_orders": {
+   "order_phasefield": "1"
+  },
+  "boundary_flux": {}
+ },
+ "FrequencyPipeAcoustics": {
+  "element_orders": {
+   "order_velocity": "1",
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "TransientPipeAcoustics": {
+  "element_orders": {
+   "order_velocity": "1",
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "PipeMechanics": {
+  "element_orders": {
+   "order_displacement": "3",
+   "order_planeangle": "2"
+  },
+  "boundary_flux": {}
+ },
+ "Plate": {
+  "element_orders": {
+   "order_displacement": "2"
+  },
+  "boundary_flux": {}
+ },
+ "PoroelasticWavesSinglePhysics": {
+  "element_orders": {
+   "order_pressure": "2",
+   "order_displacement": "2"
+  },
+  "boundary_flux": {}
+ },
+ "PressureAcousticsTimeExplicit": {
+  "element_orders": {
+   "order_pressure": "4",
+   "order_velocity": "4"
+  },
+  "boundary_flux": {}
+ },
+ "RadiationInAbsorbingScatteringMedia": {
+  "element_orders": {
+   "order_incidentradiation_disc": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ParticipatingMediaRadiation": {
+  "element_orders": {
+   "order_incidentradiation_disc": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "RadiativeBeamInAbsorbingMedia": {
+  "element_orders": {
+   "order_intensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ReactingPipeFlow": {
+  "element_orders": {
+   "order_velocity": "1",
+   "order_temperature": "2",
+   "order_pressure": "2",
+   "order_concentration": "2"
+  },
+  "boundary_flux": {}
+ },
+ "RotatingMachineryMagnetic": {
+  "element_orders": {
+   "order_magneticvectorpotential": "2",
+   "order_magneticscalarpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "SlipFlow": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_discontinuousdamagedtissueindicator_disc": "0",
+   "order_fluid": "1",
+   "order_incidentradiation_disc": "1",
+   "order_continuousdamagedtissueindicator_disc": "1",
+   "order_thermaldamageindicator_disc": "0",
+   "order_temperature": "1",
+   "order_radiativeintensity_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TernaryPhaseField": {
+  "element_orders": {
+   "order_phasefieldvariable1": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ThermoviscousAcousticsSLNSApproximation": {
+  "element_orders": {
+   "order_pressure": "2",
+   "order_dimensionlessv": "2",
+   "order_dimensionlessth": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ThinFilmFlowDomain": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ThinFilmFlowEdge": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "DilutedSpeciesInFractures": {
+  "element_orders": {
+   "order_concentration": "1"
+  },
+  "boundary_flux": {}
+ },
+ "DilutedSpeciesPipes": {
+  "element_orders": {
+   "order_concentration": "2"
+  },
+  "boundary_flux": {}
+ },
+ "Truss": {
+  "element_orders": {
+   "order_displacement": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowAlgebraicYplus": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowLVEL": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowSSGLRR": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowSST": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowSpalartAllmaras": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowWilcoxRSM": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowkeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowkomega": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowlowRekeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowRealizablekeps": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "TurbulentFlowv2f": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ViscoelasticFlow": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "WaterHammer": {
+  "element_orders": {
+   "order_velocity": "1",
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "Wire": {
+  "element_orders": {
+   "order_displacement": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BatteryPack": {
+  "element_orders": {
+   "order_electricpotential": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BeamRotor": {
+  "element_orders": {
+   "order_displacement": "3",
+   "order_planeangle": "2"
+  },
+  "boundary_flux": {}
+ },
+ "CurrentDistributionPipe": {
+  "element_orders": {
+   "order_electricpotentialionicphase": "2"
+  },
+  "boundary_flux": {}
+ },
+ "DESRBVMWVSpalartAllmaras": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "DESRBVMSpalartAllmaras": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "DESSmagorinskySpalartAllmaras": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "ElectricCurrentsShell": {
+  "element_orders": {
+   "order_electricpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "HydrodynamicBearing": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "LESRBVM": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "LESRBVMWV": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "LESSmagorinsky": {
+  "element_orders": {
+   "order_fluid": "1"
+  },
+  "boundary_flux": {}
+ },
+ "LayeredDarcysLaw": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "LayeredShell": {
+  "element_orders": {
+   "order_displacement": "2"
+  },
+  "boundary_flux": {}
+ },
+ "MagneticFieldsCurrentsOnly": {
+  "element_orders": {
+   "order_magneticvectorpotential": "2"
+  },
+  "boundary_flux": {}
+ },
+ "StructuralMembrane": {
+  "element_orders": {
+   "order_displacement": "2s"
+  },
+  "boundary_flux": {}
+ },
+ "OrbitalThermalLoadsEvents": {
+  "element_orders": {
+   "order_surfaceradiosity_disc": "1",
+   "order_fluencerate_disc": "1"
+  },
+  "boundary_flux": {}
+ },
+ "PhaseFieldThinFilmFlowShell": {
+  "element_orders": {
+   "order_phasefield": "1"
+  },
+  "boundary_flux": {}
+ },
+ "BoundaryModeAcoustics": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ },
+ "Shell": {
+  "element_orders": {
+   "order_displacement": "2"
+  },
+  "boundary_flux": {}
+ },
+ "SolidRotor": {
+  "element_orders": {
+   "order_displacement": "2"
+  },
+  "boundary_flux": {}
+ },
+ "SolidRotorFixedFrame": {
+  "element_orders": {
+   "order_displacement": "2"
+  },
+  "boundary_flux": {}
+ },
+ "ThinFilmFlowShell": {
+  "element_orders": {
+   "order_pressure": "2"
+  },
+  "boundary_flux": {}
+ }
+}

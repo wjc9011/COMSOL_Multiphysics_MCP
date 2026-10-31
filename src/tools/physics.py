@@ -1305,17 +1305,25 @@ def register_physics_tools(mcp: FastMCP) -> None:
     @mcp.tool()
     def physics_list_features(
         physics_name: str,
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        recursive: bool = True,
+        include_details: bool = False
     ) -> dict:
         """
-        List all features (boundary conditions, domain settings) in a physics interface.
-        
+        List all features (boundary conditions, domain settings) in a physics
+        interface, INCLUDING nested sub-features (e.g. electrochemical reactions
+        under an ElectrodeSurface) and each feature's selection (which geometric
+        entities it applies to) and enabled/disabled state.
+
         Args:
-            physics_name: Name of the physics interface
+            physics_name: Name of the physics interface (label like '三次电流分布，Nernst-Planck' or tag like 'tcd')
             model_name: Model name (default: current model)
-        
+            recursive: Include nested sub-features recursively (default True)
+            include_details: Include full property values per feature (default False,
+                             large output — prefer model_audit for full dumps)
+
         Returns:
-            List of physics features
+            List of physics features with tag, label, type, selection and sub-features
         """
         model = session_manager.get_model(model_name)
         if model is None:
@@ -1323,31 +1331,24 @@ def register_physics_tools(mcp: FastMCP) -> None:
                 "success": False,
                 "error": f"Model not found: {model_name or 'no current model'}"
             }
-        
-        try:
-            physics_interfaces = model.physics()
-            if physics_name not in physics_interfaces:
-                return {"success": False, "error": f"Physics interface not found: {physics_name}"}
-            
-            physics_node = model / "physics" / physics_name
-            features = []
-            
-            for child in physics_node.children():
-                feat_info = {"name": child.name()}
-                try:
-                    feat_info["type"] = child.type() if hasattr(child, 'type') else "unknown"
-                except Exception:
-                    pass
-                features.append(feat_info)
-            
-            return {
-                "success": True,
-                "physics": physics_name,
-                "features": features,
-                "count": len(features),
-            }
-        except Exception as e:
-            return {"success": False, "error": f"Failed to list features: {str(e)}"}
+
+        from .audit import list_physics_features_deep
+        result = list_physics_features_deep(model, physics_name,
+                                            include_details=include_details)
+        if not result.get("success"):
+            return result
+
+        def flatten(feature):
+            # Backward-compatible 'name' field plus the richer fields
+            feature["name"] = feature.get("label")
+            if not recursive:
+                feature.pop("features", None)
+            for sub in feature.get("features", []):
+                flatten(sub)
+            return feature
+
+        result["features"] = [flatten(f) for f in result.get("features", [])]
+        return result
     
     @mcp.tool()
     def physics_remove(

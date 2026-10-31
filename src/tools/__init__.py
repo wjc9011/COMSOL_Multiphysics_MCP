@@ -9,6 +9,8 @@ from .electrochemistry import register_electrochemistry_tools
 from .mesh import register_mesh_tools
 from .study import register_study_tools
 from .results import register_results_tools
+from .audit import register_audit_tools
+from .modify import register_modify_tools
 
 __all__ = [
     "register_session_tools",
@@ -20,4 +22,6 @@ __all__ = [
     "register_mesh_tools",
     "register_study_tools",
     "register_results_tools",
+    "register_audit_tools",
+    "register_modify_tools",
 ]

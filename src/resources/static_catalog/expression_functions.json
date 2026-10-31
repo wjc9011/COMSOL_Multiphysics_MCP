@@ -1,0 +1,1100 @@
+{
+ "log": {
+  "descr": "Natural logarithm",
+  "args": [
+   "x"
+  ]
+ },
+ "log10": {
+  "descr": "Common logarithm base 10",
+  "args": [
+   "x"
+  ]
+ },
+ "log2": {
+  "descr": "Base-2 logarithm",
+  "args": [
+   "x"
+  ]
+ },
+ "exp": {
+  "descr": "Exponential function",
+  "args": [
+   "x"
+  ]
+ },
+ "exp10": {
+  "descr": "Exponential function base 10",
+  "args": [
+   "x"
+  ]
+ },
+ "poweps": {
+  "descr": "Power function with finite derivative at zero",
+  "args": [
+   "x",
+   "n"
+  ]
+ },
+ "erf": {
+  "descr": "Error function",
+  "args": [
+   "x"
+  ]
+ },
+ "erfinv": {
+  "descr": "Inverse error function",
+  "args": [
+   "x"
+  ]
+ },
+ "random": {
+  "descr": "Random function, uniform distribution",
+  "args": [
+   "x"
+  ]
+ },
+ "randomnormal": {
+  "descr": "Random function, normal (Gaussian) distribution",
+  "args": [
+   "x"
+  ]
+ },
+ "sqrt": {
+  "descr": "Square root",
+  "args": [
+   "x"
+  ]
+ },
+ "sqrteps": {
+  "descr": "Square root with finite derivative at zero",
+  "args": [
+   "x"
+  ]
+ },
+ "cos": {
+  "descr": "Cosine",
+  "args": [
+   "x"
+  ]
+ },
+ "tan": {
+  "descr": "Tangent[function]",
+  "args": [
+   "x"
+  ]
+ },
+ "cot": {
+  "descr": "Cotangent",
+  "args": [
+   "x"
+  ]
+ },
+ "sec": {
+  "descr": "Secant",
+  "args": [
+   "x"
+  ]
+ },
+ "csc": {
+  "descr": "Cosecant",
+  "args": [
+   "x"
+  ]
+ },
+ "sinh": {
+  "descr": "Hyperbolic sine",
+  "args": [
+   "x"
+  ]
+ },
+ "cosh": {
+  "descr": "Hyperbolic cosine",
+  "args": [
+   "x"
+  ]
+ },
+ "tanh": {
+  "descr": "Hyperbolic tangent",
+  "args": [
+   "x"
+  ]
+ },
+ "coth": {
+  "descr": "Hyperbolic cotangent",
+  "args": [
+   "x"
+  ]
+ },
+ "sech": {
+  "descr": "Hyperbolic secant",
+  "args": [
+   "x"
+  ]
+ },
+ "csch": {
+  "descr": "Hyperbolic cosecant",
+  "args": [
+   "x"
+  ]
+ },
+ "asin": {
+  "descr": "Inverse sine in radians",
+  "args": [
+   "x"
+  ]
+ },
+ "acos": {
+  "descr": "Inverse cosine in radians",
+  "args": [
+   "x"
+  ]
+ },
+ "atan": {
+  "descr": "Inverse tangent in radians",
+  "args": [
+   "x"
+  ]
+ },
+ "acot": {
+  "descr": "Inverse cotangent in radians",
+  "args": [
+   "x"
+  ]
+ },
+ "asec": {
+  "descr": "Inverse secant in radians",
+  "args": [
+   "x"
+  ]
+ },
+ "acsc": {
+  "descr": "Inverse cosecant in radians",
+  "args": [
+   "x"
+  ]
+ },
+ "atan2": {
+  "descr": "Inverse tangent four-quadrant in radians",
+  "args": [
+   "y",
+   "x"
+  ]
+ },
+ "asinh": {
+  "descr": "Inverse hyperbolic sine",
+  "args": [
+   "x"
+  ]
+ },
+ "acosh": {
+  "descr": "Inverse hyperbolic cosine",
+  "args": [
+   "x"
+  ]
+ },
+ "atanh": {
+  "descr": "Inverse hyperbolic tangent",
+  "args": [
+   "x"
+  ]
+ },
+ "acoth": {
+  "descr": "Inverse hyperbolic cotangent",
+  "args": [
+   "x"
+  ]
+ },
+ "asech": {
+  "descr": "Inverse hyperbolic secant",
+  "args": [
+   "x"
+  ]
+ },
+ "acsch": {
+  "descr": "Inverse hyperbolic cosecant",
+  "args": [
+   "x"
+  ]
+ },
+ "sign": {
+  "descr": "Signum function",
+  "args": [
+   "u"
+  ]
+ },
+ "min": {
+  "descr": "Minimum of two arguments",
+  "args": [
+   "a",
+   "b"
+  ]
+ },
+ "max": {
+  "descr": "Maximum of two arguments",
+  "args": [
+   "a",
+   "b"
+  ]
+ },
+ "range": {
+  "descr": "Create a range of numbers with integral steps",
+  "args": [
+   "a",
+   "b"
+  ]
+ },
+ "ceil": {
+  "descr": "Nearest following integer",
+  "args": [
+   "x"
+  ]
+ },
+ "floor": {
+  "descr": "Nearest previous integer",
+  "args": [
+   "x"
+  ]
+ },
+ "round": {
+  "descr": "Round to closest integer",
+  "args": [
+   "x"
+  ]
+ },
+ "besselj": {
+  "descr": "Bessel function of the first kind",
+  "args": [
+   "a",
+   "x"
+  ]
+ },
+ "bessely": {
+  "descr": "Bessel function of the second kind",
+  "args": [
+   "a",
+   "x"
+  ]
+ },
+ "besseli": {
+  "descr": "Modified Bessel function of the first kind",
+  "args": [
+   "a",
+   "x"
+  ]
+ },
+ "besselk": {
+  "descr": "Modified Bessel function of the second kind",
+  "args": [
+   "a",
+   "x"
+  ]
+ },
+ "legendre": {
+  "descr": "Legendre polynomial",
+  "args": [
+   "l",
+   "x"
+  ]
+ },
+ "zernike": {
+  "descr": "Zernike polynomial function",
+  "args": [
+   "n",
+   "m",
+   "r",
+   "phi"
+  ]
+ },
+ "sphericaly": {
+  "descr": "Spherical harmonic function",
+  "args": [
+   "l",
+   "m",
+   "theta",
+   "phi"
+  ]
+ },
+ "sphericalyr": {
+  "descr": "Real spherical harmonic function",
+  "args": [
+   "l",
+   "m",
+   "theta",
+   "phi"
+  ]
+ },
+ "mieextinction": {
+  "descr": "Extinction efficiency from Mie scattering theory",
+  "args": [
+   "n",
+   "x"
+  ]
+ },
+ "miescattering": {
+  "descr": "Scattering efficiency from Mie scattering theory",
+  "args": [
+   "n",
+   "x"
+  ]
+ },
+ "factorial": {
+  "descr": "Factorial",
+  "args": [
+   "n"
+  ]
+ },
+ "binomial": {
+  "descr": "Binomial coefficient",
+  "args": [
+   "n",
+   "k"
+  ]
+ },
+ "gcd": {
+  "descr": "Greatest common divisor",
+  "args": [
+   "a",
+   "b"
+  ]
+ },
+ "lcm": {
+  "descr": "Least common multiple",
+  "args": [
+   "a",
+   "b"
+  ]
+ },
+ "gamma": {
+  "descr": "Gamma function",
+  "args": [
+   "x"
+  ]
+ },
+ "psi": {
+  "descr": "Psi function and its derivatives",
+  "args": [
+   "x",
+   "k"
+  ]
+ },
+ "flsmhs": {
+  "descr": "Smoothed step function with continuous first derivative and overshoot",
+  "args": [
+   "x",
+   "scale"
+  ]
+ },
+ "fldsmhs": {
+  "descr": "Derivative of the smoothed step function",
+  "args": [
+   "x",
+   "scale"
+  ]
+ },
+ "flsmsign": {
+  "descr": "Smoothed sign function with continuous first derivative",
+  "args": [
+   "x",
+   "scale"
+  ]
+ },
+ "fldsmsign": {
+  "descr": "Derivative of the smoothed sign function",
+  "args": [
+   "x",
+   "scale"
+  ]
+ },
+ "flc1hs": {
+  "descr": "Smoothed step function with continuous first derivative and no overshoot",
+  "args": [
+   "x",
+   "scale"
+  ]
+ },
+ "flc2hs": {
+  "descr": "Smoothed step function with continuous second derivative and no overshoot",
+  "args": [
+   "x",
+   "scale"
+  ]
+ },
+ "real": {
+  "descr": "Real part",
+  "args": [
+   "u"
+  ]
+ },
+ "realdot": {
+  "descr": "Treat complex numbers a and b as real 2-vectors and return their dot product",
+  "args": [
+   "a",
+   "b"
+  ]
+ },
+ "imag": {
+  "descr": "Imaginary part",
+  "args": [
+   "u"
+  ]
+ },
+ "conj": {
+  "descr": "Complex conjugate",
+  "args": [
+   "x"
+  ]
+ },
+ "abs": {
+  "descr": "Absolute value",
+  "args": [
+   "x"
+  ]
+ },
+ "arg": {
+  "descr": "Phase angle in radians",
+  "args": [
+   "x"
+  ]
+ },
+ "d": {
+  "descr": "Differentiation with respect to x",
+  "args": [
+   "f",
+   "x"
+  ]
+ },
+ "pd": {
+  "descr": "Differentiation with respect to x without chain rule for dependent variables",
+  "args": [
+   "f",
+   "x"
+  ]
+ },
+ "dtang": {
+  "descr": "Tangential differentiation at a boundary with respect to a spatial dimension x",
+  "args": [
+   "f",
+   "x"
+  ]
+ },
+ "depends": {
+  "descr": "True if the expression depends on the solution",
+  "args": [
+   "expr"
+  ]
+ },
+ "jacdepends": {
+  "descr": "True if the Jacobian of the expression depends on the solution",
+  "args": [
+   "expr"
+  ]
+ },
+ "islinear": {
+  "descr": "True if the expression is a linear function of the solution",
+  "args": [
+   "expr"
+  ]
+ },
+ "isinf": {
+  "descr": "True if the expression evaluates to infinity",
+  "args": [
+   "expr"
+  ]
+ },
+ "isnan": {
+  "descr": "True if the expression evaluates to NaN not-a-number",
+  "args": [
+   "expr"
+  ]
+ },
+ "isdefined": {
+  "descr": "True where the variable is defined and false where it is not defined",
+  "args": [
+   "variable"
+  ]
+ },
+ "up": {
+  "descr": "Evaluate in domain on upside",
+  "args": [
+   "expr"
+  ]
+ },
+ "down": {
+  "descr": "Evaluate in domain on downside",
+  "args": [
+   "expr"
+  ]
+ },
+ "mean": {
+  "descr": "Mean value of expression as evaluated in adjacent entities",
+  "args": [
+   "expr"
+  ]
+ },
+ "side": {
+  "descr": "Evaluate in the adjacent entity",
+  "args": [
+   "entity",
+   "expr"
+  ]
+ },
+ "dflux": {
+  "descr": "Evaluate boundary flux on downside",
+  "args": [
+   "u"
+  ]
+ },
+ "uflux": {
+  "descr": "Evaluate boundary flux on upside",
+  "args": [
+   "u"
+  ]
+ },
+ "if": {
+  "descr": "Conditional evaluation expr1 if the condition is true otherwise expr2",
+  "args": [
+   "cond",
+   "expr1",
+   "expr2"
+  ]
+ },
+ "nif": {
+  "descr": "Nested if operator",
+  "args": [
+   "cond1",
+   "expr1",
+   "cond2"
+  ]
+ },
+ "try_catch": {
+  "descr": "Attempt to evaluate tryExpr on failure evaluate catchExpr instead",
+  "args": [
+   "tryExpr",
+   "catchExpr"
+  ]
+ },
+ "nojac": {
+  "descr": "Treat argument as constant during differentiation of expressions",
+  "args": [
+   "expr"
+  ]
+ },
+ "treatasconst": {
+  "descr": "Treat argument as independent of the solution",
+  "args": [
+   "expr"
+  ]
+ },
+ "test": {
+  "descr": "Test function operator",
+  "args": [
+   "expr"
+  ]
+ },
+ "dest": {
+  "descr": "Evaluate parts of an integration coupling expression on destination side",
+  "args": [
+   "expr"
+  ]
+ },
+ "linper": {
+  "descr": "Mark a load term to be used in a Linear perturbation solver",
+  "args": [
+   "expr"
+  ]
+ },
+ "linpoint": {
+  "descr": "Access the linearization point",
+  "args": [
+   "expr"
+  ]
+ },
+ "lintotal": {
+  "descr": "Access the sum of the linearization point and linear perturbation",
+  "args": [
+   "expr"
+  ]
+ },
+ "lintotalavg": {
+  "descr": "Average of lintotal expr over all phases",
+  "args": [
+   "expr"
+  ]
+ },
+ "lintotalrms": {
+  "descr": "Root mean square of lintotal expr over all phases",
+  "args": [
+   "expr"
+  ]
+ },
+ "lintotalpeak": {
+  "descr": "Maximum of lintotal expr over all phases",
+  "args": [
+   "expr"
+  ]
+ },
+ "atlintotalpeak": {
+  "descr": "Value of expr2 at the maximum of lintotal expr1 over all phases",
+  "args": [
+   "expr1",
+   "expr2"
+  ]
+ },
+ "lindev": {
+  "descr": "Evaluate linearized at the linearization point",
+  "args": [
+   "expr"
+  ]
+ },
+ "linsol": {
+  "descr": "Access the standard solution inside linearization access functions",
+  "args": [
+   "expr"
+  ]
+ },
+ "linzero": {
+  "descr": "Evaluate expression with zero solution",
+  "args": [
+   "expr"
+  ]
+ },
+ "reacf": {
+  "descr": "Accurate reaction forces and fluxes",
+  "args": [
+   "u"
+  ]
+ },
+ "residual": {
+  "descr": "Last residual",
+  "args": [
+   "u"
+  ]
+ },
+ "fsens": {
+  "descr": "Functional sensitivity wrt control variable p",
+  "args": [
+   "p"
+  ]
+ },
+ "fsensimag": {
+  "descr": "Functional sensitivity wrt imaginary part of control variable p",
+  "args": [
+   "p"
+  ]
+ },
+ "sens": {
+  "descr": "Forward sensitivity solution u wrt the control variable p",
+  "args": [
+   "u",
+   "p"
+  ]
+ },
+ "adj": {
+  "descr": "Adjoint sensitivity solution u",
+  "args": [
+   "u"
+  ]
+ },
+ "ballavg": {
+  "descr": "Average on the ball with radius r",
+  "args": [
+   "r",
+   "expr"
+  ]
+ },
+ "cubeavg": {
+  "descr": "Average on the filled cube with side a",
+  "args": [
+   "a",
+   "expr"
+  ]
+ },
+ "circavg": {
+  "descr": "Average on the circle with radius r",
+  "args": [
+   "r",
+   "expr"
+  ]
+ },
+ "diskavg": {
+  "descr": "Average on the disk with radius r",
+  "args": [
+   "r",
+   "expr"
+  ]
+ },
+ "sphavg": {
+  "descr": "Average on the sphere with radius r",
+  "args": [
+   "r",
+   "expr"
+  ]
+ },
+ "ballint": {
+  "descr": "Integral on the ball with radius r",
+  "args": [
+   "r",
+   "expr"
+  ]
+ },
+ "cubeint": {
+  "descr": "Integral on the filled cube with side a",
+  "args": [
+   "a",
+   "expr"
+  ]
+ },
+ "circint": {
+  "descr": "Integral on the circle with radius r",
+  "args": [
+   "r",
+   "expr"
+  ]
+ },
+ "diskint": {
+  "descr": "Integral on the disk with radius r",
+  "args": [
+   "r",
+   "expr"
+  ]
+ },
+ "sphint": {
+  "descr": "Integral on the sphere with radius r",
+  "args": [
+   "r",
+   "expr"
+  ]
+ },
+ "shapeorder": {
+  "descr": "The element order used for discretization of a variable",
+  "args": [
+   "variable"
+  ]
+ },
+ "prev": {
+  "descr": "Evaluate at the ith previous time step",
+  "args": [
+   "expr",
+   "i"
+  ]
+ },
+ "bdf": {
+  "descr": "Apply backward differentiation formula of order i on expression",
+  "args": [
+   "expr",
+   "i"
+  ]
+ },
+ "ppr": {
+  "descr": "Accurate derivative recovery",
+  "args": [
+   "expr"
+  ]
+ },
+ "pprint": {
+  "descr": "Accurate derivative recovery within each domain group",
+  "args": [
+   "expr"
+  ]
+ },
+ "with": {
+  "descr": "Access the solution with number solnum",
+  "args": [
+   "solnum",
+   "expr"
+  ]
+ },
+ "at": {
+  "descr": "Access the solution at time t",
+  "args": [
+   "t",
+   "expr"
+  ]
+ },
+ "withsol": {
+  "descr": "Access the solution with tag soltag",
+  "args": [
+   "soltag",
+   "expr"
+  ]
+ },
+ "withparam": {
+  "descr": "Access the solution parameters for the solution with tag soltag",
+  "args": [
+   "soltag",
+   "expr"
+  ]
+ },
+ "solstep": {
+  "descr": "Access the solution from a previous step",
+  "args": [
+   "expr",
+   "nstepsback"
+  ]
+ },
+ "setind": {
+  "descr": "Specify parameter index in withsol operator",
+  "args": [
+   "parameter",
+   "index"
+  ]
+ },
+ "setval": {
+  "descr": "Specify parameter value in withsol operator",
+  "args": [
+   "parameter",
+   "value"
+  ]
+ },
+ "setconst": {
+  "descr": "Specify temporary constant in withsol operator",
+  "args": [
+   "constant",
+   "value"
+  ]
+ },
+ "timeint": {
+  "descr": "Time integral",
+  "args": [
+   "t1",
+   "t2",
+   "expr"
+  ]
+ },
+ "timeavg": {
+  "descr": "Time average",
+  "args": [
+   "t1",
+   "t2",
+   "expr"
+  ]
+ },
+ "timemax": {
+  "descr": "Maximum over time",
+  "args": [
+   "t1",
+   "t2",
+   "expr"
+  ]
+ },
+ "timemin": {
+  "descr": "Minimum over time",
+  "args": [
+   "t1",
+   "t2",
+   "expr"
+  ]
+ },
+ "attimemax": {
+  "descr": "Evaluate expr2 at time maximum of expr1",
+  "args": [
+   "t1",
+   "t2",
+   "expr1",
+   "expr2"
+  ]
+ },
+ "attimemin": {
+  "descr": "Evaluate expr2 at time minimum of expr1",
+  "args": [
+   "t1",
+   "t2",
+   "expr1",
+   "expr2"
+  ]
+ },
+ "elemint": {
+  "descr": "Elementwise integration",
+  "args": [
+   "gporder",
+   "expr"
+  ]
+ },
+ "pmax": {
+  "descr": "Maximum of expr over all values of parameter p",
+  "args": [
+   "p",
+   "expr"
+  ]
+ },
+ "pmin": {
+  "descr": "Minimum of expr over all values of parameter p",
+  "args": [
+   "p",
+   "expr"
+  ]
+ },
+ "atpmax": {
+  "descr": "Value of expr2 at the maximum of expr1 over all values of parameter p",
+  "args": [
+   "p",
+   "expr",
+   "expr2"
+  ]
+ },
+ "atpmin": {
+  "descr": "Value of expr2 at the minimum of expr1 over all values of parameter p",
+  "args": [
+   "p",
+   "expr",
+   "expr2"
+  ]
+ },
+ "psum": {
+  "descr": "Sum of expr over all values of parameter p",
+  "args": [
+   "p",
+   "expr"
+  ]
+ },
+ "pint": {
+  "descr": "Numerically integrate expr over parameter p from p1 to p2",
+  "args": [
+   "p",
+   "p1",
+   "p2",
+   "expr"
+  ]
+ },
+ "elemavg": {
+  "descr": "Elementwise average",
+  "args": [
+   "gporder",
+   "expr"
+  ]
+ },
+ "elemgpmin": {
+  "descr": "Elementwise minimum over Gauss points",
+  "args": [
+   "gporder",
+   "expr"
+  ]
+ },
+ "elemgpmax": {
+  "descr": "Elementwise maximum over Gauss points",
+  "args": [
+   "gporder",
+   "expr"
+  ]
+ },
+ "laginterp": {
+  "descr": "Elementwise Lagrange interpolation",
+  "args": [
+   "order",
+   "expr"
+  ]
+ },
+ "emetric": {
+  "descr": "Squared length of the material vector in the mesh elements metric",
+  "args": [
+   "exprx"
+  ]
+ },
+ "bndenv": {
+  "descr": "Evaluate at the coordinates of a particle at a boundary",
+  "args": [
+   "expr"
+  ]
+ },
+ "env": {
+  "descr": "Evaluate at the coordinates of a particle in a domain",
+  "args": [
+   "expr"
+  ]
+ },
+ "noenv": {
+  "descr": "Evaluate subexpression of the argument to env or bndenv outside the env context",
+  "args": [
+   "expr"
+  ]
+ },
+ "centroid": {
+  "descr": "Evaluate in the centroid of the mesh element to which the point belongs",
+  "args": [
+   "expr"
+  ]
+ },
+ "circumcenter": {
+  "descr": "Evaluate in the circumcenter of the mesh element to which the point belongs",
+  "args": [
+   "expr"
+  ]
+ },
+ "atlocal": {
+  "descr": "Evaluate at local coordinates",
+  "args": [
+   "xi1",
+   "expr"
+  ]
+ },
+ "gpeval": {
+  "descr": "Gauss point evaluation",
+  "args": [
+   "gporder",
+   "expr"
+  ]
+ },
+ "patcheval": {
+  "descr": "Patch evaluation on domains",
+  "args": [
+   "expr",
+   "exorder"
+  ]
+ },
+ "subst": {
+  "descr": "Substitute variables in an expression",
+  "args": [
+   "expr",
+   "expr1_orig",
+   "expr1_subst"
+  ]
+ },
+ "integrate": {
+  "descr": "Integral of a general expression over an interval",
+  "args": [
+   "expr",
+   "var",
+   "lower",
+   "upper"
+  ]
+ },
+ "sum": {
+  "descr": "Sum of a general expression for all indices from lower to upper",
+  "args": [
+   "expr",
+   "var",
+   "lower",
+   "upper"
+  ]
+ },
+ "stddev": {
+  "descr": "Standard deviation of op expr",
+  "args": [
+   "op",
+   "expr"
+  ]
+ },
+ "var": {
+  "descr": "Variation operator",
+  "args": [
+   "expr",
+   "fieldname1",
+   "fieldname2"
+  ]
+ },
+ "novar": {
+  "descr": "Remove variations with respect to specified fields",
+  "args": [
+   "expr",
+   "fieldname1",
+   "fieldname2"
+  ]
+ },
+ "error": {
+  "descr": "Produce an error message",
+  "args": [
+   "'\" + FlLocale.getString((String)\"Error_message\") + \"'"
+  ]
+ }
+}
