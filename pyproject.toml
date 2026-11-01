@@ -71,6 +71,11 @@ exclude = ["/development_kit", "/.claude", "/dsh_bridge"]
 
 [tool.pytest.ini_options]
 testpaths = ["development_kit/tests"]
+# pytest-asyncio >= 1.4.1 deprecates the unset fixture loop scope at
+# configure time; under -W error (the GUI gates) that warning killed the
+# session before collection. Pin today's actual default explicitly so the
+# behavior is identical on every pytest-asyncio version.
+asyncio_default_fixture_loop_scope = "function"
 addopts = "--strict-markers -m 'not integration'"
 markers = [
     "integration: launches a real COMSOL probe in a dedicated subprocess",
