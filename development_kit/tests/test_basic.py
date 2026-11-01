@@ -1665,3 +1665,43 @@ class TestSessionManager:
         assert len(details["cleanup_errors"]) == 2
         status = sm.get_status()
         assert status["cleanup_pending"] is True
+
+
+def test_mph_proxy_patches_never_damage_the_real_module():
+    """Monkeypatch cycles on the lazy mph proxies must not delete or leak
+    attributes on the REAL mph module (pytest 9.2 records undo state from
+    the target __dict__; a proxy that forwarded writes into the module let
+    that undo delete mph.Client for every later test)."""
+    import mph as real_mph
+    import src.tools.session as session_module
+    from _pytest.monkeypatch import MonkeyPatch
+
+    real_client = real_mph.Client
+    assert session_module.mph.Client is real_client
+
+    for _ in range(2):
+        patcher = MonkeyPatch()
+        sentinel = object()
+        try:
+            patcher.setattr(session_module.mph, "Client", sentinel)
+            # The patch is visible through the proxy without touching the
+            # real module.
+            assert session_module.mph.Client is sentinel
+            assert real_mph.Client is real_client
+        finally:
+            patcher.undo()
+        # After undo the real module is intact and the proxy reads fall
+        # back to it again - no deleted attribute, no leaked sentinel.
+        assert real_mph.Client is real_client
+        assert session_module.mph.Client is real_client
+
+    # The session-module proxy round-trips the same way.
+    patcher = MonkeyPatch()
+    try:
+        patcher.setattr(session_module.mph_session, "client", None)
+        assert session_module.mph_session.client is None
+    finally:
+        patcher.undo()
+    import mph.session as real_mph_session
+
+    assert session_module.mph_session.client is real_mph_session.client

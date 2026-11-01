@@ -29,41 +29,44 @@ MAX_STARTUP_PHASES = 32
 
 
 class _LazyMphModule:
-    """Compatibility proxy that imports MPh only when a client is needed."""
+    """Compatibility proxy that imports MPh only when a client is needed.
+
+    Attribute READS fall back to the real module, imported on first use.
+    Attribute WRITES and DELETES stay on the proxy's own __dict__:
+    patching tools (pytest's monkeypatch, unittest.mock) record and undo
+    instance-dict state, and a proxy that forwarded writes into the real
+    module would leave their undo deleting real module attributes (the
+    pytest 9.2 __dict__-based undo did exactly that to mph.Client).
+    Production code mutates the real modules only through references it
+    obtained from them directly, never through this proxy.
+    """
 
     def __init__(self) -> None:
-        object.__setattr__(self, "_module", None)
+        self._module = None
 
     def _get(self):
-        module = object.__getattribute__(self, "_module")
+        module = self._module
         if module is None:
             import mph as module
 
-            object.__setattr__(self, "_module", module)
+            self._module = module
         return module
 
     def __getattr__(self, name: str):
-        return getattr(self._get(), name)
-
-    def __setattr__(self, name: str, value) -> None:
         if name == "_module":
-            object.__setattr__(self, name, value)
-            return
-        setattr(self._get(), name, value)
-
-    def __delattr__(self, name: str) -> None:
-        delattr(self._get(), name)
+            raise AttributeError(name)
+        return getattr(self._get(), name)
 
 
 class _LazyMphSessionModule(_LazyMphModule):
     """Compatibility proxy for MPh's process-global session module."""
 
     def _get(self):
-        module = object.__getattribute__(self, "_module")
+        module = self._module
         if module is None:
             import mph.session as module
 
-            object.__setattr__(self, "_module", module)
+            self._module = module
         return module
 
 
@@ -72,8 +75,12 @@ mph_session = _LazyMphSessionModule()
 
 
 def _load_mph():
-    import mph
-    import mph.session as mph_session
+    """Return the lazy MPh proxies used by every session read path.
+
+    Returning the proxies keeps test patches on session.mph /
+    session.mph_session effective for code that binds these names
+    locally, while the proxies keep real-module reads lazy.
+    """
 
     return mph, mph_session
 
@@ -721,8 +728,16 @@ class SessionManager:
                 self._starting = False
                 if mph_session_module is not None and not cleanup_errors:
                     try:
-                        if mph_session_module.client is client:
-                            mph_session_module.client = None
+                        # Clearing MPh's process-global singleton must reach
+                        # the real mph.session module: a proxy-scoped write
+                        # would leave the real global holding a dead client.
+                        session_global = (
+                            mph_session_module._get()
+                            if isinstance(mph_session_module, _LazyMphModule)
+                            else mph_session_module
+                        )
+                        if session_global.client is client:
+                            session_global.client = None
                     except Exception as singleton_exc:
                         self._start_message = (
                             f"{self._start_message}; singleton cleanup warning: "
