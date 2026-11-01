@@ -86,7 +86,6 @@ def _dataset_kwargs() -> dict:
             {"row_id": "r2", "split": "train"},
             {"row_id": "r3", "split": "validation"},
             {"row_id": "r4", "split": "test"},
-            {"row_id": "r5", "split": "scientific_holdout"},
         ],
         "ineligible_rows": [
             {"row_id": "r5", "reason_code": "label_missing", "detail": "QoI absent"}
@@ -203,3 +202,50 @@ def test_module_is_solver_free() -> None:
         "from comsol.",
     ):
         assert banned not in source
+
+
+def test_ineligible_rows_must_not_carry_split_assignments() -> None:
+    """L-05: an ineligible row with a split assignment is contradictory.
+
+    Before this contract the builder accepted it, the group-disjoint check
+    let the ineligible assignment reject (or holdout-pollute) real splits,
+    and split_counts counted unusable rows. Both the builder and the
+    group-disjoint validator now refuse fail-closed.
+    """
+    kwargs = _dataset_kwargs()
+    kwargs["split_assignments"] = [
+        {"row_id": "r1", "split": "train"},
+        {"row_id": "r2", "split": "train"},
+        {"row_id": "r3", "split": "validation"},
+        {"row_id": "r4", "split": "test"},
+        {"row_id": "r5", "split": "scientific_holdout"},
+    ]
+    kwargs["ineligible_rows"] = [
+        {"row_id": "r5", "reason_code": "label_missing", "detail": "QoI absent"}
+    ]
+    with pytest.raises(ValueError, match="must not carry a split assignment"):
+        build_dataset_manifest(**kwargs)
+
+    # The same contract holds for a pre-built manifest reaching the
+    # group-disjoint validator.
+    manifest = build_dataset_manifest(
+        **{
+            **kwargs,
+            "split_assignments": [
+                {"row_id": "r1", "split": "train"},
+                {"row_id": "r2", "split": "train"},
+                {"row_id": "r3", "split": "validation"},
+                {"row_id": "r4", "split": "test"},
+            ],
+        }
+    )
+    tampered = dict(manifest)
+    tampered["split_assignments"] = [
+        *manifest["split_assignments"],
+        {"row_id": "r5", "split": "scientific_holdout"},
+    ]
+    from comsol_mcp.surrogate.manifests import _finalize
+
+    body = {key: value for key, value in tampered.items() if key != "manifest_sha256"}
+    with pytest.raises(ValueError, match="must not carry a split assignment"):
+        validate_group_disjoint_split(_finalize(body))

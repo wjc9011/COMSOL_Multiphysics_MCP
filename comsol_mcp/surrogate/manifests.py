@@ -327,6 +327,15 @@ def build_dataset_manifest(
             raise ValueError("ineligible row_id must be unique")
         ineligible_ids.add(row_id)
         ineligible.append({"row_id": row_id, "reason_code": reason_code, "detail": detail})
+    # L-05: split assignments exist so fitted splits cover ELIGIBLE rows.
+    # An ineligible row with an assignment is a contradictory state: it
+    # polluted split counts and group-disjoint/holdout checks while never
+    # being usable for fitting, so it is refused fail-closed here.
+    conflicted = sorted(ineligible_ids & assigned)
+    if conflicted:
+        preview = ", ".join(conflicted[:5])
+        suffix = "" if len(conflicted) <= 5 else f" (+{len(conflicted) - 5} more)"
+        raise ValueError(f"ineligible rows must not carry a split assignment: {preview}{suffix}")
 
     body = {
         "schema": "comsol_mcp.surrogate_dataset_manifest",
@@ -398,6 +407,14 @@ def validate_group_disjoint_split(manifest: Mapping[str, Any]) -> dict[str, Any]
     row_to_split = {item["row_id"]: item["split"] for item in validated["split_assignments"]}
     ineligible = {item["row_id"] for item in validated["ineligible_rows"]}
     eligible = [row for row in validated["row_ids"] if row not in ineligible]
+    # L-05: the same fail-closed contract as the builder, applied to any
+    # pre-built manifest: an ineligible row must not carry an assignment,
+    # otherwise split counts and group/holdout verdicts count unusable rows.
+    conflicted = sorted(ineligible & set(row_to_split))
+    if conflicted:
+        preview = ", ".join(conflicted[:5])
+        suffix = "" if len(conflicted) <= 5 else f" (+{len(conflicted) - 5} more)"
+        raise ValueError(f"ineligible rows must not carry a split assignment: {preview}{suffix}")
     missing = [row for row in eligible if row not in row_to_split]
     if missing:
         raise ValueError("eligible rows must be assigned to a split")
