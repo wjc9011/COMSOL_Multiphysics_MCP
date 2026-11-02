@@ -47,10 +47,29 @@ test("aborted signal rejects the call", async () => {
 	assert.ok(res.text.includes("package_version"));
 });
 
-test("per-call timeout rejects and leaves the connection usable", async () => {
-	await assert.rejects(conn.callTool("capabilities", {}, { timeoutMs: 5 }), /timed out/);
-	const res = await conn.callTool("capabilities", {});
-	assert.ok(res.text.includes("package_version"));
+test("per-call timeout rejects, the late response keeps single-flight occupancy, and the connection stays usable", { timeout: 15000 }, async () => {
+	// C081Q-01: timing the caller's 5 ms timeout against the shared
+	// server's 10 ms handling delay is a cross-process timer race - on a
+	// loaded hosted runner the caller's one-shot timer can fire after the
+	// server's response, resolving a call the test expects to reject. A
+	// dedicated slow server (1000 ms delay vs a 5 ms timeout) makes the
+	// outcome deterministic while keeping the same assertions: no product
+	// timeout changed, no assertion removed.
+	const slow = spawnFakeServer({ FAKE_DELAY_MS: "1000" });
+	try {
+		const slowConn = makeConnection(slow, {});
+		await slowConn.connect();
+		await assert.rejects(slowConn.callTool("capabilities", {}, { timeoutMs: 5 }), /timed out/);
+		// The late (post-timeout) response settles the pending entry and
+		// releases occupancy; the next call reuses the same connection.
+		const res = await slowConn.callTool("capabilities", {});
+		assert.ok(res.text.includes("package_version"));
+		const stats = JSON.parse((await slowConn.callTool("stats", {})).text);
+		assert.equal(stats.maxInFlight, 1, `expected maxInFlight=1, got ${stats.maxInFlight}`);
+		slowConn.dispose();
+	} finally {
+		await slow.close();
+	}
 });
 
 test("dispose rejects pending and subsequent calls", async () => {
