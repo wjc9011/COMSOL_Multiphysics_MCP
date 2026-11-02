@@ -221,9 +221,7 @@ def test_air_reference_requires_matching_config_and_field_statistics(tmp_path):
 def test_reference_audit_output_round_trips_as_point_audit_air_reference(tmp_path, monkeypatch):
     result, _source, _cleanup_calls = _run_reference(tmp_path, monkeypatch)
 
-    reference, warnings = _load_air_reference(
-        result["artifacts"]["manifest"], "unit-reference"
-    )
+    reference, warnings = _load_air_reference(result["artifacts"]["manifest"], "unit-reference")
 
     assert reference is not None
     assert reference["component_statistics"]["x"]["complex_mean"]["real"] == 1.0
@@ -850,9 +848,12 @@ def _run_reference(
             if isinstance(expression, list) and expression and expression[-1] == "dom":
                 x, y, z = field_samples
                 return [
-                    np.asarray([x + 0j] * 3), np.asarray([y + 0j] * 3),
-                    np.asarray([z + 0j] * 3), np.array([0.1, 0.2, 0.3]),
-                    np.array([0.1, 0.2, 0.3]), np.array([0.8, 0.85, 0.9]),
+                    np.asarray([x + 0j] * 3),
+                    np.asarray([y + 0j] * 3),
+                    np.asarray([z + 0j] * 3),
+                    np.array([0.1, 0.2, 0.3]),
+                    np.array([0.1, 0.2, 0.3]),
+                    np.array([0.8, 0.85, 0.9]),
                     np.array([3, 3, 3]),
                 ]
             return original_evaluate(expression)
@@ -1057,3 +1058,73 @@ def test_reference_audit_refuses_terminal_success_when_cleanup_is_unproved(tmp_p
     assert result["cleanup"]["removed"] is False
     manifest = json.loads(Path(result["artifacts"]["manifest"]).read_text(encoding="utf-8"))
     assert manifest["integrity_errors"][0]["code"] == "reference_clone_cleanup_unproved"
+
+
+def test_required_volume_loss_evidence_needs_a_usable_value(tmp_path, monkeypatch):
+    """C081R-01 / J-02: required volume-loss evidence must not pass on
+    error-only loss records. An ordinary unavailable integration expression
+    records the failed attempt, but it is MISSING evidence - distinct from a
+    physical failure - so the rule, the project verdict, and the published
+    manifest must not claim success."""
+    import json as _json
+
+    def _fail_int_au(model):
+        original = model.evaluate
+
+        def evaluate(expression):
+            if expression == "intAu(ewfd.Qh)":
+                raise RuntimeError("Unknown integration operator intAu")
+            return original(expression)
+
+        model.evaluate = evaluate
+
+    # ALL declared loss expressions fail: the evidence is missing.
+    result, _ = _run(
+        tmp_path,
+        monkeypatch,
+        validation_policy={"required_evidence": ["volume_loss"]},
+        model_setup=_fail_int_au,
+    )
+    rule = result["assessment"]["policy_evaluation"]["rules"][0]
+    assert rule["rule"] == "required_evidence.volume_loss"
+    assert rule["outcome"] == "missing"
+    assert result["assessment"]["project_verdict"] == "missing"
+    assert result["audit_status"] == "policy_evaluated"
+    items = result["measurement"]["losses"]["items"]
+    assert len(items) == 1 and "value" not in items[0] and items[0]["error"]
+    assert any(
+        error["code"] == "loss_expression_unavailable"
+        for error in result["measurement"]["measurement_errors"]
+    )
+    manifest = _json.loads(Path(result["artifacts"]["manifest"]).read_text(encoding="utf-8"))
+    assert manifest["assessment"]["project_verdict"] == "missing"
+
+    # MIXED success/error: the usable record makes the evidence available,
+    # and the failed record stays as recorded evidence of the attempt.
+    from src.tools.wave_optics_audit import evaluate_validation_policy
+
+    mixed = evaluate_validation_policy(
+        {
+            "losses": {
+                "items": [
+                    {"label": "Au", "expression": "intAu(ewfd.Qh)", "error": "boom"},
+                    {"label": "Loss", "expression": "intLoss(ewfd.Qh)", "value": 0.4},
+                ]
+            }
+        },
+        {"required_evidence": ["volume_loss"]},
+    )
+    mixed_rule = mixed["rules"][0]
+    assert mixed_rule["rule"] == "required_evidence.volume_loss"
+    assert mixed_rule["outcome"] == "pass"
+    assert mixed["overall"] == "pass"
+
+    # Valid control: unchanged pass with the raw value (no normalization
+    # was requested, so availability must not demand one).
+    result_ok, _ = _run(
+        tmp_path,
+        monkeypatch,
+        validation_policy={"required_evidence": ["volume_loss"]},
+    )
+    assert result_ok["assessment"]["policy_evaluation"]["rules"][0]["outcome"] == "pass"
+    assert result_ok["assessment"]["project_verdict"] == "pass"

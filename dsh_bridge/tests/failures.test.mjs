@@ -96,14 +96,20 @@ test("initialize timeout releases single-flight occupancy for a healthy replacem
 		args: [FIXTURE],
 		env,
 		logger: quietLogger(),
-		initTimeoutMs: 100,
+		// C081R-02: the intended timeout triggers deterministically at ANY
+		// budget because the no-initialize fixture never answers - so the
+		// budget does not have to be small. A healthy replacement's
+		// initialization budget also covers process spawn; 100 ms lost that
+		// race on loaded runners. 2000 ms separates the two phases without
+		// touching any product default (the test owns this value).
+		initTimeoutMs: 2000,
 		reconnect: { enabled: true, initialDelayMs: 20, maxDelayMs: 40, maxAttempts: 3 },
 	});
 	try {
 		assert.equal(await conn.connect(), false);
 		// Model a corrected child on the next bounded replacement attempt.
 		env.FAKE_MODE = "";
-		const deadline = Date.now() + 3000;
+		const deadline = Date.now() + 8000;
 		while (!conn.connected && Date.now() < deadline) await new Promise((resolve) => setTimeout(resolve, 10));
 		assert.equal(conn.connected, true, "replacement should complete initialize and tool discovery");
 		const result = await conn.callTool("capabilities", {});

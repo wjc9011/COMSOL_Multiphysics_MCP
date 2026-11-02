@@ -476,6 +476,27 @@ def _policy_rule(
     return result
 
 
+def _usable_volume_loss(measurement: dict[str, Any]) -> bool:
+    """Whether at least one declared loss record carries a usable finite value.
+
+    A record whose expression failed to evaluate carries an error and no
+    value: it stays recorded as evidence of the attempt, but it is never
+    usable loss evidence, so required volume-loss evidence must not pass on
+    error-only records (C081R-01). Raw values count as-is - a caller-declared
+    normalization is not required for availability, only for normalized
+    comparisons.
+    """
+    for item in measurement.get("losses", {}).get("items", []):
+        if not isinstance(item, dict):
+            continue
+        value = item.get("value")
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        if math.isfinite(value):
+            return True
+    return False
+
+
 def _evidence_available(measurement: dict[str, Any], name: str) -> bool:
     mapping = {
         "wavelength_controls": bool(measurement.get("wavelength", {}).get("complete")),
@@ -488,7 +509,7 @@ def _evidence_available(measurement: dict[str, Any], name: str) -> bool:
         "top_air_region": bool(
             measurement.get("polarization", {}).get("structure_total_field", {}).get("complete")
         ),
-        "volume_loss": bool(measurement.get("losses", {}).get("items")),
+        "volume_loss": _usable_volume_loss(measurement),
         "source_integrity": bool(measurement.get("integrity", {}).get("source_unchanged")),
         "mesh_evidence": bool(measurement.get("mesh", {}).get("element_count") is not None),
     }
