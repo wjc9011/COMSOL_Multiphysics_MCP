@@ -1913,6 +1913,64 @@ def _load_stage_evidence_public(root, stage_id):
     return _json.loads((root / stage_id / "evidence.json").read_text(encoding="utf-8"))["payload"]
 
 
+@pytest.mark.parametrize("repeat_failure", [False, True])
+def test_cold_heat_logging_load_retries_once_after_clearing_partial_model(repeat_failure):
+    from types import SimpleNamespace
+
+    from comsol_mcp.jobs.thermo_optomechanical_replay_execution import (
+        ThermoOptomechanicalComsolExecutor,
+    )
+
+    class ColdLoggingError(Exception):
+        def stacktrace(self):
+            return (
+                "org.slf4j.impl.SLF4JLoggerFactory.getSLF4JLoggerFactory\n"
+                "com.comsol.heat.util.ashrae.AmbientPropertiesUtil"
+            )
+
+    calls = []
+    model = object()
+
+    def load(path):
+        calls.append(("load", path))
+        if len(calls) == 1 or repeat_failure:
+            raise ColdLoggingError("physics initialization failed")
+        return model
+
+    executor = ThermoOptomechanicalComsolExecutor.__new__(ThermoOptomechanicalComsolExecutor)
+    executor.client = SimpleNamespace(load=load, clear=lambda: calls.append(("clear",)))
+    if repeat_failure:
+        with pytest.raises(ColdLoggingError):
+            executor._load_model(Path("checkpoint.mph"))
+    else:
+        assert executor._load_model(Path("checkpoint.mph")) is model
+    assert calls == [("load", "checkpoint.mph"), ("clear",), ("load", "checkpoint.mph")]
+
+
+@pytest.mark.parametrize("trace", [None, "unrelated error", "com.comsol.heat.util.ashrae"])
+def test_model_load_does_not_retry_other_failures(trace):
+    from types import SimpleNamespace
+
+    from comsol_mcp.jobs.thermo_optomechanical_replay_execution import (
+        ThermoOptomechanicalComsolExecutor,
+    )
+
+    error = RuntimeError("load failed")
+    if trace is not None:
+        error.stacktrace = lambda: trace
+    calls = []
+
+    def load(path):
+        calls.append(path)
+        raise error
+
+    executor = ThermoOptomechanicalComsolExecutor.__new__(ThermoOptomechanicalComsolExecutor)
+    executor.client = SimpleNamespace(load=load, clear=lambda: calls.append("clear"))
+    with pytest.raises(RuntimeError, match="load failed"):
+        executor._load_model(Path("checkpoint.mph"))
+    assert calls == ["checkpoint.mph"]
+
+
 def test_summary_rejects_on_retained_nonpassive_measurements(ascii_tmp_path):
     """C081-08: finite unphysical rows stay durable and reject the summary."""
     spec = normalize_thermo_optomechanical_replay_spec(

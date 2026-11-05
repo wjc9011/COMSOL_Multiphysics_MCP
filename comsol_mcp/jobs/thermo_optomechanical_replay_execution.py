@@ -107,7 +107,7 @@ class ThermoOptomechanicalComsolExecutor:
 
     def _load_source(self) -> Any:
         self.client.clear()
-        self.model = self.client.load(str(self.source))
+        self.model = self._load_model(self.source)
         self._active_dataset = None
         return self.model
 
@@ -125,7 +125,7 @@ class ThermoOptomechanicalComsolExecutor:
         if not self.derived_path.is_file():
             raise RuntimeError("derived thermo-optomechanical model is missing")
         self.client.clear()
-        self.model = self.client.load(str(self.derived_path))
+        self.model = self._load_model(self.derived_path)
         self._active_dataset = None
         return self.model
 
@@ -134,9 +134,27 @@ class ThermoOptomechanicalComsolExecutor:
         if not self.checkpoint_path.is_file():
             raise RuntimeError("pre-transfer checkpoint is missing")
         self.client.clear()
-        self.model = self.client.load(str(self.checkpoint_path))
+        self.model = self._load_model(self.checkpoint_path)
         self._active_dataset = None
         return self.model
+
+    def _load_model(self, path: Path) -> Any:
+        try:
+            return self.client.load(str(path))
+        except Exception as exc:
+            stacktrace = getattr(exc, "stacktrace", None)
+            if not callable(stacktrace):
+                raise
+            trace = str(stacktrace())
+            if not (
+                "org.slf4j.impl.SLF4JLoggerFactory.getSLF4JLoggerFactory" in trace
+                and "com.comsol.heat.util.ashrae" in trace
+            ):
+                raise
+            # COMSOL can initialize its logging backend on the first failed
+            # Heat Transfer load. Discard the partial model and retry once.
+            self.client.clear()
+            return self.client.load(str(path))
 
     def _save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
