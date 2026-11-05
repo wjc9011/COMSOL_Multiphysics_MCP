@@ -744,3 +744,23 @@ def test_kernel_pseudo_process_exclusion_rechecks_identity_after_snapshot(
     records, complete = _process_records()
     assert complete is True
     assert len(records) == (0 if excluded else 1)
+
+
+@pytest.mark.parametrize("still_kernel", [True, False])
+def test_unnamed_kernel_process_requires_fresh_native_identity(monkeypatch, still_kernel):
+    snapshots = iter([{900}, {900} if still_kernel else set()])
+    process = SimpleNamespace(
+        pid=900,
+        oneshot=nullcontext,
+        ppid=lambda: 4,
+        name=lambda: "",
+        exe=lambda: "",
+        cmdline=lambda: [],
+        create_time=lambda: 100.0,
+    )
+    monkeypatch.setattr(process_probe, "_windows_kernel_process_pids", lambda: next(snapshots))
+    monkeypatch.setattr(process_probe, "_windows_system_directory", lambda: None)
+    monkeypatch.setattr(psutil, "process_iter", lambda: iter([process]))
+    records, complete = _process_records()
+    assert complete is still_kernel
+    assert len(records) == (0 if still_kernel else 1)

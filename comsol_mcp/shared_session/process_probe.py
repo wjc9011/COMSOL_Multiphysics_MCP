@@ -128,12 +128,16 @@ def _process_records() -> tuple[list[dict[str, Any]], bool]:
             continue
         try:
             with process.oneshot():
-                if (
-                    process.pid in kernel_pids
-                    and process.ppid() in {0, 4}
-                    and process.name() in _WINDOWS_KERNEL_PROCESS_NAMES
-                ):
-                    continue
+                if process.pid in kernel_pids and process.ppid() in {0, 4}:
+                    name = process.name()
+                    if name in _WINDOWS_KERNEL_PROCESS_NAMES:
+                        continue
+                    if not name and not process.exe():
+                        # Secure System can have no psutil name or image.
+                        # Recheck its native kernel identity before exclusion.
+                        if process.pid in _windows_kernel_process_pids():
+                            continue
+                        complete = False
                 command_denied = False
                 try:
                     command_line = list(process.cmdline())[:MAX_COMMAND_PARTS]
