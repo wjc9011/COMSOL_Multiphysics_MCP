@@ -1128,3 +1128,92 @@ def test_required_volume_loss_evidence_needs_a_usable_value(tmp_path, monkeypatc
     )
     assert result_ok["assessment"]["policy_evaluation"]["rules"][0]["outcome"] == "pass"
     assert result_ok["assessment"]["project_verdict"] == "pass"
+
+
+def test_requested_loss_match_requires_complete_aggregate(tmp_path, monkeypatch):
+    """C081S-01: a requested aggregate loss-match rule must not certify an
+    incomplete sum. One failed contribution previously shrank the sum to the
+    surviving subset, which could match 1-R-T and publish pass; unavailable
+    contributions (failed expression, failed or zero normalization) now read
+    as MISSING evidence through manifest publication, distinct from a
+    measured physical failure."""
+    import json as _json
+
+    from pytest import MonkeyPatch
+
+    import development_kit.tests.test_wave_optics_audit as fixture
+
+    real_audit = fixture.run_wave_optics_point_audit
+
+    def make_setup(case):
+        def setup(model):
+            original = model.evaluate
+
+            def evaluate(expression):
+                if expression == "loss_good":
+                    return 0.7
+                if expression == "loss_other":
+                    if case == "mixed_missing":
+                        raise RuntimeError("Unknown integration operator intOther")
+                    return 0.2
+                if expression == "incident_power":
+                    return 0.0 if case == "zero_normalizer" else 1.0
+                return original(expression)
+
+            model.evaluate = evaluate
+
+        return setup
+
+    def make_audit(case):
+        other = {
+            "label": "other",
+            "domains": [3],
+            "expression": "loss_good" if case == "zero_normalizer" else "loss_other",
+            "normalization_expression": "incident_power",
+        }
+
+        def audit(*args, **kwargs):
+            kwargs["loss_map"] = [
+                {
+                    "label": "good",
+                    "domains": [2],
+                    "expression": "loss_good",
+                    "normalization_expression": "incident_power",
+                },
+                other,
+            ]
+            return real_audit(*args, **kwargs)
+
+        return audit
+
+    expectations = {
+        "complete_fail": "fail",
+        "mixed_missing": "missing",
+        "zero_normalizer": "missing",
+    }
+
+    for case, expected_verdict in expectations.items():
+        case_dir = tmp_path / case
+        case_dir.mkdir()
+        with MonkeyPatch.context() as patch:
+            patch.setattr(fixture, "run_wave_optics_point_audit", make_audit(case))
+            result, _ = _run(
+                case_dir,
+                patch,
+                validation_policy={
+                    "required_evidence": ["volume_loss"],
+                    "tolerances": {"loss_match_abs": 0.01},
+                },
+                model_setup=make_setup(case),
+            )
+        assert result["assessment"]["project_verdict"] == expected_verdict, case
+        rule = next(
+            item
+            for item in result["assessment"]["policy_evaluation"]["rules"]
+            if item["rule"] == "tolerances.loss_match_abs"
+        )
+        assert rule["outcome"] == expected_verdict, case
+        if case != "complete_fail":
+            assert "incomplete" in rule["reason"], case
+        manifest = _json.loads(Path(result["artifacts"]["manifest"]).read_text(encoding="utf-8"))
+        assert manifest["assessment"] == result["assessment"], case
