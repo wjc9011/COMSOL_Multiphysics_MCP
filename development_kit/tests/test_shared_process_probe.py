@@ -657,3 +657,90 @@ def test_custom_process_provider_honors_the_bounded_maximum():
             clock=lambda: 1000.0,
             exclude_pids=(),
         )
+
+
+@pytest.mark.parametrize("name", ["comsol-mcp.exe", "comsol-mcp-settings.exe"])
+def test_mcp_console_launchers_are_not_native_comsol_processes(name):
+    snapshot = collect_shared_preflight_snapshot(
+        process_provider=lambda: [_record(50, 1, name, [name])],
+        listener_provider=list,
+        window_provider=dict,
+        version_provider=lambda _path: "0.8.1",
+    )
+    assert snapshot["inventory_complete"] is True
+    assert snapshot["processes"] == []
+
+
+@pytest.mark.parametrize(
+    ("image", "expected_complete"),
+    [
+        ("C:/Windows/System32/LsaIso.exe", True),
+        ("C:/Windows/System32/NgcIso.exe", True),
+        ("D:/user/LsaIso.exe", False),
+        ("C:/Windows/System32/python.exe", False),
+    ],
+)
+def test_protected_security_image_exclusion_requires_exact_system_image(
+    monkeypatch, image, expected_complete
+):
+    from pathlib import PureWindowsPath
+
+    class ProtectedProcess:
+        pid = 900
+
+        def oneshot(self):
+            return nullcontext()
+
+        def cmdline(self):
+            raise psutil.AccessDenied(self.pid)
+
+        def exe(self):
+            return image
+
+        def name(self):
+            return "LsaIso.exe"
+
+        def ppid(self):
+            return 500
+
+        def create_time(self):
+            return 100.0
+
+    monkeypatch.setattr(process_probe, "_windows_kernel_process_pids", set)
+    monkeypatch.setattr(
+        process_probe, "_windows_system_directory", lambda: PureWindowsPath("C:/Windows/System32")
+    )
+    monkeypatch.setattr(psutil, "process_iter", lambda: iter([ProtectedProcess()]))
+    records, complete = _process_records()
+    assert complete is expected_complete
+    assert len(records) == (0 if expected_complete else 1)
+
+
+@pytest.mark.parametrize(
+    ("parent", "name", "excluded"),
+    [
+        (0, "Registry", True),
+        (4, "MemCompression", True),
+        (500, "Registry", False),
+        (0, "python.exe", False),
+        (4, "python.exe", False),
+    ],
+)
+def test_kernel_pseudo_process_exclusion_rechecks_identity_after_snapshot(
+    monkeypatch, parent, name, excluded
+):
+    process = SimpleNamespace(
+        pid=900,
+        oneshot=nullcontext,
+        ppid=lambda: parent,
+        cmdline=lambda: [],
+        exe=lambda: "python.exe",
+        name=lambda: name,
+        create_time=lambda: 100.0,
+    )
+    monkeypatch.setattr(process_probe, "_windows_kernel_process_pids", lambda: {900})
+    monkeypatch.setattr(process_probe, "_windows_system_directory", lambda: None)
+    monkeypatch.setattr(psutil, "process_iter", lambda: iter([process]))
+    records, complete = _process_records()
+    assert complete is True
+    assert len(records) == (0 if excluded else 1)

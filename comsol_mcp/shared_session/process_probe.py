@@ -7,7 +7,7 @@ import hashlib
 import platform
 import time
 from ctypes import wintypes
-from pathlib import Path
+from pathlib import Path, PureWindowsPath
 from typing import Any, Callable, Iterable
 
 import psutil
@@ -37,6 +37,16 @@ _AUXILIARY_WINDOW_CLASSES = frozenset(
     }
 )
 _MAX_WINDOW_CLASS_CHARACTERS = 256
+_WINDOWS_KERNEL_PROCESS_NAMES = frozenset(
+    {
+        "[System Process]",
+        "System",
+        "Secure System",
+        "Registry",
+        "MemCompression",
+        "Memory Compression",
+    }
+)
 
 
 def _command_signature(command_line: Iterable[Any]) -> str:
@@ -44,17 +54,92 @@ def _command_signature(command_line: Iterable[Any]) -> str:
     return hashlib.sha256(canonical.encode("utf-8", errors="replace")).hexdigest()
 
 
+def _windows_kernel_process_pids() -> set[int]:
+    """Read kernel pseudo-process names through the native process snapshot."""
+    if platform.system() != "Windows":
+        return set()
+
+    class ProcessEntry(ctypes.Structure):
+        _fields_ = [
+            ("dwSize", wintypes.DWORD),
+            ("cntUsage", wintypes.DWORD),
+            ("th32ProcessID", wintypes.DWORD),
+            ("th32DefaultHeapID", ctypes.c_size_t),
+            ("th32ModuleID", wintypes.DWORD),
+            ("cntThreads", wintypes.DWORD),
+            ("th32ParentProcessID", wintypes.DWORD),
+            ("pcPriClassBase", wintypes.LONG),
+            ("dwFlags", wintypes.DWORD),
+            ("szExeFile", wintypes.WCHAR * 260),
+        ]
+
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.CreateToolhelp32Snapshot.argtypes = [wintypes.DWORD, wintypes.DWORD]
+    kernel.CreateToolhelp32Snapshot.restype = wintypes.HANDLE
+    for name in ("Process32FirstW", "Process32NextW"):
+        function = getattr(kernel, name)
+        function.argtypes = [wintypes.HANDLE, ctypes.POINTER(ProcessEntry)]
+        function.restype = wintypes.BOOL
+    kernel.CloseHandle.argtypes = [wintypes.HANDLE]
+    kernel.CloseHandle.restype = wintypes.BOOL
+    snapshot = kernel.CreateToolhelp32Snapshot(2, 0)
+    if snapshot == ctypes.c_void_p(-1).value:
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        entry = ProcessEntry()
+        entry.dwSize = ctypes.sizeof(entry)
+        if not kernel.Process32FirstW(snapshot, ctypes.byref(entry)):
+            raise ctypes.WinError(ctypes.get_last_error())
+        pids = set()
+        while True:
+            if entry.szExeFile in _WINDOWS_KERNEL_PROCESS_NAMES and entry.th32ParentProcessID in {
+                0,
+                4,
+            }:
+                pids.add(int(entry.th32ProcessID))
+            if not kernel.Process32NextW(snapshot, ctypes.byref(entry)):
+                if ctypes.get_last_error() != 18:
+                    raise ctypes.WinError(ctypes.get_last_error())
+                return pids
+    finally:
+        kernel.CloseHandle(snapshot)
+
+
+def _windows_system_directory() -> PureWindowsPath | None:
+    if platform.system() != "Windows":
+        return None
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.GetWindowsDirectoryW.argtypes = [wintypes.LPWSTR, wintypes.UINT]
+    kernel.GetWindowsDirectoryW.restype = wintypes.UINT
+    buffer = ctypes.create_unicode_buffer(32768)
+    length = kernel.GetWindowsDirectoryW(buffer, len(buffer))
+    if not 0 < length < len(buffer):
+        raise ctypes.WinError(ctypes.get_last_error())
+    return PureWindowsPath(buffer.value) / "System32"
+
+
 def _process_records() -> tuple[list[dict[str, Any]], bool]:
     records: list[dict[str, Any]] = []
     complete = True
+    kernel_pids = _windows_kernel_process_pids()
+    system_directory = _windows_system_directory()
     for process in psutil.process_iter():
+        if process.pid in kernel_pids and process.pid in {0, 4}:
+            continue
         try:
             with process.oneshot():
+                if (
+                    process.pid in kernel_pids
+                    and process.ppid() in {0, 4}
+                    and process.name() in _WINDOWS_KERNEL_PROCESS_NAMES
+                ):
+                    continue
+                command_denied = False
                 try:
                     command_line = list(process.cmdline())[:MAX_COMMAND_PARTS]
                 except psutil.AccessDenied:
                     command_line = []
-                    complete = False
+                    command_denied = True
                 except psutil.ZombieProcess:
                     command_line = []
                 try:
@@ -64,6 +149,20 @@ def _process_records() -> tuple[list[dict[str, Any]], bool]:
                     complete = False
                 except psutil.ZombieProcess:
                     executable = None
+                if command_denied:
+                    # Windows isolated-security images cannot host COMSOL.
+                    # Require the actual system-directory image, not its name.
+                    if (
+                        system_directory is not None
+                        and executable
+                        and PureWindowsPath(executable)
+                        in {
+                            system_directory / "LsaIso.exe",
+                            system_directory / "NgcIso.exe",
+                        }
+                    ):
+                        continue
+                    complete = False
                 records.append(
                     {
                         "pid": process.pid,
@@ -270,6 +369,8 @@ def _kind(record: dict[str, Any], window_count: int) -> str | None:
     name = str(record.get("name") or "").casefold()
     executable_name = Path(str(record.get("executable") or "")).name.casefold()
     process_names = {name, executable_name} - {""}
+    if process_names and process_names <= {"comsol-mcp.exe", "comsol-mcp-settings.exe"}:
+        return None
     command_parts = [str(part).casefold() for part in record.get("command_line") or []]
     command = " ".join(command_parts)
     command_basenames = {Path(part).name.casefold() for part in command_parts}
