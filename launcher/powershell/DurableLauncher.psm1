@@ -256,10 +256,32 @@ function Get-DurableDriverProcesses {
     param([Parameter(Mandatory = $true)][string]$DriverPath)
     $Normalized = [System.IO.Path]::GetFullPath($DriverPath)
     $CurrentPid = $PID
-    return @(Get-CimInstance Win32_Process | Where-Object {
+    $DriverProcesses = @(Get-CimInstance Win32_Process | Where-Object {
         $_.ProcessId -ne $CurrentPid -and
         $_.Name -match '^python(w)?\.exe$' -and
         ([string]$_.CommandLine).IndexOf($Normalized, [StringComparison]::OrdinalIgnoreCase) -ge 0
+    })
+    return @($DriverProcesses | Where-Object {
+        $Child = $_
+        $Redirected = $false
+        foreach ($Parent in $DriverProcesses) {
+            if ($Child.ParentProcessId -ne $Parent.ProcessId -or
+                $Child.CommandLine -cne $Parent.CommandLine -or
+                [string]::IsNullOrWhiteSpace([string]$Parent.ExecutablePath) -or
+                [string]::IsNullOrWhiteSpace([string]$Child.ExecutablePath)) { continue }
+            $Scripts = Split-Path -Parent $Parent.ExecutablePath
+            if ((Split-Path -Leaf $Scripts) -ine 'Scripts') { continue }
+            $ConfigPath = Join-Path (Split-Path -Parent $Scripts) 'pyvenv.cfg'
+            if (-not (Test-Path -LiteralPath $ConfigPath -PathType Leaf)) { continue }
+            $Homes = @(Get-Content -LiteralPath $ConfigPath | Where-Object { $_ -match '^home\s*=' })
+            if ($Homes.Count -ne 1) { continue }
+            $BaseHome = ($Homes[0] -split '=', 2)[1].Trim()
+            $Expected = Join-Path $BaseHome (Split-Path -Leaf $Parent.ExecutablePath)
+            if ([System.IO.Path]::GetFullPath($Expected) -ieq $Child.ExecutablePath -and
+                $Parent.ExecutablePath -ine $Child.ExecutablePath -and
+                $Parent.CreationDate -le $Child.CreationDate) { $Redirected = $true }
+        }
+        -not $Redirected
     })
 }
 

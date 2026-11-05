@@ -225,6 +225,8 @@ def test_reference_audit_output_round_trips_as_point_audit_air_reference(tmp_pat
 
     assert reference is not None
     assert reference["component_statistics"]["x"]["complex_mean"]["real"] == 1.0
+    assert reference["stokes_xy"]["S0"] == 1.0
+    assert reference["stokes_xy"]["S3"] == 0.0
     assert warnings == []
 
 

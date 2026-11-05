@@ -174,6 +174,79 @@ def _write_manifest(tmp_path):
     return envelope, source, manifest
 
 
+@pytest.mark.parametrize("release_mode", ["success", "refused", "exception"])
+@pytest.mark.parametrize("runtime_mode", ["success", "failure", "cancel"])
+def test_native_completion_waits_for_lease_cleanup(
+    ascii_tmp_path, monkeypatch, release_mode, runtime_mode
+):
+    from comsol_mcp.jobs import adjoint_optimization_worker as worker
+    from comsol_mcp.tools import ownership as ownership_module
+
+    envelope, _, _ = _write_manifest(ascii_tmp_path)
+    manager = JobManager(
+        ascii_tmp_path / "jobs", preflight=lambda **_kwargs: {"success": True, "ready": True}
+    )
+    monkeypatch.setattr(manager, "_launch_worker", lambda *_args: process_identity(os.getpid()))
+    job_id = manager.submit(envelope)["job_id"]
+    store = manager.store
+    release_observations = []
+
+    class Owner:
+        def __init__(self, *_args, **_kwargs):
+            pass
+
+        def preflight(self, **_kwargs):
+            return {"ready": True}
+
+        def acquire(self, **_kwargs):
+            return {"success": True}
+
+        def release(self):
+            release_observations.append(store.read_state(job_id)["status"])
+            if release_mode == "exception":
+                raise OSError("injected lease sharing failure")
+            return {"success": release_mode == "success"}
+
+    monkeypatch.setattr(ownership_module, "SolverOwnership", Owner)
+    monkeypatch.setattr(worker, "contain_current_process_tree", lambda: True)
+    monkeypatch.setattr(worker, "_await_licensed_wall_watchdog", lambda *_args: {})
+
+    def execute(*_args):
+        if runtime_mode == "cancel":
+            store.update_state(job_id, "cancel_requested", event="test_cancel")
+        if runtime_mode != "success":
+            raise RuntimeError("injected runtime failure")
+        return {
+            "success": True,
+            "final_variables_si": {"x": 1.0},
+            "fresh_forward_objective": 0.5,
+            "cleanup": {"source_unchanged": True},
+        }
+
+    monkeypatch.setattr(
+        native_adjoint_runtime,
+        "execute_native_adjoint_optimization",
+        execute,
+    )
+    code = worker._run_native(str(store.root), job_id)
+    state = store.read_state(job_id)
+    assert state["owned_cleanup"]["success"] is (release_mode == "success")
+    assert state["cleanup_pending"] is (release_mode != "success")
+    if runtime_mode != "success":
+        assert state["status"] != "completed"
+        assert release_observations == [state["status"]]
+        assert code == (0 if runtime_mode == "cancel" and release_mode == "success" else 1)
+        if runtime_mode == "failure":
+            assert state["last_error"]["message"] == "injected runtime failure"
+        return
+    assert release_observations == ["smoke_validated"]
+    assert state["status"] == ("completed" if release_mode == "success" else "failed")
+    assert code == (0 if release_mode == "success" else 1)
+    assert state["progress"] == {"completed": 1, "total": 1}
+    assert state["progress_unit"] == "validated_final_candidates"
+    assert state["native_iterations_completed"] is None
+
+
 def test_submission_requires_explicit_ascii_manifest_and_resources(ascii_tmp_path):
     envelope, _, _ = _write_manifest(ascii_tmp_path)
     normalized = normalize_adjoint_optimization_submission(envelope)

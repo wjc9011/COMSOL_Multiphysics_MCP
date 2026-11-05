@@ -976,6 +976,7 @@ def _collect_wavelength(
     *,
     expected_study_tag: str | None,
     target_parameter_name: str | None,
+    physics_tag: str | None,
 ) -> tuple[dict[str, Any], Any | None, str | None]:
     parameter_name = target_parameter_name or "wl"
     expressions, parameter_error = _parameter_expressions(model)
@@ -1084,7 +1085,9 @@ def _collect_wavelength(
             "link_evidence": linked_locations[:MAX_TAGS],
             "link_evidence_count": len(linked_locations),
             "link_evidence_truncated": len(linked_locations) > MAX_TAGS,
-            "solved_frequency_expression": "c_const/ewfd.freq",
+            "solved_frequency_expression": (
+                f"c_const/{physics_tag}.freq" if physics_tag is not None else None
+            ),
             "numeric_synchronization": "not_evaluated_in_read_only_preflight",
         },
         study,
@@ -1375,6 +1378,15 @@ def collect_wave_optics_preflight(
     target_physical_polarization: list[float] | None = None,
 ) -> dict[str, Any]:
     """Inspect one already-loaded model without running or mutating it."""
+    if expected_lattice_axes is not None and (
+        not isinstance(expected_lattice_axes, list)
+        or len(expected_lattice_axes) > 3
+        or any(
+            not isinstance(axis, str) or axis.lower() not in {"x", "y", "z"}
+            for axis in expected_lattice_axes
+        )
+    ):
+        raise ValueError("expected_lattice_axes must contain at most three x, y, or z labels")
     result = collect_preflight_foundation(
         model,
         model_name=model_name,
@@ -1450,6 +1462,7 @@ def collect_wave_optics_preflight(
         ledger,
         expected_study_tag=expected_study_tag,
         target_parameter_name=target_wavelength_parameter,
+        physics_tag=physics_tag,
     )
     result["wavelength"] = wavelength
     if component is not None:
@@ -1464,7 +1477,7 @@ def collect_wave_optics_preflight(
         )
 
     if expected_lattice_axes is not None:
-        expected_axes = [str(value).lower() for value in expected_lattice_axes[:3]]
+        expected_axes = [value.lower() for value in expected_lattice_axes]
         inferred_axes = []
         axis_names = ("x", "y", "z")
         for feature in result["periodicity"].get("floquet_features", []):

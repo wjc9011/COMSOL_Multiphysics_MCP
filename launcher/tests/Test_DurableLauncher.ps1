@@ -23,6 +23,34 @@ New-Item -ItemType Directory -Path $TestRoot -Force | Out-Null
 Import-Module $Module -Force
 if ((Get-DurableLauncherVersion) -ne '1.8.1') { throw 'Unexpected launcher version.' }
 
+& (Get-Module DurableLauncher) {
+    param($Root, $DriverPath)
+    $Scripts = Join-Path $Root 'redirector\Scripts'
+    $BaseHome = Join-Path $Root 'base-python'
+    New-Item -ItemType Directory -Path $Scripts -Force | Out-Null
+    Set-Content -LiteralPath (Join-Path (Split-Path -Parent $Scripts) 'pyvenv.cfg') -Value "home = $BaseHome"
+    $Parent = [pscustomobject]@{
+        ProcessId = 100; ParentProcessId = 50; Name = 'python.exe'
+        CommandLine = "python $DriverPath"; ExecutablePath = (Join-Path $Scripts 'python.exe')
+        CreationDate = [datetime]'2026-01-01T01:00:00'
+    }
+    $Child = [pscustomobject]@{
+        ProcessId = 101; ParentProcessId = 100; Name = 'python.exe'
+        CommandLine = $Parent.CommandLine; ExecutablePath = (Join-Path $BaseHome 'python.exe')
+        CreationDate = [datetime]'2026-01-01T01:00:01'
+    }
+    function Get-CimInstance { param($Class) @($Parent, $Child) }
+    if (@(Get-DurableDriverProcesses $DriverPath).Count -ne 1) { throw 'Verified redirector was not collapsed.' }
+    $Child.ParentProcessId = 50
+    if (@(Get-DurableDriverProcesses $DriverPath).Count -ne 2) { throw 'Independent launch was hidden.' }
+    $Child.ParentProcessId = 100
+    $Child.CommandLine += ' --second'
+    if (@(Get-DurableDriverProcesses $DriverPath).Count -ne 2) { throw 'Different child command was hidden.' }
+    $Child.CommandLine = $Parent.CommandLine
+    $Child.ExecutablePath = $Parent.ExecutablePath
+    if (@(Get-DurableDriverProcesses $DriverPath).Count -ne 2) { throw 'Recursive interpreter launch was hidden.' }
+} $TestRoot $Driver
+
 $ModuleText = [IO.File]::ReadAllText($Module)
 $MonitorStart = $ModuleText.IndexOf('function Show-DurableJobMonitor', [StringComparison]::Ordinal)
 $MonitorEnd = $ModuleText.IndexOf('function Test-DurableResourcePolicy', $MonitorStart, [StringComparison]::Ordinal)

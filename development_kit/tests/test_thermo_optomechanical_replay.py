@@ -780,6 +780,30 @@ def test_executor_binds_the_study_solution_dataset_before_evaluation(ascii_tmp_p
     assert model.evaluations == [("Tmin", model.datasets[0])]
 
 
+@pytest.mark.parametrize("drift", ["none", "parameter", "frequency"])
+def test_optical_wavelength_binds_parameter_and_solution(ascii_tmp_path, drift):
+    spec = normalize_thermo_optomechanical_replay_spec(_raw_spec(ascii_tmp_path / "wave"))
+    executor = ThermoOptomechanicalComsolExecutor(None, spec, ascii_tmp_path / "job")
+    dataset = object()
+    executor._active_dataset = dataset
+    calls = []
+
+    class Model:
+        def evaluate(self, expression, **kwargs):
+            assert kwargs == {"dataset": dataset}
+            calls.append(expression)
+            shifted = expression == ("lambda0" if drift == "parameter" else "c_const/freq")
+            return 2e-6 if drift != "none" and shifted else 1.5e-6
+
+    executor.model = Model()
+    if drift == "none":
+        assert executor._solved_wavelength(1.5e-6) == 1.5e-6
+    else:
+        with pytest.raises(RuntimeError, match="solved wavelength differs"):
+            executor._solved_wavelength(1.5e-6)
+    assert calls == ["lambda0", "c_const/freq"]
+
+
 def test_thermal_structure_readbacks_bind_before_mesh_and_expansion(ascii_tmp_path):
     spec = normalize_thermo_optomechanical_replay_spec(_raw_spec(ascii_tmp_path / "readbacks"))
     executor = ThermoOptomechanicalComsolExecutor(None, spec, ascii_tmp_path / "job")

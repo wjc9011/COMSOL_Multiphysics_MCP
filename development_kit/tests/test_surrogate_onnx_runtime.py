@@ -181,6 +181,17 @@ def test_supported_operator_set_is_declared() -> None:
 # --------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize("data_type,field,code", [(1, 4, "f"), (11, 10, "d")])
+def test_packed_tensor_encoding_preserves_values(data_type, field, code):
+    from comsol_mcp.surrogate.onnx_runtime import _decode_tensor
+
+    tensor = _ld(1, _varint(2) + _varint(2)) + _vi(2, data_type) + _ld(8, b"weights")
+    tensor += _ld(field, struct.pack(f"<4{code}", 1.0, 2.0, 3.0, 4.0))
+    decoded = _decode_tensor(tensor)
+    assert decoded["dims"] == [2, 2]
+    assert decoded["values"] == [1.0, 2.0, 3.0, 4.0]
+
+
 def test_identity_gemm_reproduces_its_input(tmp_path) -> None:
     path = _write(
         tmp_path,
@@ -195,6 +206,30 @@ def test_identity_gemm_reproduces_its_input(tmp_path) -> None:
     model = load_onnx_model(path)
     result = evaluate_onnx_model(model, input_names=["a1", "a2"], points=[[3.0, 4.0]])
     assert result[0] == pytest.approx([3.0, 4.0])
+
+
+def test_transposed_gemm_input_is_refused_instead_of_silently_ignored(tmp_path) -> None:
+    path = _write(
+        tmp_path,
+        "transposed-input.onnx",
+        _onnx(
+            [_node("Gemm", ["input", "W"], ["output"], {"transA": 1})],
+            [_tensor("W", [2, 2], [1.0, 0.0, 0.0, 1.0])],
+            ["input"],
+        ),
+    )
+    with pytest.raises(OnnxDecodeError, match="transA"):
+        evaluate_onnx_model(load_onnx_model(path), input_names=["a", "b"], points=[[3.0, 4.0]])
+
+
+def test_gemm_dynamic_weights_are_refused_with_a_decode_error(tmp_path) -> None:
+    path = _write(
+        tmp_path,
+        "dynamic-weights.onnx",
+        _onnx([_node("Gemm", ["input", "input"], ["output"])], [], ["input"]),
+    )
+    with pytest.raises(OnnxDecodeError, match="initializer"):
+        evaluate_onnx_model(load_onnx_model(path), input_names=["a", "b"], points=[[3.0, 4.0]])
 
 
 def test_tanh_activation_matches_the_analytic_value(tmp_path) -> None:

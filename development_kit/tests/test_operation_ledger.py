@@ -12,6 +12,7 @@ detect.
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
 
@@ -377,6 +378,23 @@ def test_the_journal_digest_binds_the_recovery_report(ledger: OperationLedger) -
     assert ledger.recovery_report()["journal_sha256"] == digest
 
 
+def test_recovery_digest_matches_the_replayed_snapshot(ledger, monkeypatch) -> None:
+    _append(ledger, subject="subject-1")
+    original_digest = ledger.journal_digest()
+    read_report = ledger._read_report
+
+    def append_after_snapshot():
+        report = read_report()
+        _append(OperationLedger(ledger.root), subject="subject-2")
+        return report
+
+    monkeypatch.setattr(ledger, "_read_report", append_after_snapshot)
+    report = ledger.recovery_report()
+    assert report["row_count"] == 1
+    assert report["journal_sha256"] == original_digest
+    assert report["journal_sha256"] != ledger.journal_digest()
+
+
 def test_an_empty_journal_reports_unknown_rather_than_a_hash(tmp_path: Path) -> None:
     empty = OperationLedger(tmp_path / "absent")
     assert empty.journal_digest() == UNKNOWN
@@ -384,6 +402,19 @@ def test_an_empty_journal_reports_unknown_rather_than_a_hash(tmp_path: Path) -> 
     report = empty.recovery_report()
     assert report["row_count"] == 0
     assert report["interrupted_subjects"] == []
+
+
+def test_journal_digest_preserves_distinct_damaged_bytes(ledger: OperationLedger) -> None:
+    _append(ledger, subject="subject-1")
+    original = ledger.journal_path.read_bytes()
+    digests = []
+    for suffix in (b"\xff", b"\xfe"):
+        payload = original + suffix
+        ledger.journal_path.write_bytes(payload)
+        digest = ledger.journal_digest()
+        assert digest == hashlib.sha256(payload).hexdigest()
+        digests.append(digest)
+    assert digests[0] != digests[1]
 
 
 # ---------------------------------------------------------------------------

@@ -100,6 +100,8 @@ def _normalize_wavelength(value: object, point_name: str) -> dict[str, Any]:
     unit = raw["unit"]
     if not isinstance(unit, str) or not unit.strip() or len(unit) > 32:
         raise ValueError(f"{point_name}.wavelength.unit must be a bounded nonempty string")
+    if unit.strip() not in {"m", "um", "nm"}:
+        raise ValueError(f"{point_name}.wavelength.unit must be m, um, or nm")
     parameter = raw["parameter"]
     if not isinstance(parameter, str) or not _TAG.fullmatch(parameter):
         raise ValueError(f"{point_name}.wavelength.parameter must be one exact tag")

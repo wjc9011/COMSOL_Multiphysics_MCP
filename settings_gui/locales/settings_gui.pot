@@ -1,6 +1,6 @@
 # Generated deterministic gettext template for COMSOL MCP Settings.
 msgid ""
-msgstr "Project-Id-Version: comsol-mcp alpha8.0\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nLanguage: \nPlural-Forms: nplurals=2; plural=(n != 1);\n"
+msgstr "Project-Id-Version: comsol-mcp alpha8.1\nMIME-Version: 1.0\nContent-Type: text/plain; charset=UTF-8\nContent-Transfer-Encoding: 8bit\nLanguage: \nPlural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "COMSOL MCP Settings"
 msgstr ""

@@ -5,7 +5,7 @@ message: >-
   access date.
 title: COMSOL Multiphysics MCP 6.4 Calibrated
 type: software
-version: 0.8.0
+version: 0.8.1
 authors:
   - family-names: Zhang
     given-names: Naiyin

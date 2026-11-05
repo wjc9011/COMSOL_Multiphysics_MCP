@@ -71,7 +71,7 @@ def test_concurrent_state_readers_writers_survive_sharing_violations(monkeypatch
         )
         state_path = store.job_dir(job_id) / "state.json"
         original_replace = store_module.os.replace
-        original_read_text = Path.read_text
+        original_read_bytes = store_module.read_file_bytes_bounded
         counter_lock = threading.Lock()
         replace_calls = 0
         read_calls = 0
@@ -90,7 +90,7 @@ def test_concurrent_state_readers_writers_survive_sharing_violations(monkeypatch
                     raise PermissionError("injected state replace sharing violation")
             return original_replace(source, destination)
 
-        def flaky_read_text(path, *args, **kwargs):
+        def flaky_read_bytes(path, *args, **kwargs):
             nonlocal read_calls, injected_read_failures
             if path == state_path:
                 with counter_lock:
@@ -100,10 +100,10 @@ def test_concurrent_state_readers_writers_survive_sharing_violations(monkeypatch
                     with counter_lock:
                         injected_read_failures += 1
                     raise PermissionError("injected state read sharing violation")
-            return original_read_text(path, *args, **kwargs)
+            return original_read_bytes(path, *args, **kwargs)
 
         monkeypatch.setattr(store_module.os, "replace", flaky_replace)
-        monkeypatch.setattr(Path, "read_text", flaky_read_text)
+        monkeypatch.setattr(store_module, "read_file_bytes_bounded", flaky_read_bytes)
         stop = threading.Event()
         observations: list[dict] = []
         observation_lock = threading.Lock()

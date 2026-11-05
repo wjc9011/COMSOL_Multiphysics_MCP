@@ -1463,6 +1463,7 @@ def test_attach_release_failure_without_client_retains_ownership_for_retry(tmp_p
     assert attached["state"] == "attach_cleanup_pending"
     assert manager.status()["state"] == "attach_cleanup_pending"
     assert manager.status()["ownership"] == "external_user_owned_server"
+    assert manager.models()["state"] == "attach_cleanup_pending"
     assert ownership.lease_path.exists()
 
     duplicate = manager.attach(

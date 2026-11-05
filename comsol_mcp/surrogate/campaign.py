@@ -389,7 +389,7 @@ def record_fem_result(
     predicted_objective = _require_finite("predicted_objective", predicted_objective)
 
     if fem_evidence_state != "verified":
-        return {
+        unverified_body = {
             "schema": "comsol_mcp.surrogate_fem_result",
             "schema_version": SCHEMA_VERSION,
             "candidate_id": _require_str("candidate_id", candidate_id),
@@ -403,6 +403,7 @@ def record_fem_result(
             "promotes_prediction": False,
             "reason_code": f"fem_{fem_evidence_state}",
         }
+        return {**unverified_body, "result_sha256": canonical_sha256_v1(unverified_body)}
 
     if measured_objective is None:
         raise ValueError("a verified FEM result requires a measured objective")

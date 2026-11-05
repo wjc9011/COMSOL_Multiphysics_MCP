@@ -113,7 +113,18 @@ def _field_strings(fields: Sequence[tuple[int, int, Any]], number: int) -> list[
 
 
 def _field_ints(fields: Sequence[tuple[int, int, Any]], number: int) -> list[int]:
-    return [int(value) for field, wire, value in fields if field == number and wire == 0]
+    values: list[int] = []
+    for field, wire, value in fields:
+        if field != number:
+            continue
+        if wire == 0:
+            values.append(int(value))
+        elif wire == 2:
+            offset = 0
+            while offset < len(value):
+                item, offset = _read_varint(value, offset)
+                values.append(item)
+    return values
 
 
 def _field_messages(fields: Sequence[tuple[int, int, Any]], number: int) -> list[bytes]:
@@ -126,12 +137,18 @@ def _decode_tensor(payload: bytes) -> dict[str, Any]:
     data_types = _field_ints(fields, 2)
     names = _field_strings(fields, 8)
     raw = [value for field, wire, value in fields if field == 9 and wire == 2]
-    float_data = [
-        struct.unpack("<f", value)[0] for field, wire, value in fields if field == 4 and wire == 5
-    ]
     data_type = data_types[0] if data_types else 1
     if data_type not in _TENSOR_DATA_TYPES:
         raise OnnxDecodeError(f"unsupported tensor data type {data_type}")
+    typed_data: list[float] = []
+    data_field, data_wire, data_format, data_width = (
+        (4, 5, "<f", 4) if data_type == 1 else (10, 1, "<d", 8)
+    )
+    for field, wire, value in fields:
+        if field == data_field and wire in (data_wire, 2):
+            if len(value) % data_width:
+                raise OnnxDecodeError("packed tensor data has an incomplete element")
+            typed_data.extend(item[0] for item in struct.iter_unpack(data_format, value))
     count = 1
     for dimension in dims:
         count *= int(dimension)
@@ -146,8 +163,8 @@ def _decode_tensor(payload: bytes) -> dict[str, Any]:
             struct.unpack_from(fmt, raw[0], index * width)[0]
             for index in range(min(available, max(count, 0)))
         ]
-    elif float_data:
-        values = float_data
+    elif typed_data:
+        values = typed_data
     else:
         values = []
     if count and len(values) != count:
@@ -418,7 +435,11 @@ def evaluate_onnx_model(
             if op == "Gemm":
                 if len(resolved) < 2:
                     raise OnnxDecodeError("Gemm requires weights")
+                if node.get("attributes", {}).get("transA", 0) != 0:
+                    raise OnnxDecodeError("Gemm transA is unsupported for point-vector evaluation")
                 weight_name = inputs[1]
+                if weight_name not in initializers:
+                    raise OnnxDecodeError("Gemm weights must come from an initializer")
                 weight_dims = initializers[weight_name]["dims"]
                 bias = resolved[2] if len(resolved) > 2 else []
                 values[target] = _dense(

@@ -33,6 +33,7 @@ Frozen rules
 
 from __future__ import annotations
 
+import hashlib
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Iterable, Mapping
@@ -357,7 +358,7 @@ class OperationLedger:
         records = report.get("records")
         state = replay_ledger(records if isinstance(records, list) else [])
         state["journal_state"] = report.get("state", "unknown")
-        state["journal_sha256"] = self.journal_digest()
+        state["journal_sha256"] = report.get("source_sha256", UNKNOWN)
         return state
 
     def journal_digest(self) -> str:
@@ -365,7 +366,7 @@ class OperationLedger:
             payload = self.journal_path.read_bytes()
         except FileNotFoundError:
             return UNKNOWN
-        return canonical_sha256_v1(payload.decode("utf-8", errors="replace"))
+        return hashlib.sha256(payload).hexdigest()
 
     # -- recovery decisions ------------------------------------------------
 

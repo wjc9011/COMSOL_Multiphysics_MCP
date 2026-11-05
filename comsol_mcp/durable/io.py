@@ -625,6 +625,7 @@ def read_complete_jsonl(
         data = read_file_bytes_bounded(candidate, max_bytes=max_bytes)
     except _FileSizeLimitError:
         return {"state": "oversized", "records": [], "complete_byte_count": 0}
+    source_sha256 = hashlib.sha256(data).hexdigest()
     complete_end = data.rfind(b"\n") + 1
     complete = data[:complete_end]
     trailing = data[complete_end:]
@@ -642,6 +643,7 @@ def read_complete_jsonl(
             "records": [],
             "complete_byte_count": 0,
             "error_type": type(exc).__name__,
+            "source_sha256": source_sha256,
         }
     state = "incomplete" if trailing else "current_valid"
     if version_field is not None:
@@ -668,6 +670,7 @@ def read_complete_jsonl(
         "records": records,
         "complete_byte_count": complete_end,
         "trailing_byte_count": len(trailing),
+        "source_sha256": source_sha256,
     }
 
 

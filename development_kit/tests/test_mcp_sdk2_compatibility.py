@@ -203,7 +203,7 @@ async def _legacy_stdio_exchange(protocol_version: str, runtime_root: Path) -> d
 
 def test_mcp_dependency_and_package_identity_are_the_conservative_2_0_lane() -> None:
     assert "mcp>=2.2.0,<2.3" in _runtime_dependencies()
-    assert __version__ == "0.8.0"
+    assert __version__ == "0.8.1"
 
 
 def test_server_uses_official_mcpserver_and_preserves_wire_schema_aliases() -> None:
@@ -236,7 +236,7 @@ def test_sdk2_server_preserves_legacy_stdio_protocols(
     assert initialized["protocolVersion"] == protocol_version
     assert initialized["serverInfo"] == {
         "name": "COMSOL MCP legacy compatibility",
-        "version": "0.8.0",
+        "version": "0.8.1",
     }
     assert initialized["instructions"] == SERVER_INSTRUCTIONS
 

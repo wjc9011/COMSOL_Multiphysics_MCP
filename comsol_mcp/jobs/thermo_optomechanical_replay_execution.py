@@ -564,6 +564,24 @@ class ThermoOptomechanicalComsolExecutor:
         branch_value = {"TE": 0.0, "TM": 1.0, "S": 2.0, "P": 3.0}[branch]
         self._parameter("polarization_parameter", branch_value)
 
+    def _solved_wavelength(self, requested: float) -> float:
+        if self._active_dataset is None:
+            raise RuntimeError("optical wavelength result dataset is not bound")
+        parameter = self.spec["model_contract"]["wavelength_parameter"]
+        evaluated = _scalar(
+            self.model.evaluate(parameter, dataset=self._active_dataset),
+            "evaluated optical wavelength",
+        )
+        solved = _scalar(
+            self.model.evaluate("c_const/freq", dataset=self._active_dataset),
+            "frequency-derived optical wavelength",
+        )
+        if not _wavelength_readback_matches(evaluated, requested) or not (
+            _wavelength_readback_matches(solved, requested)
+        ):
+            raise RuntimeError("COMSOL optical solved wavelength differs from the request")
+        return solved
+
     def _rta(self) -> dict[str, Any]:
         r_value = self._evaluate("reflectance")
         t_value = self._evaluate("transmittance")
@@ -615,18 +633,12 @@ class ThermoOptomechanicalComsolExecutor:
                 self._load_source()
                 self._set_wavelength_branch(wavelength, branch)
                 self._study("optical_study_tag")
-                baseline_wavelength = _scalar(
-                    self.model.evaluate(self.spec["model_contract"]["wavelength_parameter"]),
-                    "baseline wavelength",
-                )
+                baseline_wavelength = self._solved_wavelength(wavelength)
                 baseline = self._rta()
                 self._load_derived()
                 self._set_wavelength_branch(wavelength, branch)
                 self._study("optical_study_tag")
-                solved_wavelength = _scalar(
-                    self.model.evaluate(self.spec["model_contract"]["wavelength_parameter"]),
-                    "deformed wavelength",
-                )
+                solved_wavelength = self._solved_wavelength(wavelength)
                 if not _wavelength_readback_matches(
                     baseline_wavelength, wavelength
                 ) or not _wavelength_readback_matches(solved_wavelength, wavelength):

@@ -965,12 +965,17 @@ def _load_air_reference(
     if not isinstance(stats, dict):
         warnings.append({"code": "air_reference_field_statistics_missing", "path": str(path)})
         return None, warnings
+    stokes = record.get("stokes_xy")
+    if not isinstance(stokes, dict) and isinstance(field, dict):
+        stokes = field.get("stokes_xy")
+    if not isinstance(stokes, dict):
+        stokes = payload.get("stokes_xy", {})
     reference = {
         "config_id": config_id,
         "source_path": str(path),
         "source_sha256": source_hash,
         "component_statistics": stats,
-        "stokes_xy": payload.get("stokes_xy", {}),
+        "stokes_xy": stokes,
         "provenance": payload.get("provenance"),
     }
     if (

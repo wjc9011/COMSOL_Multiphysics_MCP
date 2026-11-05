@@ -134,7 +134,7 @@ def _scenario_constructs_every_tab_and_field() -> None:
             for child in row.winfo_children()
             if child.winfo_class() == "TLabel"
         }
-        assert "alpha8.0  |  0.8.0" in header_labels
+        assert "alpha8.1  |  0.8.1" in header_labels
         assert set(app.variables) == {
             "schema_name",
             "schema_version",

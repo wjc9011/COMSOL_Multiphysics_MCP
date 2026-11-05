@@ -19,6 +19,8 @@ from mcp.server.mcpserver import MCPServer
 
 from .session import session_manager
 
+MAX_PROBED_BOUNDARIES = 4096
+
 # ---------------------------------------------------------------------------
 # helpers
 # ---------------------------------------------------------------------------
@@ -47,10 +49,16 @@ def _get_geom_node(model, geometry_name: Optional[str], component_name: str = "c
 
 
 def _probe_boundaries(geom):
-    """Probe all boundaries: returns (list_of_dicts, n_domains, n_boundaries)."""
+    """Return complete boundary data, domain count, boundary count, and dimension.
+
+    Refuse geometries above 4096 boundaries before allocating adjacency data.
+    Side classification requires complete data and must never use truncation.
+    """
     import jpype as _jp
 
     n_bnd = geom.getNBoundaries()
+    if n_bnd > MAX_PROBED_BOUNDARIES:
+        raise ValueError(f"geometry exceeds boundary probe limit ({MAX_PROBED_BOUNDARIES})")
     n_dom = geom.getNDomains()
     sdim = int(geom.getSDim())
 

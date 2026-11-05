@@ -279,6 +279,40 @@ def test_malformed_identity_evidence_is_refused(kwargs: dict[str, object]) -> No
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize("value", ["false", 1, [], None])
+@pytest.mark.parametrize("field", ["observed_process_absent", "observed_lease_absent"])
+def test_release_requires_boolean_absence_evidence(field, value) -> None:
+    registry = SolverOwnerRegistry()
+    _register(registry, "owner-a", process_id=1000)
+    arguments = dict(
+        owner="owner-a",
+        process_id=1000,
+        process_create_time=111.0,
+        observed_process_absent=True,
+        observed_lease_absent=True,
+    )
+    arguments[field] = value
+    verdict = registry.release(**arguments)
+    assert verdict["released"] is False
+    assert registry.owner_count() == 1
+
+
+@pytest.mark.parametrize("owner", [None, "", [], "x" * 257])
+def test_release_returns_refusal_for_invalid_owner(owner) -> None:
+    registry = SolverOwnerRegistry()
+    _register(registry, "owner-a", process_id=1000)
+    verdict = registry.release(
+        owner=owner,
+        process_id=1000,
+        process_create_time=111.0,
+        observed_process_absent=True,
+        observed_lease_absent=True,
+    )
+    assert verdict["released"] is False
+    assert verdict["reason"] == "invalid_identity"
+    assert registry.owner_count() == 1
+
+
 def test_a_verified_absent_owner_releases_its_slot() -> None:
     registry = SolverOwnerRegistry()
     _register(registry, "owner-a", process_id=1000)

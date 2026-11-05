@@ -47,6 +47,24 @@ def test_job_store_rejects_symlinked_job_directory(ascii_tmp_path):
         remove_directory_link(link)
 
 
+@pytest.mark.parametrize("artifact", ["state.json", "control.json"])
+def test_job_store_refuses_linked_state_and_control(ascii_tmp_path, artifact):
+    store = JobStore(ascii_tmp_path / "jobs")
+    job_id = store.create({"job_type": "test"}, {"status": "submitted"})
+    target = ascii_tmp_path / "outside.json"
+    target.write_text('{"status":"completed"}', encoding="utf-8")
+    linked = store.job_dir(job_id) / artifact
+    linked.unlink()
+    try:
+        linked.symlink_to(target)
+    except OSError as exc:
+        pytest.skip(f"file symlinks unavailable: {exc}")
+    reader = store.read_state if artifact == "state.json" else store.read_control
+    with pytest.raises(RuntimeError, match="Cannot read durable job artifact"):
+        reader(job_id)
+    assert target.read_text(encoding="utf-8") == '{"status":"completed"}'
+
+
 @pytest.fixture()
 def jobs_root(ascii_tmp_path):
     root = ascii_tmp_path / "jobs"
@@ -834,7 +852,7 @@ def test_coordinator_loss_at_each_durable_phase_reconciles_safely(
         reconciled = manager.reconcile_cancellations()
         if not reconciled:
             time.sleep(0.025)
-    assert reconciled == 1
+    assert reconciled == 1, json.dumps(manager.store.read_state(result["job_id"]), indent=2)
     cancelled = wait_for(manager, result["job_id"], {"cancelled"}, timeout=10)
 
     assert process_identity_state(worker_identity)[0] == "stale"
@@ -1017,17 +1035,17 @@ def test_atomic_state_replace_retries_transient_windows_file_lock(jobs_root, mon
 def test_durable_json_read_retries_transient_windows_file_lock(jobs_root, monkeypatch):
     path = jobs_root / "state.json"
     atomic_write_json(path, {"status": "completed"})
-    real_read_text = Path.read_text
+    real_read_bytes = store_module.read_file_bytes_bounded
     calls = 0
 
-    def flaky_read_text(self, *args, **kwargs):
+    def flaky_read_bytes(candidate, *args, **kwargs):
         nonlocal calls
-        if self == path and calls < 2:
+        if candidate == path and calls < 2:
             calls += 1
             raise PermissionError("simulated transient sharing violation")
-        return real_read_text(self, *args, **kwargs)
+        return real_read_bytes(candidate, *args, **kwargs)
 
-    monkeypatch.setattr(Path, "read_text", flaky_read_text)
+    monkeypatch.setattr(store_module, "read_file_bytes_bounded", flaky_read_bytes)
 
     assert read_json(path)["status"] == "completed"
     assert calls == 2
@@ -1308,6 +1326,23 @@ def test_job_lock_read_failure_does_not_reclaim_unobserved_lock(jobs_root, monke
     lock_path.unlink()
     with JobLock(lock_path, timeout=0.08):
         assert lock_path.exists()
+
+
+def test_tail_does_not_allocate_an_entire_long_log_line(jobs_root):
+    import tracemalloc
+
+    store = JobStore(jobs_root)
+    job_id = store.create({"job_type": "test"}, {"status": "submitted"})
+    log = store.job_dir(job_id) / "worker.log"
+    log.write_bytes(b"prefix\n" + b"x" * (16 * 1024 * 1024) + b"\r\nlast")
+    tracemalloc.start()
+    try:
+        tail = store.tail(job_id, 2)
+        _current, peak = tracemalloc.get_traced_memory()
+    finally:
+        tracemalloc.stop()
+    assert tail["worker_log"] == ["x" * 65_536, "last"]
+    assert peak < 8 * 1024 * 1024
 
 
 def test_tail_is_bounded(jobs_root):

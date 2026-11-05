@@ -519,6 +519,29 @@ def test_queue_overflow_is_bounded_and_worker_recovers():
         assert manager.health()["success"] is True
 
 
+def test_queue_capacity_returns_after_handler_setup_failure():
+    from comsol_mcp.knowledge.semantic_worker import _RequestHandler
+
+    class FailedSetupHandler(_RequestHandler):
+        def setup(self):
+            raise OSError("request stream setup failed")
+
+    state = SimpleNamespace(capacity=threading.BoundedSemaphore(1))
+    assert state.capacity.acquire(blocking=False)
+    server = object.__new__(_WorkerServer)
+    server.state = state
+    server.RequestHandlerClass = FailedSetupHandler
+    errors = []
+    closed = []
+    server.handle_error = lambda request, address: errors.append(address)
+    server.shutdown_request = lambda request: closed.append(request)
+    request = object()
+    server.process_request_thread(request, ("127.0.0.1", 1))
+    assert errors == [("127.0.0.1", 1)]
+    assert closed == [request]
+    assert state.capacity.acquire(blocking=False)
+
+
 def test_queue_capacity_is_reserved_before_handler_thread_creation():
     state = SimpleNamespace(capacity=threading.BoundedSemaphore(1))
     assert state.capacity.acquire(blocking=False)

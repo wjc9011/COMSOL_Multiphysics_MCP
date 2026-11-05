@@ -11,14 +11,13 @@ import sys
 from pathlib import Path
 
 import pytest
-
-from development_kit.tests.platform_fixtures import platform_test_root
 from mcp.server.mcpserver import MCPServer
 from src.knowledge.semantic_runtime import SemanticService, semantic_configuration
 from src.server import create_server
 from src.tools.semantic_docs import register_semantic_doc_tools
 
 from development_kit.tests.mcp_test_support import decode_tool_result
+from development_kit.tests.platform_fixtures import platform_test_root
 from development_kit.tests.semantic_test_support import isolated_semantic_environment
 
 
@@ -91,7 +90,9 @@ def test_configuration_is_ascii_static_and_missing_model_degrades(lightweight_de
     assert missing["configured"] is False
     assert "model_path_configuration" in missing["missing"]
     with pytest.raises(ValueError, match="ASCII"):
-        semantic_configuration({"COMSOL_SEMANTIC_ROOT": str(Path.home() / "mcp_tests/陆星/semantic")})
+        semantic_configuration(
+            {"COMSOL_SEMANTIC_ROOT": str(Path.home() / "mcp_tests/陆星/semantic")}
+        )
     with pytest.raises(ValueError, match="must be absolute"):
         semantic_configuration({"COMSOL_SEMANTIC_ROOT": "relative/semantic"})
 
@@ -186,7 +187,9 @@ def test_unconfigured_search_returns_explicit_lexical_fallback():
     service = SemanticService(
         {
             "COMSOL_SEMANTIC_ROOT": str(platform_test_root("missing-semantic-root")),
-            "COMSOL_SEMANTIC_LEXICAL_INDEX": str(platform_test_root("missing-semantic-lexical.sqlite3")),
+            "COMSOL_SEMANTIC_LEXICAL_INDEX": str(
+                platform_test_root("missing-semantic-lexical.sqlite3")
+            ),
         }
     )
     result = service.search("CopyFace")
@@ -356,3 +359,33 @@ def test_available_requires_a_live_worker_state_even_after_passed_gate(lightweig
     assert status["worker"]["state"] == "stale"
     assert status["health_gate_passed"] is True
     assert status["available"] is False
+
+
+@pytest.mark.parametrize("healthy", [False, True])
+@pytest.mark.parametrize("code", ["invalid_query", "invalid_limit", "invalid_filters"])
+def test_invalid_search_preserves_worker_health(lightweight_deployment, healthy, code):
+    class Manager:
+        def query(self, *_args, **_kwargs):
+            return {"success": False, "error": {"code": code, "message": "invalid input"}}
+
+        def status(self, *, probe=False):
+            return {"state": "active"}
+
+    service = SemanticService(lightweight_deployment)
+    service._manager = Manager()
+    service._health_gate_passed = healthy
+    result = service.search(" ")
+    assert result["error"]["code"] == code
+    assert service.status(warm=False)["health_gate_passed"] is healthy
+
+
+def test_transport_error_invalidates_worker_health(lightweight_deployment):
+    class Manager:
+        def query(self, *_args, **_kwargs):
+            return {"success": False, "error": {"code": "worker_timeout"}}
+
+    service = SemanticService(lightweight_deployment)
+    service._manager = Manager()
+    service._health_gate_passed = True
+    service.search("CopyFace")
+    assert service._health_gate_passed is False

@@ -278,6 +278,23 @@ def test_unknown_fem_evidence_leaves_the_candidate_unverified() -> None:
     assert result["is_fem_evidence"] is False
 
 
+@pytest.mark.parametrize("evidence_state", ["failed", "unknown", "not_requested"])
+def test_unverified_fem_result_preserves_record_integrity(evidence_state: str) -> None:
+    result = record_fem_result(
+        candidate_id="c1",
+        predicted_objective=1.0,
+        measured_objective=None,
+        fem_evidence_state=evidence_state,
+        fem_artifact_sha256=None,
+        absolute_tolerance=1e-6,
+    )
+    digest = result.pop("result_sha256")
+    assert digest == canonical_sha256_v1(result)
+    assert result["is_fem_evidence"] is False
+    result["candidate_id"] = "c2"
+    assert digest != canonical_sha256_v1(result)
+
+
 def test_disagreement_is_recorded_not_hidden() -> None:
     result = record_fem_result(
         candidate_id="c1",

@@ -602,7 +602,7 @@ def run(
 
         controlled_leaf = controlled_leaf_worker_proved(
             store.read_spec(job_id), store.read_state(job_id), worker
-        )
+        ) and not (current or captured.get("descendants"))
         if captured["worker"]["state"] == "uncertain":
             _record_blocker(
                 store,

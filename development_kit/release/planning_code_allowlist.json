@@ -22,7 +22,7 @@
     },
     {
       "match_count": 1,
-      "match_sha256": "a5172922a202ef87fdf5a4b01010c7ad5c7e527bf2426eb63077d69bf1d9a576",
+      "match_sha256": "eb2bfe2c926acbe85b2428e58e71ab82bb8a7dc1e866906f670eb733602776d2",
       "path": "development_kit/tests/test_durable_job_control_plane.py"
     },
     {
@@ -32,7 +32,7 @@
     },
     {
       "match_count": 1,
-      "match_sha256": "48d668521b628b20621d6fcb4ffffc6d53395e5eaf949aaa06f247fd25988a0b",
+      "match_sha256": "d43051779e46da87761be8cc95aafb9fbd7161558605d5421492f33114e1931f",
       "path": "development_kit/tests/test_reference_power_runner.py"
     },
     {

@@ -62,6 +62,7 @@ class FakeComsolBackend:
         self._properties: dict[str, dict[str, Any]] = {
             tag: dict(values) for tag, values in (properties or {}).items()
         }
+        self._created_nodes: dict[tuple[str, ...], NodeRef] = {}
         self._failures = dict(failures or {})
         #: Scripted raw evaluation results, keyed by expression.
         self._evaluations: dict[str, Any] = {}
@@ -199,14 +200,8 @@ class FakeComsolBackend:
         self._record("node_children", tag=node.tag)
         self._maybe_fail("node_children")
         self._require_model("node_children")
-        prefix = node.path[0] if node.path else "component"
         return [
-            NodeRef(
-                tag=name,
-                path=(*node.path, name),
-                node_type=prefix,
-            )
-            for name in sorted(self._properties.get(node.tag, {}))
+            child for path, child in sorted(self._created_nodes.items()) if path[:-1] == node.path
         ]
 
     # -- step 3: explicit conversion ----------------------------------------
@@ -401,7 +396,9 @@ class FakeComsolBackend:
             path = (kind, tag)
             self._containers.setdefault(kind, []).append(tag)
         self._properties.setdefault(tag, {})
-        return NodeRef(tag=tag, path=path, node_type=feature_type)
+        node = NodeRef(tag=tag, path=path, node_type=feature_type)
+        self._created_nodes[path] = node
+        return node
 
     def remove_node(self, kind: str, tag: str) -> None:
         self._record("node_lookup", phase="remove", kind=kind, tag=tag)
@@ -419,7 +416,13 @@ class FakeComsolBackend:
             parent, separator, child = tag.partition("/")
             if separator and parent in self._containers.get("study", []):
                 self._properties.pop(child, None)
+                self._created_nodes.pop(("study", parent, child), None)
             return
+        prefix = (kind, tag)
+        for path in list(self._created_nodes):
+            if path[:2] == prefix:
+                removed_node = self._created_nodes.pop(path)
+                self._properties.pop(removed_node.tag, None)
         if tag in self._containers.get(kind, []):
             self._containers[kind].remove(tag)
         self._properties.pop(tag, None)

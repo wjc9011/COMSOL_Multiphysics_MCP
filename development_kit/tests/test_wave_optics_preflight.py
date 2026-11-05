@@ -464,6 +464,42 @@ def _full_result(tmp_path, monkeypatch, *, active_profile="wave_optics", **fixtu
     return result
 
 
+@pytest.mark.parametrize("axes", [["x", "y", "z", "x"], ["invalid"], [1]])
+def test_preflight_refuses_invalid_axes_before_model_access(axes):
+    with pytest.raises(ValueError, match="expected_lattice_axes"):
+        collect_wave_optics_preflight(
+            object(),
+            model_name="unused",
+            session_state={},
+            active_profile="wave_optics",
+            expected_lattice_axes=axes,
+        )
+
+
+def test_wavelength_expression_uses_selected_physics_tag(tmp_path, monkeypatch):
+    original = FakeComponent.__init__
+
+    def renamed(self, **kwargs):
+        original(self, **kwargs)
+        self._physics.items["optics2"] = self._physics.items.pop("ewfd")
+
+    monkeypatch.setattr(FakeComponent, "__init__", renamed)
+    source = tmp_path / "fixture.mph"
+    source.write_bytes(b"fixture")
+    monkeypatch.setattr(
+        "src.tools.wave_optics_preflight.ownership_manager.status",
+        lambda **_kwargs: {"collision": False, "session": {"connected": True}},
+    )
+    result = collect_wave_optics_preflight(
+        FullFakeModel(source),
+        model_name="ExactModel",
+        session_state={"connected": True},
+        active_profile="wave_optics",
+        expected_physics_tag="optics2",
+    )
+    assert result["wavelength"]["solved_frequency_expression"] == "c_const/optics2.freq"
+
+
 def test_full_preflight_collects_read_only_wave_optics_evidence(tmp_path, monkeypatch):
     result = _full_result(tmp_path, monkeypatch)
 

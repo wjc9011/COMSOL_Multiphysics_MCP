@@ -428,12 +428,21 @@ def test_node_lookup_resolves_and_reports_a_missing_tag() -> None:
     node = backend.find_node(["component", "comp1"])
     assert node.tag == "comp1"
     assert node.path == ("component", "comp1")
-    assert [child.tag for child in backend.children(node)] == ["L"]
+    assert list(backend.children(node)) == []
     with pytest.raises(AdapterError) as excinfo:
         backend.find_node(["component", "absent"])
     assert excinfo.value.reason_code == "node_not_found"
     with pytest.raises(AdapterError):
         backend.find_node([])
+
+
+def test_fake_children_follow_created_nodes_and_removal() -> None:
+    backend = _opened()
+    study = backend.create_node("study", "std1")
+    step = backend.create_node("study_step", "step1", parent_tag="std1", feature_type="Stationary")
+    assert list(backend.children(study)) == [step]
+    backend.remove_node("study_step", "std1/step1")
+    assert list(backend.children(study)) == []
 
 
 def test_model_identity_calls_methods_rather_than_stringifying_them() -> None:

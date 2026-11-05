@@ -689,6 +689,13 @@ class SharedSessionManager:
     def models(self) -> dict[str, Any]:
         """Return one bounded fresh inventory without changing the baseline."""
         with self._lock:
+            if self._attach_cleanup_pending or self._client_disconnected:
+                return {
+                    "success": False,
+                    "state": self.status()["state"],
+                    "models": [],
+                    "model_count": 0,
+                }
             if self._client is None:
                 return {
                     "success": False,

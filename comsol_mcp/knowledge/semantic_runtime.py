@@ -254,7 +254,15 @@ class SemanticService:
                 if value is not None
             }
             result = manager.query(query, limit=limit, filters=filters, retrieval_mode="hybrid")
-            self._health_gate_passed = bool(result.get("success"))
+            error = result.get("error")
+            input_error = isinstance(error, dict) and error.get("code") in {
+                "invalid_query",
+                "invalid_limit",
+                "invalid_filters",
+                "invalid_retrieval_mode",
+            }
+            if not input_error:
+                self._health_gate_passed = bool(result.get("success"))
             if not result.get("success"):
                 self._last_error = result.get("error") or {"message": str(result)}
                 return {**result, "fallback_tool": "manual_search"}

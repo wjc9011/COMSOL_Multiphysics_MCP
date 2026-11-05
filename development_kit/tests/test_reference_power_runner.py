@@ -191,7 +191,9 @@ def test_solver_observer_attributes_only_transitive_child_launches():
         "-c",
         (
             "import subprocess,sys,time; "
-            "subprocess.Popen([sys.executable,'-c','import time; time.sleep(0.5)',"
+            # Use the real interpreter so a Windows venv redirector does not
+            # add a second marked process to this single-child fixture.
+            "subprocess.Popen([sys._base_executable,'-c','import time; time.sleep(0.5)',"
             "'comsol-child-marker']); time.sleep(0.25)"
         ),
     ]

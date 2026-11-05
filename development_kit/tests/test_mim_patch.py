@@ -18,6 +18,18 @@ from src.tools.mim_patch import (
 )
 
 
+def test_boundary_probe_refuses_oversized_geometry_before_adjacency():
+    class Geometry:
+        def getNBoundaries(self):
+            return 4097
+
+        def getNDomains(self):
+            raise AssertionError("oversized geometry must be refused before further reads")
+
+    with pytest.raises(ValueError, match="boundary probe limit"):
+        mim_patch_module._probe_boundaries(Geometry())
+
+
 class JavaStringLike:
     def __init__(self, value):
         self.value = value

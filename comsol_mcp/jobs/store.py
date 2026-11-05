@@ -31,6 +31,7 @@ from comsol_mcp.durable import (
 from comsol_mcp.durable import (
     json_document_bytes as _json_bytes,
 )
+from comsol_mcp.durable.io import DEFAULT_MAX_JSONL_BYTES, read_file_bytes_bounded
 from comsol_mcp.utils.runtime_paths import default_jobs_root as _shared_default_jobs_root
 
 JOB_SCHEMA_VERSION = "2"
@@ -105,7 +106,9 @@ def read_json(path: Path) -> dict[str, Any]:
     deadline = time.monotonic() + 1.0
     while True:
         try:
-            value = json.loads(path.read_text(encoding="utf-8"))
+            value = json.loads(
+                read_file_bytes_bounded(path, max_bytes=DEFAULT_MAX_JSONL_BYTES).decode("utf-8")
+            )
             break
         except PermissionError as exc:
             # Windows scanners and concurrent atomic replacement can briefly
@@ -114,7 +117,7 @@ def read_json(path: Path) -> dict[str, Any]:
             if time.monotonic() >= deadline:
                 raise RuntimeError(f"Cannot read durable job artifact {path}: {exc}") from exc
             time.sleep(0.02)
-        except (OSError, UnicodeDecodeError, json.JSONDecodeError) as exc:
+        except (OSError, UnicodeDecodeError, ValueError) as exc:
             raise RuntimeError(f"Cannot read durable job artifact {path}: {exc}") from exc
     if not isinstance(value, dict):
         raise RuntimeError(f"Durable job artifact must contain a JSON object: {path}")
@@ -1011,12 +1014,20 @@ class JobStore:
         count = max(1, min(int(n), 200))
         directory = self.job_dir(job_id)
         max_line_chars = 65_536
-        events: deque[str] = deque(maxlen=count)
-        with (directory / "events.jsonl").open("r", encoding="utf-8", errors="replace") as handle:
-            for line in handle:
-                events.append(line.rstrip("\r\n")[:max_line_chars])
-        logs: deque[str] = deque(maxlen=count)
-        with (directory / "worker.log").open("r", encoding="utf-8", errors="replace") as handle:
-            for line in handle:
-                logs.append(line.rstrip("\r\n")[:max_line_chars])
+
+        def read_tail(path: Path) -> deque[str]:
+            lines: deque[str] = deque(maxlen=count)
+            read_size = max_line_chars + 2
+            with path.open("r", encoding="utf-8", errors="replace") as handle:
+                while line := handle.readline(read_size):
+                    prefix = line.rstrip("\r\n")[:max_line_chars]
+                    # Discard the rest in bounded chunks, retaining one logical
+                    # line even when a native writer emits a very long record.
+                    while len(line) == read_size and not line.endswith("\n"):
+                        line = handle.readline(read_size)
+                    lines.append(prefix)
+            return lines
+
+        events = read_tail(directory / "events.jsonl")
+        logs = read_tail(directory / "worker.log")
         return {"job_id": job_id, "limit": count, "events": list(events), "worker_log": list(logs)}

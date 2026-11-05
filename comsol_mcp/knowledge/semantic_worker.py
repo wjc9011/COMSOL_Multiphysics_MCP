@@ -91,10 +91,7 @@ class _RequestHandler(socketserver.StreamRequestHandler):
     server: "_WorkerServer"
 
     def handle(self) -> None:
-        try:
-            self._handle_bounded()
-        finally:
-            self.server.state.capacity.release()
+        self._handle_bounded()
 
     def _handle_bounded(self) -> None:
         self.connection.settimeout(PUBLIC_LIMITS["query_deadline_seconds"])
@@ -327,6 +324,12 @@ class _WorkerServer(socketserver.ThreadingTCPServer):
     def __init__(self, address: tuple[str, int], state: _WorkerState):
         self.state = state
         super().__init__(address, _RequestHandler)
+
+    def process_request_thread(self, request: Any, client_address: Any) -> None:
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self.state.capacity.release()
 
     def process_request(self, request: Any, client_address: Any) -> None:
         if not self.state.capacity.acquire(blocking=False):

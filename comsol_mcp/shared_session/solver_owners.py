@@ -356,7 +356,10 @@ class SolverOwnerRegistry:
         observed absent. An unverified release would leak capacity or, worse,
         free a slot while the previous solver is still running.
         """
-        normalized_owner = _bounded_identifier(owner, "owner")
+        try:
+            normalized_owner = _bounded_identifier(owner, "owner")
+        except OwnerAdmissionError as exc:
+            return {"released": False, "reason": exc.reason_code}
         record = self._owners.get(normalized_owner)
         if record is None:
             return {"released": False, "reason": "owner_not_registered"}
@@ -371,9 +374,9 @@ class SolverOwnerRegistry:
         ):
             # A different process cannot release this owner's slot.
             return {"released": False, "reason": "process_identity_mismatch"}
-        if not observed_process_absent:
+        if observed_process_absent is not True:
             return {"released": False, "reason": "process_still_present"}
-        if not observed_lease_absent:
+        if observed_lease_absent is not True:
             return {"released": False, "reason": "lease_still_present"}
         return {"released": True, "reason": "released"}
 
