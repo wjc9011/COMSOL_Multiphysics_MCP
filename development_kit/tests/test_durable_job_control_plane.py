@@ -1032,7 +1032,8 @@ def test_atomic_state_replace_retries_transient_windows_file_lock(jobs_root, mon
     assert json.loads(path.read_text(encoding="utf-8"))["status"] == "completed"
 
 
-def test_durable_json_read_retries_transient_windows_file_lock(jobs_root, monkeypatch):
+@pytest.mark.parametrize("error_type", [PermissionError, store_module.FileIdentityChangedError])
+def test_durable_json_read_retries_transient_windows_file_lock(jobs_root, monkeypatch, error_type):
     path = jobs_root / "state.json"
     atomic_write_json(path, {"status": "completed"})
     real_read_bytes = store_module.read_file_bytes_bounded
@@ -1042,7 +1043,7 @@ def test_durable_json_read_retries_transient_windows_file_lock(jobs_root, monkey
         nonlocal calls
         if candidate == path and calls < 2:
             calls += 1
-            raise PermissionError("simulated transient sharing violation")
+            raise error_type("simulated transient read conflict")
         return real_read_bytes(candidate, *args, **kwargs)
 
     monkeypatch.setattr(store_module, "read_file_bytes_bounded", flaky_read_bytes)

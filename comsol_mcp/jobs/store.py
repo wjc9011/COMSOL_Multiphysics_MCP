@@ -31,7 +31,11 @@ from comsol_mcp.durable import (
 from comsol_mcp.durable import (
     json_document_bytes as _json_bytes,
 )
-from comsol_mcp.durable.io import DEFAULT_MAX_JSONL_BYTES, read_file_bytes_bounded
+from comsol_mcp.durable.io import (
+    DEFAULT_MAX_JSONL_BYTES,
+    FileIdentityChangedError,
+    read_file_bytes_bounded,
+)
 from comsol_mcp.utils.runtime_paths import default_jobs_root as _shared_default_jobs_root
 
 JOB_SCHEMA_VERSION = "2"
@@ -110,7 +114,7 @@ def read_json(path: Path) -> dict[str, Any]:
                 read_file_bytes_bounded(path, max_bytes=DEFAULT_MAX_JSONL_BYTES).decode("utf-8")
             )
             break
-        except PermissionError as exc:
+        except (PermissionError, FileIdentityChangedError) as exc:
             # Windows scanners and concurrent atomic replacement can briefly
             # deny a reader even though the previous or replacement file is
             # complete. Retry the read; never weaken atomic writer semantics.

@@ -37,6 +37,10 @@ class _FileSizeLimitError(ValueError):
     pass
 
 
+class FileIdentityChangedError(ValueError):
+    """A regular file was atomically replaced before its descriptor opened."""
+
+
 def _open_parent_without_links(path: Path) -> int:
     """Open each absolute POSIX ancestor relative to its verified parent."""
     parent = Path(os.path.abspath(path.parent))
@@ -81,7 +85,7 @@ def _open_regular_file_descriptor(
         if not stat.S_ISREG(opened.st_mode):
             raise ValueError("bounded reading requires a regular file")
         if (before.st_dev, before.st_ino) != (opened.st_dev, opened.st_ino):
-            raise ValueError("file identity changed before bounded reading")
+            raise FileIdentityChangedError("file identity changed before bounded reading")
         return descriptor, opened
     except BaseException:
         os.close(descriptor)
