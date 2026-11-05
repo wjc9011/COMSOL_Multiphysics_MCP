@@ -51,6 +51,7 @@ def test_chained_start_solve_from_terminal_callback_is_accepted():
     study = FakeStudy()
     solver = AsyncSolver()
     chained = threading.Event()
+    callback_finished = threading.Event()
     accepted = {}
 
     def callback(progress, message):
@@ -61,10 +62,12 @@ def test_chained_start_solve_from_terminal_callback_is_accepted():
             )
             if accepted.get("second"):
                 solver.wait(timeout=5.0)
+            callback_finished.set()
 
     assert solver.start_solve(FakeModel(study), "std1", progress_callback=callback)
     assert chained.wait(timeout=5.0)
-    solver.wait(timeout=5.0)
+    assert callback_finished.wait(timeout=5.0)
+    assert solver.wait(timeout=5.0)
 
     assert accepted.get("second") is True
     assert study.run_count == 2
