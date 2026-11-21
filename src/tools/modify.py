@@ -251,6 +251,156 @@ def physics_feature_delete_core(model, physics_name: str, feature_path: str) -> 
                 'error': f'Failed to remove: {e}. Available: {_jtags(listing.tags())}'}
 
 
+def physics_set_feature_selection_core(model, physics_name: str, feature_path: str,
+                                       selection) -> dict:
+    """Set the geometric selection of an existing physics feature.
+
+    selection may be:
+      - a list of entity numbers, e.g. [3, 5, 7]
+      - 'all' to select every entity
+      - a named-selection tag string, e.g. 'side_left'
+    """
+    _, pt, p, err = _find_physics(model, physics_name)
+    if err:
+        return err
+    node, _, _, err = _resolve_feature_path(p, feature_path)
+    if err:
+        return err
+    applied = _apply_selection(node, selection)
+    if 'selection_error' in applied:
+        return {'success': False,
+                'error': applied['selection_error'],
+                'path': f'{physics_name}/{feature_path}'}
+    try:
+        d = _dump_node(node, 'feature', with_selection=True)
+        sel = d.get('selection')
+    except Exception:
+        sel = None
+    return {'success': True, 'path': f'{physics_name}/{feature_path}',
+            'applied': applied, 'selection': sel}
+
+
+def physics_set_interface_selection_core(model, physics_name: str,
+                                         selection) -> dict:
+    """Set the DOMAIN selection of a physics interface itself.
+
+    This is the interface-level selection (right-click the physics node ->
+    Selection in the GUI), which decides WHERE the interface is solved.
+    Feature-level selections cannot restrict the solve domain; this can.
+    """
+    _, pt, p, err = _find_physics(model, physics_name)
+    if err:
+        return err
+    applied = _apply_selection(p, selection)
+    if 'selection_error' in applied:
+        return {'success': False, 'error': applied['selection_error'],
+                'physics': physics_name}
+    try:
+        d = _dump_node(p, 'feature', with_selection=True)
+        sel = d.get('selection')
+    except Exception:
+        sel = None
+    return {'success': True, 'physics': physics_name,
+            'applied': applied, 'selection': sel}
+
+
+def geometry_feature_delete_core(model, feature_tag: str,
+                                 component_name: Optional[str] = None,
+                                 geometry_name: Optional[str] = None) -> dict:
+    """Remove a geometry feature and let the sequence rebuild."""
+    jm = model.java
+    comp_tags = _jtags(jm.component().tags())
+    if component_name:
+        if component_name not in comp_tags:
+            return {'success': False, 'error': f'No component {component_name}',
+                    'available': comp_tags}
+        comp_tag = component_name
+    else:
+        comp_tag = comp_tags[0]
+    comp = jm.component(comp_tag)
+    geom_tags = _jtags(comp.geom().tags())
+    geom_tag = geometry_name or geom_tags[0]
+    if geom_tag not in geom_tags:
+        return {'success': False, 'error': f'No geometry {geom_tag}',
+                'available': geom_tags}
+    geom = comp.geom(geom_tag)
+    tags = _jtags(geom.feature().tags())
+    if feature_tag not in tags:
+        return {'success': False,
+                'error': f'No geometry feature {feature_tag}',
+                'available': tags}
+    try:
+        geom.feature().remove(feature_tag)
+    except Exception as e:
+        return {'success': False,
+                'error': f'Failed to remove: {e}',
+                'available': tags}
+    return {'success': True, 'removed': feature_tag,
+            'component': comp_tag, 'geometry': geom_tag,
+            'remaining': _jtags(geom.feature().tags())}
+
+
+def geometry_set_feature_selection_core(model, feature_tag, selection,
+                                        component_name: Optional[str] = None,
+                                        geometry_name: Optional[str] = None,
+                                        selection_group: Optional[str] = None) -> dict:
+    """Set the entity selection of a geometry feature.
+
+    This is the missing piece for Chamfer / Fillet / Delete-Entities, whose
+    point (or edge) selection cannot be passed through ``set()`` because it
+    is a SELECTION, not a property.
+
+    selection_group names the selection group explicitly ('point', 'input',
+    'input2', ...). When omitted the feature's default selection is used,
+    which is correct for Chamfer / Fillet (their only selection is points).
+    """
+    jm = model.java
+    comp_tags = _jtags(jm.component().tags())
+    if component_name:
+        if component_name not in comp_tags:
+            return {'success': False, 'error': f'No component {component_name}',
+                    'available': comp_tags}
+        comp_tag = component_name
+    else:
+        comp_tag = comp_tags[0]
+    comp = jm.component(comp_tag)
+    geom_tags = _jtags(comp.geom().tags())
+    geom_tag = geometry_name or geom_tags[0]
+    if geom_tag not in geom_tags:
+        return {'success': False, 'error': f'No geometry {geom_tag}',
+                'available': geom_tags}
+    geom = comp.geom(geom_tag)
+    tags = _jtags(geom.feature().tags())
+    if feature_tag not in tags:
+        return {'success': False,
+                'error': f'No geometry feature {feature_tag}',
+                'available': tags}
+    try:
+        node = geom.feature(feature_tag)
+    except Exception as e:
+        return {'success': False, 'error': f'Cannot resolve feature: {e}'}
+    try:
+        target = node.selection(selection_group) if selection_group else node.selection()
+        if selection == 'all':
+            target.all()
+            applied = {'selection': 'all'}
+        elif isinstance(selection, str):
+            target.named(selection)
+            applied = {'selection': f'named:{selection}'}
+        else:
+            target.set([int(x) for x in selection])
+            applied = {'selection': [int(x) for x in selection]}
+    except Exception as e:
+        return {'success': False,
+                'error': f'Failed to set selection: {e}',
+                'hint': 'Try selection_group="point" / "input" / "input2" '
+                        'for features with several selection groups.'}
+    return {'success': True, 'feature': feature_tag,
+            'component': comp_tag, 'geometry': geom_tag,
+            'group': selection_group or 'default',
+            'applied': applied}
+
+
 # ---------------------------------------------------------------------------
 # Solver feature tools
 # ---------------------------------------------------------------------------
@@ -586,6 +736,150 @@ def register_modify_tools(mcp: FastMCP) -> None:
             return err
         try:
             return physics_feature_delete_core(model, physics_name, feature_path)
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+    @mcp.tool()
+    def physics_set_feature_selection(
+        physics_name: str,
+        feature_path: str,
+        selection: Union[list, str],
+        model_name: Optional[str] = None,
+    ) -> dict:
+        """
+        CHANGE the geometric selection of an existing physics feature
+        (nested paths supported). This is the missing write path: COMSOL
+        default features ship with a selection you usually have to edit
+        (e.g. a default Wall on the wrong boundaries, or an Outlet on all
+        boundaries).
+
+        selection accepts:
+          - a list of entity numbers, e.g. [3, 5, 7]
+          - 'all' to select every entity
+          - a named-selection tag string, e.g. 'side_left'
+
+        Args:
+            physics_name: Physics tag or label
+            feature_path: Feature tag path ('wallbc1' or nested 'es2/er1')
+            selection: list[int] | 'all' | named-selection tag
+            model_name: Model name (default: current model)
+
+        Returns:
+            applied selection plus a readback of the feature's selection
+        """
+        model, err = _get_model(model_name)
+        if err:
+            return err
+        try:
+            return physics_set_feature_selection_core(
+                model, physics_name, feature_path, selection)
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+    @mcp.tool()
+    def physics_set_interface_selection(
+        physics_name: str,
+        selection: Union[list, str],
+        model_name: Optional[str] = None,
+    ) -> dict:
+        """
+        Set the DOMAIN selection of a physics INTERFACE (not a feature).
+        This is what decides where the interface is solved at all — e.g.
+        restricting Laminar Flow to the fluid domain only so it is not
+        solved inside solid electrodes.
+
+        selection accepts a list of domain numbers, 'all', or a named
+        selection tag.
+
+        Args:
+            physics_name: Physics tag or label
+            selection: list[int] | 'all' | named-selection tag
+            model_name: Model name (default: current model)
+
+        Returns:
+            applied selection plus a readback of the interface selection
+        """
+        model, err = _get_model(model_name)
+        if err:
+            return err
+        try:
+            return physics_set_interface_selection_core(
+                model, physics_name, selection)
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+    @mcp.tool()
+    def geometry_feature_delete(
+        feature_tag: str,
+        component_name: Optional[str] = None,
+        geometry_name: Optional[str] = None,
+        model_name: Optional[str] = None,
+    ) -> dict:
+        """
+        Remove a geometry feature from the geometry sequence and let it
+        rebuild. Use this to undo a mis-created feature (a Polygon with an
+        empty vertex table, a Chamfer with no points, stray boolean
+        operands, ...) instead of throwing the whole component away.
+
+        Args:
+            feature_tag: Geometry feature tag, e.g. 'cha_anode' / 'pol1'
+            component_name: Component tag (default: first component)
+            geometry_name: Geometry sequence tag (default: first geometry)
+            model_name: Model name (default: current model)
+
+        Returns:
+            Removed tag and the remaining feature tags
+        """
+        model, err = _get_model(model_name)
+        if err:
+            return err
+        try:
+            return geometry_feature_delete_core(
+                model, feature_tag, component_name=component_name,
+                geometry_name=geometry_name)
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+    @mcp.tool()
+    def geometry_set_feature_selection(
+        feature_tag: str,
+        selection: Union[list, str],
+        selection_group: Optional[str] = None,
+        component_name: Optional[str] = None,
+        geometry_name: Optional[str] = None,
+        model_name: Optional[str] = None,
+    ) -> dict:
+        """
+        Set the ENTITY selection of a geometry feature — the missing write
+        path for Chamfer / Fillet / Delete-Entities, whose point selection
+        is a selection (not a property) and therefore cannot be set with
+        geometry_add_feature(properties={...}).
+
+        Typical use: create a Fillet, then point it at the vertices to round:
+            geometry_set_feature_selection(feature_tag='fil1',
+                                           selection=[3, 9],
+                                           selection_group='point')
+
+        Args:
+            feature_tag: Geometry feature tag, e.g. 'fil1' / 'cha1'
+            selection: list[int] | 'all' | named-selection tag
+            selection_group: 'point' / 'input' / 'input2' ... (default: the
+                feature's default selection group)
+            component_name: Component tag (default: first component)
+            geometry_name: Geometry sequence tag (default: first geometry)
+            model_name: Model name (default: current model)
+
+        Returns:
+            The applied selection
+        """
+        model, err = _get_model(model_name)
+        if err:
+            return err
+        try:
+            return geometry_set_feature_selection_core(
+                model, feature_tag, selection,
+                component_name=component_name, geometry_name=geometry_name,
+                selection_group=selection_group)
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
